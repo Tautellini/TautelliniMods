@@ -1,19 +1,22 @@
--- EasyLockpicking for Gothic 1 Remake (v8.2 "per-tier")
--- One behavior, set up once at mod load, driven by config.lua:
+-- EasyLockpicking for Gothic 1 Remake
+-- Grants extra lockpick tries, configured in config.lua:
 --   when the lockpicking minigame starts and LockpickDurability is at a
 --   known vanilla tier base (config.baseTries), it is raised to
 --   base + config.extraTries. Defaults: 2/4/6 -> 12/14/16.
--- Already-raised values are recognized and left alone (idempotent), so
--- values can never stack or run away across sessions, saves or reloads.
--- Unrecognized values are left untouched and logged.
--- No hotkeys, no polling loops, no restore pass, no RegisterHook calls
--- (those crash in this AngelScript engine, see SPEC.md).
+-- The durability value itself identifies the skill tier: already-raised
+-- values are recognized and left alone (idempotent), unknown values are
+-- left untouched and logged. Nothing can stack or run away across
+-- sessions, saves or reloads, so no restore pass is needed.
+-- Deliberately minimal: no hotkeys, no polling loops, no function hooks
+-- (UE4SS script hooks crash against this game's AngelScript layer, see
+-- the G1R modding guide in the repo).
 
 local function log(msg)
     print("[EasyLockpicking] " .. tostring(msg) .. "\n")
 end
 
 -- ---------------------------------------------------------------- config --
+package.loaded["config"] = nil -- so UE4SS hot reload (CTRL+R) picks up edits
 local okCfg, Config = pcall(require, "config")
 if not okCfg or type(Config) ~= "table" then
     log("ERROR in config.lua, using built-in defaults (" .. tostring(Config) .. ")")
@@ -56,8 +59,8 @@ local function findPlayerAttrSet()
 end
 
 -- ----------------------------------------------------------------- boost --
--- The callback runs on the game thread during task construction, BEFORE
--- the minigame snapshots durability (verified in v7.1).
+-- The callback runs on the game thread during task construction, before
+-- the minigame snapshots durability.
 local okNotify, errNotify = pcall(NotifyOnNewObject, "/Script/G1R.AbilityTask_LockPick",
     function()
         local ok, err = pcall(function()
@@ -89,4 +92,4 @@ local loaded = {}
 for name, base in pairs(BaseTries) do
     loaded[#loaded + 1] = string.format("%s %d->%d", name, base, base + ExtraTries)
 end
-log("v8.2 per-tier loaded: " .. table.concat(loaded, ", "))
+log("Loaded: " .. table.concat(loaded, ", "))

@@ -1,39 +1,66 @@
 # LockpickSettings
 
-Makes Gothic 1 Remake lockpicking much easier with the least possible
-machinery. Deployed into the game as UE4SS Lua mod `EasyLockpicking`
-(historical name, see deploy mapping in `tools/deploy.ps1`).
+More lockpick tries for Gothic 1 Remake. Deployed into the game as the
+UE4SS Lua mod `EasyLockpicking` (name mapping in `tools/deploy.ps1`).
 
-## Current state: v8.2 "per-tier"
+## What it does
 
-- One behavior, configured at mod load via `Scripts/config.lua`:
-  when the lockpicking minigame starts and `LockpickDurability` is at a
-  known vanilla tier base (`baseTries`: Untrained 2, Trained 4, Master 6),
-  it is raised to base + `extraTries` (default 10): 2/4/6 -> 12/14/16
-- The durability value itself identifies the tier. Already-raised values
-  (12/14/16) are recognized and left alone (idempotent), so values can
-  never stack or run away across sessions, saves or reloads; no restore
-  pass needed. Unrecognized values are left untouched and logged
-- Removed in v8 (freeze/crash suspects from v7.1): the `LoopAsync`
-  session watcher, all `RegisterKeyBind` hotkeys, `ExecuteInGameThread`
-  deferrals, the end-of-minigame restore
-- Trade-off vs v7.1: the raised durability value does get written to
-  BaseValue and may appear in saves. Harmless, but a save made with the
-  mod is no longer byte-identical to a vanilla one
-- Config changes need a game restart (no hot reload, no hotkeys)
+When the lockpicking minigame starts, the mod raises your lockpick
+durability (failures before the pick breaks) from the vanilla tier value
+to vanilla + bonus:
 
-## Parked / future
+| Skill tier | Vanilla tries | With mod (default) |
+|------------|---------------|--------------------|
+| Untrained  | 2             | 12                 |
+| Trained    | 4             | 14                 |
+| Master     | 6             | 16                 |
 
-- Connection thinning (fewer coupled levels): not reachable from Lua,
-  needs a C++ MinHook detour on the `GothicLockConfig::AddConnection` exec
-  body. Alternative with small save footprint: clamp chest
-  `m_LockDifficulty` so easier lock templates get assigned on first pick
+Every tier gets the same bonus, so skill progression keeps mattering.
 
-## History
+## Configuration
 
-v1-v2 diagnostics, v3 stat curve (rejected: stats), v4-v6 difficulty clamp
-(rejected: wants generated-lock easing), v7 research (found the AS hook
-crash + that locks are never saved), v7.1 tries-only with transient
-boost+restore (froze/crashed: polling watcher + hotkeys), v8 bare-minimum
-idempotent floor (flattened all tiers to 14), v8.2 per-tier base+bonus
-(current). v7 spec: SPEC.md (historical)
+Edit `Scripts/config.lua`, then restart the game or press CTRL+R ingame:
+
+- `baseTries`: vanilla tries per tier. Used to recognize the tier at
+  minigame start and as the base the bonus is added to. Only update these
+  if a game patch changes the vanilla values
+- `extraTries`: the bonus added on top of the base (default 10)
+
+## Install / update
+
+From the repo root:
+
+```powershell
+powershell -File tools\deploy.ps1 -Mod LockpickSettings
+```
+
+This copies `Scripts/` to `G1R\Binaries\Win64\ue4ss\Mods\EasyLockpicking`
+and registers the mod in `mods.txt`. Requires a working UE4SS setup, see
+the G1R modding guide (`../README.md`) for the required settings.
+
+## How it works
+
+- A single UE4SS `NotifyOnNewObject` callback on `AbilityTask_LockPick`
+  fires when the minigame starts and adjusts `LockpickDurability` on the
+  player's `AttributeSet_Lockpicking`
+- The durability value itself identifies the skill tier: a vanilla base
+  value gets raised, an already-raised value is recognized and left alone
+  (idempotent, nothing can stack across sessions or saves), anything else
+  is left untouched and logged
+- Deliberately minimal: no hotkeys, no polling loops, no function hooks.
+  UE4SS script hooks crash against this game's AngelScript layer, and a
+  boost-and-restore design would need exactly that machinery to detect
+  the end of the minigame
+- The raised value is written to the attribute and can end up in saves.
+  This is harmless: at the next minigame start it is recognized and left
+  alone, and the game appears to re-derive durability from the skill tier
+  when a save loads, so stats return to vanilla without the mod
+
+## Troubleshooting
+
+Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[EasyLockpicking]` lines:
+
+- On game start: `Loaded: untrained 2->12, trained 4->14, master 6->16`
+- On each pick attempt: `Minigame: trained tier, tries 4 -> 14`
+- `durability X not a known tier, leaving it alone`: a game patch likely
+  changed the vanilla tier values; update `baseTries` in the config

@@ -59,13 +59,14 @@ These collide with the AngelScript VM dispatch. Keep them off.
 ## Lockpicking system map (for LockpickSettings)
 
 - `AttributeSet_Lockpicking` on the PlayerState: `LockpickDurability`
-  (failures before pick breaks, Untrained vanilla = 4), `LockpickPrecision`
-  (hint quality, Untrained vanilla = 1). Tier GEs: GE_Skill_Picklock_Untrained/Skilled/Master
+  (failures before pick breaks; vanilla Untrained 2, Trained 4, Master 6),
+  `LockpickPrecision` (hint quality, Untrained vanilla = 1).
+  Tier GEs: GE_Skill_Picklock_Untrained/Skilled/Master
 - Minigame: `AbilityTask_LockPick` (5 levels, align red pins, connections
   couple level movement; edge fail costs durability)
 - Locks defined by `GothicLockConfig` (pieces + connections, built eagerly
   for all ~416 world locks at load, NEVER saved: save stores only
   `m_UnlockedLocks`). Chests: `m_LockDifficulty` int drives which template
   is assigned on first pick (assignment persists via `m_OriginalLock`)
-- Connection data is fully unreflected: thinning requires a C++ detour on
-  the AddConnection exec body (parked; see LockpickSettings/SPEC.md)
+- Connection data is fully unreflected: thinning locks (fewer coupled
+  levels) requires a C++ detour on the AddConnection exec body (parked)

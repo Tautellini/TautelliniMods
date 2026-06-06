@@ -9,8 +9,7 @@ folders only ever receive deployed builds, never hand edits.
 TautelliniMods/
 ├── G1R/                    Gothic 1 Remake mods
 │   ├── README.md           Game-specific modding guidance (read first!)
-│   └── LockpickSettings/   Lockpicking difficulty mod (UE4SS Lua)
-│       ├── SPEC.md         Agreed feature spec
+│   └── LockpickSettings/   More lockpick tries (UE4SS Lua)
 │       └── Scripts/        main.lua + config.lua (the mod itself)
 └── tools/
     └── deploy.ps1          Copies a mod build into the live game folder
@@ -26,5 +25,7 @@ TautelliniMods/
 ## Conventions
 
 - One folder per mod under the game's short name (G1R, ...)
-- Each mod has a SPEC.md (what and why) before non-trivial work starts
+- Each mod gets a SPEC.md (what and why) before non-trivial work starts;
+  once shipped, the mod README is the source of truth and the spec is
+  retired (git history keeps it)
 - Research findings that outlive a mod go into the per-game README

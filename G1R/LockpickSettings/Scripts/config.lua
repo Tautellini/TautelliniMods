@@ -1,5 +1,5 @@
--- EasyLockpicking configuration (v8.2 per-tier)
--- Read once when the mod loads (game start). Restart the game after edits.
+-- EasyLockpicking configuration
+-- Apply edits with a game restart, or CTRL+R ingame (UE4SS hot reload).
 
 return {
     -- Vanilla tries (LockpickDurability) per skill tier. Used to recognize
