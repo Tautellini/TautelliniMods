@@ -16,6 +16,10 @@ inventories live in `reference/` (greppable, one line per class).
   PlayerController:ClientRestart hook fine)
 - Safe event sources: `NotifyOnNewObject` (works on AS classes too),
   `RegisterInitGameStatePostHook`, keybinds, polling (sparingly)
+- Hot reload (CTRL+R) RE-REGISTERS keybinds/notifications without
+  removing the old ones: handlers fire once per reload performed.
+  Debounce handlers defensively, and prefer a full game restart after
+  deploying mods that register keybinds or hooks
 - UE4SS TMap access returns a copy; TArray and structs work normally
 - Two write targets: live instances (`FindAllOf`) and class defaults
   (`Default__X` objects, affect everything spawned afterwards)

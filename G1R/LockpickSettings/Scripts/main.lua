@@ -652,27 +652,53 @@ local function startSession(attempt)
         local loc = scene:K2_GetActorLocation()
         local rot = scene:K2_GetActorRotation()
         local lib = StaticFindObject("/Script/Engine.Default__KismetMathLibrary")
-        local r = lib:GetRightVector(rot)
-        local axis = { r.X, r.Y, r.Z }
-        local centerProj = loc.X * axis[1] + loc.Y * axis[2] + loc.Z * axis[3]
-        local rots, ok2 = {}, true
-        for id = 0, s.pieceCount - 1 do
-            local sl = s.slotStart[id]
-            local q = (sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3]
-                - centerProj) / s.stepSize
-            local rr = math.floor(q + 0.5)
-            if math.abs(q - rr) > 0.35 or math.abs(rr) > 3 then
-                ok2 = false
-                break
+        -- the rail axis is one of the scene's local axes, but WHICH one
+        -- differs between lock placements: try right, forward and up
+        local candidates = {}
+        pcall(function()
+            local v = lib:GetRightVector(rot)
+            candidates[#candidates + 1] = { name = "right", v = { v.X, v.Y, v.Z } }
+        end)
+        pcall(function()
+            local v = lib:GetForwardVector(rot)
+            candidates[#candidates + 1] = { name = "forward", v = { v.X, v.Y, v.Z } }
+        end)
+        pcall(function()
+            local v = lib:GetUpVector(rot)
+            candidates[#candidates + 1] = { name = "up", v = { v.X, v.Y, v.Z } }
+        end)
+        for _, cand in ipairs(candidates) do
+            local axis = cand.v
+            local centerProj = loc.X * axis[1] + loc.Y * axis[2] + loc.Z * axis[3]
+            local rots, ok2, worst = {}, true, 0
+            for id = 0, s.pieceCount - 1 do
+                local sl = s.slotStart[id]
+                local q = (sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3]
+                    - centerProj) / s.stepSize
+                local rr = math.floor(q + 0.5)
+                local resid = math.abs(q - rr)
+                if resid > worst then worst = resid end
+                if resid > 0.35 or math.abs(rr) > 3 then
+                    ok2 = false
+                    break
+                end
+                rots[id] = rr
             end
-            rots[id] = rr
-        end
-        if ok2 then
-            s.axis = axis
-            s.axisCalibrated = true
-            s.sign = 1
-            for id = 0, s.pieceCount - 1 do s.rotStart[id] = rots[id] end
-            derived = true
+            if ok2 then
+                s.axis = axis
+                s.axisCalibrated = true
+                s.sign = 1
+                for id = 0, s.pieceCount - 1 do s.rotStart[id] = rots[id] end
+                derived = true
+                if DebugSolver then
+                    log(string.format("solver: rail axis = scene %s vector "
+                        .. "(worst residual %.2f)", cand.name, worst))
+                end
+                break
+            elseif DebugSolver then
+                log(string.format("solver: scene %s vector rejected "
+                    .. "(residual %.2f)", cand.name, worst))
+            end
         end
     end)
     if derived then
@@ -719,12 +745,14 @@ local function setNextMove(active)
     local s = Session
     if s and not s.stop then
         if active then
-            -- defer planning OFF the input-dispatch path: a BFS inside
-            -- the keybind handler is the prime suspect in game freezes
-            -- on toggling
+            -- defer planning OFF the input-dispatch path, and coalesce:
+            -- at most one pending replan regardless of toggle spam
+            if s.replanPending then return end
+            s.replanPending = true
             ExecuteWithDelay(50, function()
                 ExecuteInGameThread(function()
                     local ok, err = pcall(function()
+                        s.replanPending = false
                         if Session == s and not s.stop and NextMoveActive then
                             local t0 = os.clock()
                             s.nextMove = solverReplan(s)
@@ -747,9 +775,16 @@ local function setNextMove(active)
     end
 end
 
+local lastToggle = 0
 if type(HotkeyName) == "string" and HotkeyName ~= "" and not NextMoveBroken then
     if Key[HotkeyName] then
         pcall(RegisterKeyBind, Key[HotkeyName], function()
+            -- debounce: rapid repeats (and duplicate registrations after
+            -- a hot reload) piled up 100ms planning tasks until UE4SS
+            -- aborted; one toggle per 300ms is plenty
+            local now = os.clock()
+            if now - lastToggle < 0.3 then return end
+            lastToggle = now
             ExecuteInGameThread(function()
                 pcall(setNextMove, not NextMoveActive)
             end)
