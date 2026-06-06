@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;padding:0;background:#0a0806;}svg{display:block;}</style>
+</head>
+<body>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="38%" cy="40%" r="85%">
+      <stop offset="0%" stop-color="#2e2517"/>
+      <stop offset="55%" stop-color="#171208"/>
+      <stop offset="100%" stop-color="#080604"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="72%">
+      <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.75"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0d89c"/>
+      <stop offset="45%" stop-color="#d4b06a"/>
+      <stop offset="100%" stop-color="#9a763c"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8a7448"/>
+      <stop offset="45%" stop-color="#5d4b29"/>
+      <stop offset="100%" stop-color="#33270f"/>
+    </linearGradient>
+    <linearGradient id="plateGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9fe07a"/>
+      <stop offset="45%" stop-color="#4f9a3a"/>
+      <stop offset="100%" stop-color="#1f4a14"/>
+    </linearGradient>
+    <linearGradient id="plateLocked" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#55482e"/>
+      <stop offset="100%" stop-color="#241b0c"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#241c0e"/>
+      <stop offset="100%" stop-color="#120d06"/>
+    </linearGradient>
+    <linearGradient id="divider" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d4b06a"/>
+      <stop offset="70%" stop-color="#7a6234" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#7a6234" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glowGreen" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="14" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <g stroke="#c9ad72" stroke-opacity="0.05" stroke-width="2">
+    <line x1="-100" y1="340" x2="900" y2="-60"/>
+    <line x1="100" y1="1180" x2="1500" y2="240"/>
+    <line x1="700" y1="1200" x2="2000" y2="500"/>
+  </g>
+
+  <!-- ===================== lock panel, right side ===================== -->
+  <g filter="url(#softShadow)">
+    <rect x="1090" y="200" width="680" height="680" rx="26" fill="url(#panel)"
+          stroke="#241b0c" stroke-width="5"/>
+    <g fill="#3a2e16" stroke="#1c1408" stroke-width="2">
+      <circle cx="1124" cy="234" r="9"/>
+      <circle cx="1736" cy="234" r="9"/>
+      <circle cx="1124" cy="846" r="9"/>
+      <circle cx="1736" cy="846" r="9"/>
+    </g>
+  </g>
+
+  <!-- center column = the open position -->
+  <rect x="1424" y="232" width="12" height="616" fill="#0c0905"/>
+  <rect x="1426" y="232" width="8" height="616" fill="#d4b06a" opacity="0.18"/>
+
+  <!-- rails -->
+  <g stroke="#0c0905" stroke-width="14" stroke-linecap="round">
+    <line x1="1150" y1="300" x2="1710" y2="300"/>
+    <line x1="1150" y1="420" x2="1710" y2="420"/>
+    <line x1="1150" y1="540" x2="1710" y2="540"/>
+    <line x1="1150" y1="660" x2="1710" y2="660"/>
+    <line x1="1150" y1="780" x2="1710" y2="780"/>
+  </g>
+
+  <!-- faint connection chain between row 2 and row 4 plates -->
+  <path d="M 1610 420 C 1680 470 1300 600 1252 660" fill="none"
+        stroke="#d4b06a" stroke-opacity="0.28" stroke-width="4" stroke-dasharray="2 12"
+        stroke-linecap="round"/>
+
+  <!-- plates -->
+  <!-- row 1: locked in at the center (dim, sunk) -->
+  <g>
+    <rect x="1382" y="272" width="96" height="56" rx="12" fill="url(#plateLocked)"
+          stroke="#1c1408" stroke-width="3"/>
+    <circle cx="1430" cy="300" r="9" fill="#181104"/>
+  </g>
+  <!-- row 2: normal plate, right side -->
+  <rect x="1562" y="392" width="96" height="56" rx="12" fill="url(#plate)"
+        stroke="#241b0c" stroke-width="3"/>
+  <!-- row 3: THE GREEN ONE, left of center, arrow toward center -->
+  <g filter="url(#glowGreen)">
+    <rect x="1196" y="512" width="96" height="56" rx="12" fill="url(#plateGreen)"
+          stroke="#bdf09a" stroke-width="3"/>
+  </g>
+  <g fill="#9fe07a" filter="url(#glowGreen)">
+    <path d="M 1316 540 L 1390 540 L 1390 524 L 1422 540 L 1390 556 L 1390 540 Z" opacity="0.9"/>
+  </g>
+  <!-- row 4: normal plate, left side -->
+  <rect x="1242" y="632" width="96" height="56" rx="12" fill="url(#plate)"
+        stroke="#241b0c" stroke-width="3"/>
+  <!-- row 5: normal plate, right of center -->
+  <rect x="1492" y="752" width="96" height="56" rx="12" fill="url(#plate)"
+        stroke="#241b0c" stroke-width="3"/>
+
+  <!-- caption under the panel -->
+  <text x="1430" y="932" font-family="Palatino Linotype, Georgia, serif" font-size="30"
+        fill="#8d7b54" text-anchor="middle" letter-spacing="2">FOLLOW THE GREEN</text>
+
+  <!-- ===================== text block, left side ===================== -->
+  <g font-family="Palatino Linotype, Georgia, serif">
+    <text x="164" y="332" font-size="34" letter-spacing="9" fill="#8d7b54">LOCKPICKSETTINGS</text>
+    <text x="158" y="476" font-size="110" font-weight="bold" letter-spacing="2"
+          fill="url(#gold)" filter="url(#softShadow)">Next-Move Hint</text>
+    <rect x="164" y="526" width="820" height="4" fill="url(#divider)"/>
+    <text x="164" y="606" font-size="44" fill="#c2ad7e">The piece to move next glows green.</text>
+    <text x="164" y="664" font-size="34" fill="#776747">Computed from the lock's live state, replanned after every move.</text>
+    <text x="164" y="712" font-size="34" fill="#776747">Lock layouts for all 416 locks built in. Keyboard and controller.</text>
+  </g>
+
+  <!-- F7 keycap -->
+  <g filter="url(#softShadow)">
+    <rect x="164" y="790" width="110" height="96" rx="16" fill="url(#plate)"
+          stroke="#241b0c" stroke-width="4"/>
+    <rect x="172" y="796" width="94" height="74" rx="12" fill="#241c0e"/>
+    <text x="219" y="850" font-family="Palatino Linotype, Georgia, serif" font-size="44"
+          font-weight="bold" fill="url(#gold)" text-anchor="middle">F7</text>
+  </g>
+  <text x="304" y="836" font-family="Palatino Linotype, Georgia, serif" font-size="34"
+        fill="#9b8a60">toggle ingame</text>
+  <text x="304" y="876" font-family="Palatino Linotype, Georgia, serif" font-size="28"
+        fill="#6d5d3c">off by default, your call when to cheat</text>
+
+  <!-- sparks -->
+  <g fill="#f2d488" filter="url(#glow)">
+    <path d="M 1054 256 l 4 -13 4 13 13 4 -13 4 -4 13 -4 -13 -13 -4 Z" opacity="0.7"/>
+    <path d="M 1806 880 l 3 -10 3 10 10 3 -10 3 -3 10 -3 -10 -10 -3 Z" opacity="0.55"/>
+  </g>
+
+  <!-- vignette -->
+  <rect width="1920" height="1080" fill="url(#vignette)"/>
+</svg>
+</body>
+</html>

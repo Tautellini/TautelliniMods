@@ -1,6 +1,9 @@
 LockpickSettings for Gothic 1 Remake
-More tries before your lockpick breaks: 12/14/16 instead of vanilla 2/4/6,
-scaling with your Picklock skill tier.
+1. More tries before your lockpick breaks: 12/14/16 instead of vanilla
+   2/4/6, scaling with your Picklock skill tier.
+2. Optional next-move hint: press F7 during the minigame and the piece
+   to move next is tinted green, recomputed after every move. Works
+   with keyboard and controller. Off by default.
 
 Requires UE4SS, experimental build (the game runs UE 5.4.3):
 https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest
@@ -13,12 +16,17 @@ Install:
    The included enabled.txt activates the mod automatically;
    no mods.txt editing is needed.
 3. Start the game. ...\ue4ss\UE4SS.log should show:
-   [LockpickSettings] Loaded: untrained 2->12, trained 4->14, master 6->16
+   [LockpickSettings] Loaded: untrained 2->12, trained 4->14,
+   master 6->16, next-move hint off (416 lock graphs, toggle: F7)
 
-Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the bonus,
-baseTries = vanilla tries per tier). Apply with a game restart or CTRL+R.
+Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the
+bonus, baseTries = vanilla tries per tier, showNextMove = hint state at
+game start, nextMoveHotkey = the toggle key). Apply with a game restart
+or CTRL+R. Tip: activate the hint at the START of a lock, the mod
+cannot know moves made before activation.
 
-Uninstall: delete the LockpickSettings folder, or just its enabled.txt file
-to keep the mod around but inactive. Lockpicking returns to vanilla behavior.
+Uninstall: delete the LockpickSettings folder, or just its enabled.txt
+file to keep the mod around but inactive. Everything returns to vanilla
+behavior.
 
 Source: https://github.com/Tautellini/TautelliniMods

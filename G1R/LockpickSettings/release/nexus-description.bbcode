@@ -1,9 +1,9 @@
 [center][size=5][b]LockpickSettings[/b][/size]
-[i]More tries before your lockpick breaks.[/i][/center]
+[i]More tries before your lockpick breaks, and an optional next-move hint.[/i][/center]
 [line]
 [size=4][b]What it does[/b][/size]
 
-When the lockpicking minigame starts, the mod raises your lockpick durability (the number of failed attempts before the pick breaks) from the vanilla value of your Picklock skill tier to vanilla + 10:
+[b]1. More tries.[/b] When the lockpicking minigame starts, the mod raises your lockpick durability (the number of failed attempts before the pick breaks) from the vanilla value of your Picklock skill tier to vanilla + 10:
 
 [list]
 [*][b]Untrained:[/b] 2 -> 12 tries
@@ -12,6 +12,16 @@ When the lockpicking minigame starts, the mod raises your lockpick durability (t
 [/list]
 
 Every tier gets the same bonus, so learning the skill still matters. Both the bonus and the per-tier vanilla values are configurable.
+
+[b]2. Next-move hint (optional, off by default).[/b] Press [b]F7[/b] during the lockpicking minigame and the piece you should move next is tinted [color=#66ff66][b]green[/b][/color], recomputed after every move from the lock's live state. Follow the green and the lock opens on the shortest path.
+
+[list]
+[*]Works identically with keyboard and controller; the hint follows the lock, not your inputs.
+[*]The lock layouts (pieces and their hidden connections) ship with the mod, extracted from the game's own data files for all 416 locks.
+[*]The game removes some connections at runtime depending on your skill; the mod detects that from your moves and adapts, so a hint can occasionally lag one move behind.
+[*]For best results activate the hint at the start of a lock, not midway through.
+[*]The master perk (removing connections when a pick breaks) keeps its full value.
+[/list]
 
 [size=4][b]Requirements[/b][/size]
 
@@ -26,10 +36,11 @@ Grab the regular UE4SS zip, not the zDEV developer package.
 [*]Extract the LockpickSettings zip from this page into [b]...\G1R\Binaries\Win64\ue4ss\Mods[/b]. You should end up with:
 [code]...\ue4ss\Mods\LockpickSettings\enabled.txt
 ...\ue4ss\Mods\LockpickSettings\Scripts\main.lua
-...\ue4ss\Mods\LockpickSettings\Scripts\config.lua[/code]
+...\ue4ss\Mods\LockpickSettings\Scripts\config.lua
+...\ue4ss\Mods\LockpickSettings\Scripts\lockgraphs.lua[/code]
 The included enabled.txt activates the mod automatically; you do NOT need to edit mods.txt.
 [*]Start the game. [b]...\ue4ss\UE4SS.log[/b] should now contain:
-[code][LockpickSettings] Loaded: untrained 2->12, trained 4->14, master 6->16[/code]
+[code][LockpickSettings] Loaded: untrained 2->12, trained 4->14, master 6->16, next-move hint off (416 lock graphs, toggle: F7)[/code]
 [/list]
 
 [size=4][b]Configuration[/b][/size]
@@ -39,6 +50,9 @@ Edit [b]...\ue4ss\Mods\LockpickSettings\Scripts\config.lua[/b]:
 [list]
 [*][b]extraTries[/b]: the bonus added on top of the vanilla tries (default 10)
 [*][b]baseTries[/b]: the vanilla tries per skill tier; only touch these if a game patch changes them
+[*][b]showNextMove[/b]: whether the next-move hint is active at game start (default false)
+[*][b]nextMoveHotkey[/b]: the key that toggles the hint ingame (default "F7", "" disables the hotkey)
+[*][b]debugSolver[/b]: verbose solver logging for bug reports (default false)
 [/list]
 
 Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
@@ -48,8 +62,9 @@ Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
 [list]
 [*]A single UE4SS Lua callback fires when the lockpicking minigame starts and adjusts the LockpickDurability attribute on the player. No game files are modified, nothing is patched on disk.
 [*]The durability value itself identifies your skill tier: vanilla values get raised, already raised values are recognized and left alone. Nothing can stack or run away across sessions and saves.
+[*]The next-move hint reads the lock's live state from the game's material parameter collection a few times per second, only while a minigame is open, and computes the shortest solution with a small search. It tints one piece via a material parameter; nothing else is touched.
 [*]Uninstalling returns lockpicking to vanilla behavior; the game rebuilds the stat from your skill tier when a save loads.
-[*]Deliberately minimal: no hotkeys, no polling loops, no function hooks.
+[*]No function hooks into game code, no input interception.
 [/list]
 
 [size=4][b]Troubleshooting[/b][/size]
@@ -57,10 +72,12 @@ Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
 [list]
 [*][b]No log lines / mod not loading:[/b] check the folder layout (exactly as shown above, with enabled.txt directly inside the LockpickSettings folder).
 [*][b]"durability X not a known tier" in the log:[/b] a game patch changed the vanilla values; update baseTries in config.lua.
+[*][b]Hint seems wrong right after toggling it on mid-lock:[/b] the mod cannot know moves made before activation; toggle it on at the start of a lock.
+[*][b]"No graph data for lock" in the log:[/b] that lock is not in the shipped data (one lock in the game has none, and future patches may add locks); the hint stays off for it, everything else works.
 [*][b]Game hard-freezes when loading a save with UE4SS installed:[/b] some UE4SS engine hooks can collide with this game's AngelScript layer. The mod needs none of them, so you can safely turn them off in ue4ss\UE4SS-settings.ini: set HookProcessInternal, HookProcessLocalScriptFunction, HookUObjectProcessEvent, HookCallFunctionByNameWithArguments and HookAActorTick to 0, and bUseUObjectArrayCache to false.
 [*][b]Access violation when quitting the game:[/b] known cosmetic UE4SS teardown issue, happens after everything has been saved. Harmless.
 [/list]
 
 [size=4][b]Source[/b][/size]
 
-Lua source and dev notes: [url=https://github.com/Tautellini/TautelliniMods]github.com/Tautellini/TautelliniMods[/url]
+Lua source, the lock-data extractor and dev notes: [url=https://github.com/Tautellini/TautelliniMods]github.com/Tautellini/TautelliniMods[/url]
