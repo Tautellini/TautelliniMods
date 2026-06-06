@@ -414,26 +414,45 @@ local function processMove(s, moved, count, prev, now)
             end
         end
     end
-    -- per-event step integration: each settled move contributes a small
-    -- count (1-3 steps), safely roundable despite the slot grid's slight
-    -- nonuniformity (~6.1-6.3 units); the step estimate is refined from
-    -- every event. Cumulative division drifted and is gone.
-    for id in pairs(moved) do
-        local a, b = prev[id], now[id]
-        if a and b then
-            local dx = { b[1] - a[1], b[2] - a[2], b[3] - a[3] }
-            local len = math.sqrt(dx[1] * dx[1] + dx[2] * dx[2] + dx[3] * dx[3])
-            if not s.axis and len > 3.0 then
-                s.axis = { dx[1] / len, dx[2] / len, dx[3] / len }
-            end
-            if s.axis then
-                local proj = dx[1] * s.axis[1] + dx[2] * s.axis[2] + dx[3] * s.axis[3]
-                local n = math.max(1, math.floor(math.abs(proj) / s.stepSize + 0.5))
-                local stepEmp = math.abs(proj) / n
-                if stepEmp > 5.0 and stepEmp < 7.5 then
-                    s.stepSize = 0.7 * s.stepSize + 0.3 * stepEmp
+    -- absolute state measurement: steps = displacement from the session
+    -- start projected on the rail axis, divided by the step size. No
+    -- accumulation, so rounding errors, aggregated events and RESETS
+    -- cannot drift the tracked state (resets simply land wherever the
+    -- pieces physically are). Step estimate refined from single-step
+    -- events only.
+    if not s.axis then
+        -- fallback: axis from the direction of the first observed move
+        for id in pairs(moved) do
+            local a, b = prev[id], now[id]
+            if a and b then
+                local dx = { b[1] - a[1], b[2] - a[2], b[3] - a[3] }
+                local len = math.sqrt(dx[1] * dx[1] + dx[2] * dx[2] + dx[3] * dx[3])
+                if len > 3.0 then
+                    s.axis = { dx[1] / len, dx[2] / len, dx[3] / len }
+                    break
                 end
-                s.steps[id] = (s.steps[id] or 0) + (proj >= 0 and n or -n)
+            end
+        end
+    end
+    if s.axis then
+        for id in pairs(moved) do
+            local a, b = prev[id], now[id]
+            if a and b then
+                local dproj = (b[1] - a[1]) * s.axis[1] + (b[2] - a[2]) * s.axis[2]
+                    + (b[3] - a[3]) * s.axis[3]
+                if math.floor(math.abs(dproj) / s.stepSize + 0.5) == 1
+                    and math.abs(dproj) > 5.0 and math.abs(dproj) < 7.5 then
+                    s.stepSize = 0.7 * s.stepSize + 0.3 * math.abs(dproj)
+                end
+            end
+        end
+        for id = 0, s.pieceCount - 1 do
+            local from, cur = s.slotStart[id], now[id]
+            if from and cur then
+                local proj = (cur[1] - from[1]) * s.axis[1]
+                    + (cur[2] - from[2]) * s.axis[2]
+                    + (cur[3] - from[3]) * s.axis[3]
+                s.steps[id] = math.floor(proj / s.stepSize + 0.5)
             end
         end
     end
@@ -455,7 +474,12 @@ local function processMove(s, moved, count, prev, now)
         s.screenRight = cameraRightProj(s)
     end
     -- plan only while the green is shown; tracking runs regardless
+    local t0 = os.clock()
     s.nextMove = NextMoveActive and solverReplan(s) or nil
+    if DebugSolver and NextMoveActive then
+        local ms = (os.clock() - t0) * 1000
+        if ms > 100 then log(string.format("solver: replan took %.0f ms", ms)) end
+    end
     if DebugSolver then
         local rots = {}
         for id = 0, s.pieceCount - 1 do
@@ -616,11 +640,54 @@ local function startSession(attempt)
     -- open position = the rail center, rotation 0 (user-verified:
     -- "all pins on position 4 of 7")
     s.openRot = 0
-    if calibrateAxis(s) then
+    -- THE GAME RE-SCRAMBLES STARTING POSITIONS PER ATTEMPT (verified:
+    -- a reset landed on positions unrelated to the authored ones), so
+    -- mined rotations must never be trusted for the current state. The
+    -- live state is read from geometry instead: the scene actor sits at
+    -- the rail center and its right vector is the rail axis; each
+    -- piece's rotation = (slot - center) projected on the axis / step.
+    -- Mined data contributes only the connection graph (name-stable).
+    local derived = false
+    pcall(function()
+        local loc = scene:K2_GetActorLocation()
+        local rot = scene:K2_GetActorRotation()
+        local lib = StaticFindObject("/Script/Engine.Default__KismetMathLibrary")
+        local r = lib:GetRightVector(rot)
+        local axis = { r.X, r.Y, r.Z }
+        local centerProj = loc.X * axis[1] + loc.Y * axis[2] + loc.Z * axis[3]
+        local rots, ok2 = {}, true
+        for id = 0, s.pieceCount - 1 do
+            local sl = s.slotStart[id]
+            local q = (sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3]
+                - centerProj) / s.stepSize
+            local rr = math.floor(q + 0.5)
+            if math.abs(q - rr) > 0.35 or math.abs(rr) > 3 then
+                ok2 = false
+                break
+            end
+            rots[id] = rr
+        end
+        if ok2 then
+            s.axis = axis
+            s.axisCalibrated = true
+            s.sign = 1
+            for id = 0, s.pieceCount - 1 do s.rotStart[id] = rots[id] end
+            derived = true
+        end
+    end)
+    if derived then
         s.screenRight = cameraRightProj(s)
         if DebugSolver then
-            log("solver: axis pre-calibrated from slot geometry, screenRight="
-                .. tostring(s.screenRight))
+            local rr = {}
+            for id = 0, s.pieceCount - 1 do rr[#rr + 1] = s.rotStart[id] end
+            log("solver: live start rots [" .. table.concat(rr, ",")
+                .. "] (geometric), screenRight=" .. tostring(s.screenRight))
+        end
+    else
+        log("Solver: live geometry not readable, assuming authored start "
+            .. "positions (hints may be wrong on re-scrambled locks)")
+        if calibrateAxis(s) then
+            s.screenRight = cameraRightProj(s)
         end
     end
     s.nextMove = NextMoveActive and solverReplan(s) or nil
@@ -652,13 +719,31 @@ local function setNextMove(active)
     local s = Session
     if s and not s.stop then
         if active then
-            s.nextMove = solverReplan(s)
-            if DebugSolver then
-                log("solver: hint on toggle: "
-                    .. (s.nextMove and ("piece " .. s.nextMove.piece) or "none"))
-            end
+            -- defer planning OFF the input-dispatch path: a BFS inside
+            -- the keybind handler is the prime suspect in game freezes
+            -- on toggling
+            ExecuteWithDelay(50, function()
+                ExecuteInGameThread(function()
+                    local ok, err = pcall(function()
+                        if Session == s and not s.stop and NextMoveActive then
+                            local t0 = os.clock()
+                            s.nextMove = solverReplan(s)
+                            if DebugSolver then
+                                log(string.format(
+                                    "solver: toggle replan %.0f ms, hint=%s",
+                                    (os.clock() - t0) * 1000,
+                                    s.nextMove and ("piece " .. s.nextMove.piece)
+                                    or "none"))
+                            end
+                            retint(s)
+                        end
+                    end)
+                    if not ok then log("Toggle error: " .. tostring(err)) end
+                end)
+            end)
+        else
+            retint(s) -- restores the tinted piece immediately
         end
-        retint(s) -- paints or restores the green immediately
     end
 end
 

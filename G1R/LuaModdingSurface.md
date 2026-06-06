@@ -128,18 +128,42 @@ Verified in-game 2026-06-06 (LockProbe sessions, see
   units per step, 10 units row spacing; slot index = piece id). The
   selection indicator itself is rendered GPU-side: no reflected
   property anywhere holds the selected row (exhaustively searched)
-- Solved-state mechanics (all verified for the solver): rails span 7
-  positions (rotations -3..+3, the mined rot = start position); the
-  OPEN position is the center (rot 0) and a piece FREEZES once it
-  reaches it. Drags are direct-only (no cascading) and directed;
-  clamped/frozen partners stay put. The game removes roughly
-  LockpickPrecision connections per lock at runtime, so mined graphs
-  are upper bounds: prune edges from observed solo-moves
-- The bars visually track each piece's rotation continuously
+- Minigame mechanics (hard-won; each item below replaced a plausible
+  but WRONG model, see the graveyard): rails span 7 positions
+  (rotations -3..+3), the OPEN position is the center (rot 0). Pieces
+  NEVER freeze, not even at the center. Moves are ATOMIC: the mover
+  and every dragged partner must stay within the rail or the game
+  rejects the whole move; this is the only blocking mechanism and the
+  sole reason a piece can appear "unmovable". Drags are direct-only
+  (no cascading) and directed per the mined dir (+1 same direction,
+  -1 opposite)
+- STARTING POSITIONS ARE RE-SCRAMBLED PER ATTEMPT: the mined rot is
+  only the authored scramble (seen on the first encounter); re-opening
+  a lock randomizes the positions under the same lock name. Never
+  trust mined rots for live state. Read geometry instead: the scene
+  actor's location is the rail center, its right vector the rail
+  axis, and a piece's rotation = round((slot - center) projected on
+  the axis / step). Mined data is name-stable ONLY for the connection
+  graph and the piece count
+- The game removes roughly LockpickPrecision connections per lock at
+  runtime, so mined graphs are upper bounds. Learn dead edges from
+  observed moved-sets: exact covers confirm a mover's edges as active,
+  and a contradiction-free unique superset candidate prunes its
+  missing edges
+- Bars visually track each piece's rotation continuously
   (m_RotationToBarOffset); they are NOT lock-in latches and carry no
-  extra state. The slot grid is slightly nonuniform (~6.1-6.3 per
-  step): integrate steps per move EVENT instead of dividing cumulative
-  displacement, or counters drift by one
+  state worth reading. The slot grid is slightly nonuniform (~6.1-6.3
+  units per step): measure state as ABSOLUTE displacement from a
+  reference position, never by accumulating per-event deltas
+- Model graveyard (tried, disproved in-game, do not revisit):
+  lock-in freeze at the center; partners clamping independently while
+  the mover proceeds; bar transitions as an openness signal (false
+  positives poisoned the step calibration); m_RotationToBarOffset as
+  the goal-rotation source (gave -1, truth is 0); camera-projection
+  row ordering (scrambled; the visual row IS the piece id);
+  input-event mirroring for selection tracking (drifts, fails on
+  controller); mined rots as the live start state (re-scrambled per
+  attempt)
 
 ## 4. Crime, theft, reputation (AS tuning configs)
 

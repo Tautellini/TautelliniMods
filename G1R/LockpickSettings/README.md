@@ -70,17 +70,21 @@ a working UE4SS setup, see the G1R modding guide (`../README.md`).
   value gets raised, an already-raised value is recognized and left alone
   (idempotent, nothing can stack across sessions or saves), anything else
   is left untouched and logged
-- The next-move hint uses lock layouts shipped in
+- The next-move hint uses the connection graphs shipped in
   `Scripts/lockgraphs.lua`, extracted offline from the game's compiled
   AngelScript blob (`tools/extract_locks.py`); the running game exposes
-  no readable graph. Live piece positions come from the game's
-  `MPC_Lockpicking` material collection (Slot_i = world position of
-  piece i), the goal rotation from the scene's `m_RotationToBarOffset`,
-  and a budgeted BFS finds the shortest move sequence. A lean poll tick
-  (2.5x/s, cached references only) detects settled moves, prunes
-  connections the game deactivated, replans, and re-asserts the green
-  tint via the piece's dynamic material parameter `HighlightColor`.
-  Everything dies with the minigame scene
+  no readable graph, and the graph is the ONLY thing taken from mined
+  data. Everything else is measured live, because the game re-scrambles
+  starting positions on every attempt: piece positions come from the
+  `MPC_Lockpicking` material collection, current rotations from scene
+  geometry (scene actor = rail center, its right vector = rail axis),
+  and a budgeted BFS plans the shortest sequence under the verified
+  rules: atomic moves (rejected entirely if any dragged piece would
+  leave its rail), no freezing, goal = all pieces centered. Connections
+  the game deactivated at your skill level are learned and pruned from
+  observed moves. A lean poll tick (2.5x/s, cached references only)
+  watches for settled moves and re-asserts the tint; everything dies
+  with the minigame scene
 - No hotkeys, no function hooks. G1R/AS natives cannot be intercepted
   from Lua (hooks register but never fire, see the modding guide), and a
   boost-and-restore design would need exactly that machinery to detect
