@@ -175,7 +175,7 @@ end
 -- re-assert the green every tick (the game's move FX rewrites the
 -- channel); restore the previous target once when the target changes
 local function retint(s)
-    local want = s.nextMove and s.nextMove.piece or nil
+    local want = (NextMoveActive and s.nextMove) and s.nextMove.piece or nil
     if s.greenId and s.greenId ~= want then
         local e = s.pieces[s.greenId]
         if e and e.default then writeColor(e, e.default) end
@@ -316,7 +316,8 @@ local function processMove(s, moved, count, prev, now)
         s.sign = -s.sign
         if DebugSolver then log("solver: rail axis sign flipped") end
     end
-    s.nextMove = solverReplan(s)
+    -- plan only while the green is shown; tracking runs regardless
+    s.nextMove = NextMoveActive and solverReplan(s) or nil
     if DebugSolver then
         local rots = {}
         for id = 0, s.pieceCount - 1 do
@@ -389,8 +390,12 @@ local function solverTick(s)
     retint(s)
 end
 
+-- The session ALWAYS runs while a minigame is open (state tracking is
+-- cheap); the hotkey only toggles whether the green is painted. This
+-- makes mid-lock activation exact: by the time the player presses the
+-- key, every move has already been accounted for.
 local function startSession(attempt)
-    if not NextMoveActive or Session ~= nil then return end
+    if NextMoveBroken or Session ~= nil then return end
     local lockName = currentLockName()
     local graph = lockName and LockGraphs[lockName]
     if not graph then
@@ -473,7 +478,7 @@ local function startSession(attempt)
     -- open position = the rail center, rotation 0 (user-verified:
     -- "all pins on position 4 of 7")
     s.openRot = 0
-    s.nextMove = solverReplan(s)
+    s.nextMove = NextMoveActive and solverReplan(s) or nil
     Session = s
     retint(s)
     log(string.format("Next-move hint: %s, %d pieces, %d connections, first hint: %s",
@@ -494,25 +499,15 @@ local function startSession(attempt)
 end
 
 -- ---------------------------------------------------------------- toggle --
+-- toggles only the green paint; the tracking session keeps running
 local function setNextMove(active)
     if NextMoveBroken then return end
     NextMoveActive = active
     log("Next-move hint " .. (active and "ON" or "OFF"))
-    if not active then
-        local s = Session
-        Session = nil
-        if s then
-            s.stop = true
-            -- restore the current green piece to its snapshot
-            if s.greenId then
-                local e = s.pieces[s.greenId]
-                if e and e.default then writeColor(e, e.default) end
-            end
-        end
-    else
-        -- if a minigame is already open, start right away
-        local ok, err = pcall(startSession, 1)
-        if not ok then log("Next-move hint error: " .. tostring(err)) end
+    local s = Session
+    if s and not s.stop then
+        if active then s.nextMove = solverReplan(s) end
+        retint(s) -- paints or restores the green immediately
     end
 end
 
@@ -543,7 +538,7 @@ local okNotify, errNotify = pcall(NotifyOnNewObject, "/Script/G1R.AbilityTask_Lo
     function()
         local ok, err = pcall(boostTries)
         if not ok then log("Boost error: " .. tostring(err)) end
-        if NextMoveActive then
+        if not NextMoveBroken then
             ExecuteWithDelay(900, function()
                 ExecuteInGameThread(function()
                     local ok2, err2 = pcall(startSession, 1)

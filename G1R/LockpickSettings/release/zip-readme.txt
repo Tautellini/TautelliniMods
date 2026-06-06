@@ -22,8 +22,8 @@ Install:
 Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the
 bonus, baseTries = vanilla tries per tier, showNextMove = hint state at
 game start, nextMoveHotkey = the toggle key). Apply with a game restart
-or CTRL+R. Tip: activate the hint at the START of a lock, the mod
-cannot know moves made before activation.
+or CTRL+R. The hint can be toggled at any time, even mid-pick: the mod
+follows every lock from its start, the key only switches the highlight.
 
 Uninstall: delete the LockpickSettings folder, or just its enabled.txt
 file to keep the mod around but inactive. Everything returns to vanilla

@@ -19,10 +19,10 @@ return {
     -- Next-move hint: the piece you should move next is tinted green,
     -- recomputed after every move from the lock's live state. Entirely
     -- state-driven: needs no input tracking, works identically with
-    -- keyboard and controller. The first hint of a lock can point at a
-    -- suboptimal piece until your first move calibrates the rail
-    -- direction; hints self-correct from there.
-    -- This is the state at game start; toggle ingame with the hotkey.
+    -- keyboard and controller. Tracking runs from the start of every
+    -- lock regardless of this setting, so toggling the highlight on
+    -- mid-pick is exact; the hotkey only switches the green paint.
+    -- This is the state at game start.
     showNextMove = false,
 
     -- Hotkey that toggles the next-move hint ingame (UE4SS key name,
