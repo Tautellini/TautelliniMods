@@ -1,0 +1,1 @@
+More tries before your lockpick breaks: 12/14/16 instead of vanilla 2/4/6, scaling with your Picklock skill tier. Pure UE4SS Lua script, no game files modified, fully configurable, safe to add or remove at any time.

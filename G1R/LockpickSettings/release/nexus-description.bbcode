@@ -1,0 +1,66 @@
+[center][size=5][b]EasyLockpicking[/b][/size]
+[i]More tries before your lockpick breaks.[/i][/center]
+[line]
+[size=4][b]What it does[/b][/size]
+
+When the lockpicking minigame starts, the mod raises your lockpick durability (the number of failed attempts before the pick breaks) from the vanilla value of your Picklock skill tier to vanilla + 10:
+
+[list]
+[*][b]Untrained:[/b] 2 -> 12 tries
+[*][b]Trained:[/b] 4 -> 14 tries
+[*][b]Master:[/b] 6 -> 16 tries
+[/list]
+
+Every tier gets the same bonus, so learning the skill still matters. Both the bonus and the per-tier vanilla values are configurable.
+
+[size=4][b]Requirements[/b][/size]
+
+[url=https://github.com/UE4SS-RE/RE-UE4SS]UE4SS[/url] in an experimental build. The game runs Unreal Engine 5.4.3, which the stable UE4SS 3.0.1 release predates, so download the [b]experimental-latest[/b] release:
+[url=https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest]https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest[/url]
+Grab the regular UE4SS zip, not the zDEV developer package.
+
+[size=4][b]Installation[/b][/size]
+
+[list=1]
+[*]Extract the UE4SS zip into [b]...\Gothic 1 Remake\G1R\Binaries\Win64[/b], so that dwmapi.dll sits next to G1R-Win64-Shipping.exe and a ue4ss folder appears beside it.
+[*]Extract the EasyLockpicking zip from this page into [b]...\G1R\Binaries\Win64\ue4ss\Mods[/b]. You should end up with:
+[code]...\ue4ss\Mods\EasyLockpicking\Scripts\main.lua
+...\ue4ss\Mods\EasyLockpicking\Scripts\config.lua[/code]
+[*]Open [b]...\ue4ss\Mods\mods.txt[/b] and add this line (above the Keybinds entry):
+[code]EasyLockpicking : 1[/code]
+[*]Start the game. [b]...\ue4ss\UE4SS.log[/b] should now contain:
+[code][EasyLockpicking] Loaded: untrained 2->12, trained 4->14, master 6->16[/code]
+[/list]
+
+[size=4][b]Configuration[/b][/size]
+
+Edit [b]...\ue4ss\Mods\EasyLockpicking\Scripts\config.lua[/b]:
+
+[list]
+[*][b]extraTries[/b]: the bonus added on top of the vanilla tries (default 10)
+[*][b]baseTries[/b]: the vanilla tries per skill tier; only touch these if a game patch changes them
+[/list]
+
+Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
+
+[size=4][b]How it works, safety[/b][/size]
+
+[list]
+[*]A single UE4SS Lua callback fires when the lockpicking minigame starts and adjusts the LockpickDurability attribute on the player. No game files are modified, nothing is patched on disk.
+[*]The durability value itself identifies your skill tier: vanilla values get raised, already raised values are recognized and left alone. Nothing can stack or run away across sessions and saves.
+[*]Uninstalling returns lockpicking to vanilla behavior; the game rebuilds the stat from your skill tier when a save loads.
+[*]Deliberately minimal: no hotkeys, no polling loops, no function hooks.
+[/list]
+
+[size=4][b]Troubleshooting[/b][/size]
+
+[list]
+[*][b]No log lines / mod not loading:[/b] check the mods.txt entry and the folder layout (Scripts\main.lua exactly as shown above).
+[*][b]"durability X not a known tier" in the log:[/b] a game patch changed the vanilla values; update baseTries in config.lua.
+[*][b]Game hard-freezes when loading a save with UE4SS installed:[/b] some UE4SS engine hooks can collide with this game's AngelScript layer. The mod needs none of them, so you can safely turn them off in ue4ss\UE4SS-settings.ini: set HookProcessInternal, HookProcessLocalScriptFunction, HookUObjectProcessEvent, HookCallFunctionByNameWithArguments and HookAActorTick to 0, and bUseUObjectArrayCache to false.
+[*][b]Access violation when quitting the game:[/b] known cosmetic UE4SS teardown issue, happens after everything has been saved. Harmless.
+[/list]
+
+[size=4][b]Source[/b][/size]
+
+Lua source and dev notes: [url=https://github.com/Tautellini/TautelliniMods]github.com/Tautellini/TautelliniMods[/url]
