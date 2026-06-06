@@ -109,7 +109,18 @@ local function boostTries()
 end
 
 -- ---------------------------------------------------------------- solver --
-local NextMoveColor = { R = 0.10, G = 1.00, B = 0.15, A = 1.0 } -- green
+-- hint colors come from the config and encode the lock turn to make:
+-- green (left) / blue (right) by default
+local function colorFrom(v, fallback)
+    if type(v) == "table" and tonumber(v[1]) and tonumber(v[2]) and tonumber(v[3]) then
+        return { R = tonumber(v[1]), G = tonumber(v[2]), B = tonumber(v[3]), A = 1.0 }
+    end
+    return fallback
+end
+local HintColorLeft  = colorFrom(Config.hintColorLeft,
+    { R = 0.10, G = 1.00, B = 0.15, A = 1.0 })
+local HintColorRight = colorFrom(Config.hintColorRight,
+    { R = 0.15, G = 0.45, B = 1.00, A = 1.0 })
 
 local Session = nil -- at most one live minigame session
 
@@ -174,6 +185,19 @@ end
 
 -- re-assert the green every tick (the game's move FX rewrites the
 -- channel); restore the previous target once when the target changes
+-- hint color encodes the SCREEN direction of the suggested move:
+-- green = move the piece left, blue = move it right. Screen mapping =
+-- rail axis projected on the camera's right vector (s.screenRight).
+local function hintColor(s)
+    if not s.nextMove then return HintColorLeft end
+    -- colors name the PLAYER INPUT: turning the lock right moves its
+    -- pin LEFT (verified player knowledge), so blue (= turn right) is
+    -- shown when the pin must travel screen-left.
+    -- pin screen direction = dir * sign * screenRight
+    local pressRight = (s.nextMove.dir or 1) * s.sign * (s.screenRight or 1) < 0
+    return pressRight and HintColorRight or HintColorLeft
+end
+
 local function retint(s)
     local want = (NextMoveActive and s.nextMove) and s.nextMove.piece or nil
     if s.greenId and s.greenId ~= want then
@@ -183,7 +207,7 @@ local function retint(s)
     s.greenId = want
     if want then
         local e = s.pieces[want]
-        if e then writeColor(e, NextMoveColor) end
+        if e then writeColor(e, hintColor(s)) end
     end
 end
 
@@ -222,31 +246,36 @@ local function solverReplan(s)
         for x = 0, n - 1 do
             for d = -1, 1, 2 do
                 local st = node.st
-                -- lock-in: a piece at the open rotation is frozen, both
-                -- as a mover and as a dragged partner
-                if st[x] ~= target[x]
-                    and math.abs(rotStart[x] + sign * (st[x] + d)) <= 3 then
+                -- moves are ATOMIC: if the mover or any dragged partner
+                -- would leave its rail (-3..3), the game rejects the
+                -- whole move. No piece ever freezes (both verified from
+                -- live session data; pieces leave the center freely).
+                local nx = st[x] + d
+                if math.abs(rotStart[x] + sign * nx) <= 3 then
+                    local valid = true
                     local nst = {}
                     for id = 0, n - 1 do nst[id] = st[id] end
-                    nst[x] = st[x] + d
+                    nst[x] = nx
                     for _, e in ipairs(s.edges[x] or {}) do
-                        if nst[e.b] ~= target[e.b] then
-                            local np = nst[e.b] + d * e.dir
-                            if math.abs(rotStart[e.b] + sign * np) <= 3 then
-                                nst[e.b] = np
-                            end
+                        local np = nst[e.b] + d * e.dir
+                        if math.abs(rotStart[e.b] + sign * np) > 3 then
+                            valid = false
+                            break
                         end
+                        nst[e.b] = np
                     end
-                    local k = key(nst)
-                    if not visited[k] then
-                        visited[k] = true
-                        local first = node.first or { piece = x, dir = d }
-                        local done = true
-                        for id = 0, n - 1 do
-                            if nst[id] ~= target[id] then done = false break end
+                    if valid then
+                        local k = key(nst)
+                        if not visited[k] then
+                            visited[k] = true
+                            local first = node.first or { piece = x, dir = d }
+                            local done = true
+                            for id = 0, n - 1 do
+                                if nst[id] ~= target[id] then done = false break end
+                            end
+                            if done then return first end
+                            queue[#queue + 1] = { st = nst, first = first }
                         end
-                        if done then return first end
-                        queue[#queue + 1] = { st = nst, first = first }
                     end
                 end
             end
@@ -256,29 +285,132 @@ local function solverReplan(s)
     return nil
 end
 
+-- pre-move axis calibration from slot geometry: pieces sharing a start
+-- rotation reveal the row-stacking direction; subtracting it from a
+-- pair with different rotations isolates the rail axis WITH its sign
+-- (pointing toward increasing rotation). Enables direction colors
+-- before the first move; sign heuristics are skipped when this works.
+local function calibrateAxis(s)
+    local rowDir = nil
+    for a = 0, s.pieceCount - 1 do
+        for b = a + 1, s.pieceCount - 1 do
+            if s.rotStart[a] == s.rotStart[b] then
+                local va, vb = s.slotStart[a], s.slotStart[b]
+                local v = { vb[1] - va[1], vb[2] - va[2], vb[3] - va[3] }
+                local len = math.sqrt(v[1] * v[1] + v[2] * v[2] + v[3] * v[3])
+                if len > 1.0 then
+                    rowDir = { v[1] / len, v[2] / len, v[3] / len }
+                    break
+                end
+            end
+        end
+        if rowDir then break end
+    end
+    if not rowDir then return false end
+    for a = 0, s.pieceCount - 1 do
+        for b = 0, s.pieceCount - 1 do
+            local rd = s.rotStart[a] - s.rotStart[b]
+            if rd ~= 0 then
+                local va, vb = s.slotStart[a], s.slotStart[b]
+                local v = { va[1] - vb[1], va[2] - vb[2], va[3] - vb[3] }
+                local along = v[1] * rowDir[1] + v[2] * rowDir[2] + v[3] * rowDir[3]
+                local rail = { v[1] - along * rowDir[1], v[2] - along * rowDir[2],
+                    v[3] - along * rowDir[3] }
+                local rlen = math.sqrt(rail[1] * rail[1] + rail[2] * rail[2]
+                    + rail[3] * rail[3])
+                local expect = math.abs(rd) * s.stepSize
+                if rlen > 1.0 and rlen > expect * 0.6 and rlen < expect * 1.4 then
+                    local sgn = (rd > 0) and 1 or -1
+                    s.axis = { sgn * rail[1] / rlen, sgn * rail[2] / rlen,
+                        sgn * rail[3] / rlen }
+                    s.sign = 1
+                    s.axisCalibrated = true
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+-- which way is "screen right" along the rail: rail axis projected on
+-- the camera's right vector (the minigame camera is static)
+local function cameraRightProj(s)
+    local proj = nil
+    pcall(function()
+        local pc = FindFirstOf("PlayerController")
+        local rot = pc.PlayerCameraManager:GetCameraRotation()
+        local lib = StaticFindObject("/Script/Engine.Default__KismetMathLibrary")
+        local r = lib:GetRightVector(rot)
+        proj = s.axis[1] * r.X + s.axis[2] * r.Y + s.axis[3] * r.Z
+    end)
+    if proj and math.abs(proj) > 0.2 then
+        return proj > 0 and 1 or -1
+    end
+    return nil
+end
+
+-- moving X drags exactly its live out-edge partners (direct, no cascade)
+local function directSet(s, x)
+    local set = { [x] = true }
+    for _, e in ipairs(s.edges[x] or {}) do set[e.b] = true end
+    return set
+end
+
 -- update steps from observed slots; calibrate the rail axis and its
 -- sign; prune edges the game evidently removed (mover identified by
 -- matching the moved set against {X} + live out-edges of X)
 local function processMove(s, moved, count, prev, now)
-    local match = nil
+    -- mover identification with edge-state learning. An exact cover
+    -- (mover's partner set == moved set) CONFIRMS those edges as active.
+    -- A superset candidate implies its absent partners are dead; any
+    -- candidate contradicting a confirmed edge is eliminated, and a
+    -- unique survivor prunes its dead edges (the game removes roughly
+    -- LockpickPrecision connections per lock at runtime, invisible
+    -- until observed).
+    s.confirmed = s.confirmed or {}
+    local exact, supers = nil, {}
     for x in pairs(moved) do
-        local n, same = 1, true
-        for _, e in ipairs(s.edges[x] or {}) do
-            n = n + 1
-            if not moved[e.b] then same = false break end
+        local ds = directSet(s, x)
+        local covers = true
+        for id in pairs(moved) do
+            if not ds[id] then covers = false break end
         end
-        if same and n == count then
-            if match ~= nil then match = nil break end -- ambiguous
-            match = x
+        if covers then
+            local nds = 0
+            for _ in pairs(ds) do nds = nds + 1 end
+            if nds == count then
+                exact = (exact == nil) and x or false -- false = ambiguous
+            else
+                supers[#supers + 1] = x
+            end
         end
     end
-    if match ~= nil and s.edges[match] then
-        local es = s.edges[match]
-        for i = #es, 1, -1 do
-            if not moved[es[i].b] then
-                log(string.format("Edge %d->%d inactive this session, pruned",
-                    match, es[i].b))
-                table.remove(es, i)
+    if exact then
+        for _, e in ipairs(s.edges[exact] or {}) do
+            s.confirmed[exact .. ">" .. e.b] = true
+        end
+    elseif exact == nil and #supers > 0 then
+        local viable = {}
+        for _, x in ipairs(supers) do
+            local consistent = true
+            for _, e in ipairs(s.edges[x] or {}) do
+                if not moved[e.b] and s.confirmed[x .. ">" .. e.b] then
+                    consistent = false
+                    break
+                end
+            end
+            if consistent then viable[#viable + 1] = x end
+        end
+        if #viable == 1 then
+            local x = viable[1]
+            local es = s.edges[x]
+            for i = #es, 1, -1 do
+                if not moved[es[i].b] then
+                    log(string.format("Edge %d->%d inactive this session, pruned",
+                        x, es[i].b))
+                    table.remove(es, i)
+                end
             end
         end
     end
@@ -314,9 +446,13 @@ local function processMove(s, moved, count, prev, now)
         end
         return true
     end
-    if not plausible(s.sign) and plausible(-s.sign) then
+    if not s.axisCalibrated and not plausible(s.sign) and plausible(-s.sign) then
         s.sign = -s.sign
         if DebugSolver then log("solver: rail axis sign flipped") end
+    end
+    -- if the axis only became known through this move, map it to the screen
+    if s.axis and not s.screenRight then
+        s.screenRight = cameraRightProj(s)
     end
     -- plan only while the green is shown; tracking runs regardless
     s.nextMove = NextMoveActive and solverReplan(s) or nil
@@ -480,6 +616,13 @@ local function startSession(attempt)
     -- open position = the rail center, rotation 0 (user-verified:
     -- "all pins on position 4 of 7")
     s.openRot = 0
+    if calibrateAxis(s) then
+        s.screenRight = cameraRightProj(s)
+        if DebugSolver then
+            log("solver: axis pre-calibrated from slot geometry, screenRight="
+                .. tostring(s.screenRight))
+        end
+    end
     s.nextMove = NextMoveActive and solverReplan(s) or nil
     Session = s
     retint(s)
@@ -508,7 +651,13 @@ local function setNextMove(active)
     log("Next-move hint " .. (active and "ON" or "OFF"))
     local s = Session
     if s and not s.stop then
-        if active then s.nextMove = solverReplan(s) end
+        if active then
+            s.nextMove = solverReplan(s)
+            if DebugSolver then
+                log("solver: hint on toggle: "
+                    .. (s.nextMove and ("piece " .. s.nextMove.piece) or "none"))
+            end
+        end
         retint(s) -- paints or restores the green immediately
     end
 end

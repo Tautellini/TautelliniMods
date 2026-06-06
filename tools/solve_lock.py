@@ -1,9 +1,10 @@
 """Offline lock solver for Gothic 1 Remake lock graphs.
 
 Model (verified in-game, see G1R/LuaModdingSurface.md):
-  * rails span rotations -3..+3, open = 0, pieces FREEZE at 0
+  * rails span rotations -3..+3, open = 0; pieces NEVER freeze
   * moving piece x by d (+-1) drags its direct out-edge partners by
-    d*dir; frozen or clamped partners stay put
+    d*dir ATOMICALLY: if the mover or any partner would leave the rail,
+    the whole move is rejected (nothing moves)
   * the game may remove ~LockpickPrecision connections at runtime, so
     also report solvability with each single edge removed
 
@@ -34,8 +35,6 @@ def solve(pieces, edges, max_states=3_000_000):
         if len(seen) > max_states:
             return None
         for xi, x in enumerate(ids):
-            if st[xi] == 0:
-                continue  # frozen at center
             for d in (1, -1):
                 nx = st[xi] + d
                 if abs(nx) > 3:
@@ -43,14 +42,17 @@ def solve(pieces, edges, max_states=3_000_000):
                 nst = list(st)
                 nst[xi] = nx
                 dragged = []
-                for b, ed in out.get(x, ()):  # direct partners
+                blocked = False
+                for b, ed in out.get(x, ()):  # direct partners, atomic
                     bi = ids.index(b)
-                    if nst[bi] == 0:
-                        continue  # frozen partner stays
                     nb = nst[bi] + d * ed
-                    if abs(nb) <= 3:
-                        nst[bi] = nb
-                        dragged.append(b)
+                    if abs(nb) > 3:
+                        blocked = True  # whole move rejected
+                        break
+                    nst[bi] = nb
+                    dragged.append(b)
+                if blocked:
+                    continue
                 t = tuple(nst)
                 if t in seen:
                     continue

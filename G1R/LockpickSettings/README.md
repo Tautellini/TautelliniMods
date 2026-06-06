@@ -18,13 +18,13 @@ to vanilla + bonus:
 Every tier gets the same bonus, so skill progression keeps mattering.
 
 It also offers a next-move hint (`showNextMove`): the piece you should
-move next is tinted green, recomputed after every move from the lock's
-live state. It is entirely state-driven: no input tracking, identical
-behavior with keyboard and controller. Tracking runs from the start of
-every lock; the hotkey only toggles the green paint, so switching it on
-mid-pick is exact. Working out why that piece is right is still on you,
-and the master perk (removing connections when a pick breaks) keeps its
-full value.
+move next lights up, green when the correct turn is LEFT, blue when it
+is RIGHT, recomputed after every move from the lock's live state. It is
+entirely state-driven: no input tracking, identical behavior with
+keyboard and controller. Tracking runs from the start of every lock;
+the hotkey only toggles the paint, so switching it on mid-pick is
+exact. The master perk (removing connections when a pick breaks) keeps
+its full value.
 
 ## Configuration
 
@@ -37,6 +37,9 @@ Edit `Scripts/config.lua`, then restart the game or press CTRL+R ingame:
 - `showNextMove`: next-move hint state at game start (default false)
 - `nextMoveHotkey`: key that toggles the hint ingame, takes effect
   immediately even mid-minigame (default `"F7"`, `""` disables)
+- `hintColorLeft` / `hintColorRight`: hint colors as `{r, g, b}`,
+  encoding which way to turn the hinted lock (defaults: green = left,
+  blue = right; set both equal for a plain directionless hint)
 - `debugSolver`: log solver internals to the UE4SS log (default false)
 
 The hint tints the piece to move next green and replans after every
