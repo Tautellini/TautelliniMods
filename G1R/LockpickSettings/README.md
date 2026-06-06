@@ -1,7 +1,7 @@
 # LockpickSettings
 
-More lockpick tries for Gothic 1 Remake, shipped as the UE4SS Lua mod
-`LockpickSettings`.
+More lockpick tries and a connection-memory assist for Gothic 1 Remake,
+shipped as the UE4SS Lua mod `LockpickSettings`.
 
 ## What it does
 
@@ -17,6 +17,13 @@ to vanilla + bonus:
 
 Every tier gets the same bonus, so skill progression keeps mattering.
 
+It also offers a next-move hint (`showNextMove`): the piece you should
+move next is tinted green, recomputed after every move from the lock's
+live state. It is entirely state-driven: no input tracking, identical
+behavior with keyboard and controller. Working out why that piece is
+right is still on you, and the master perk (removing connections when a
+pick breaks) keeps its full value.
+
 ## Configuration
 
 Edit `Scripts/config.lua`, then restart the game or press CTRL+R ingame:
@@ -25,6 +32,16 @@ Edit `Scripts/config.lua`, then restart the game or press CTRL+R ingame:
   minigame start and as the base the bonus is added to. Only update these
   if a game patch changes the vanilla values
 - `extraTries`: the bonus added on top of the base (default 10)
+- `showNextMove`: next-move hint state at game start (default false)
+- `nextMoveHotkey`: key that toggles the hint ingame, takes effect
+  immediately even mid-minigame (default `"F7"`, `""` disables)
+- `debugSolver`: log solver internals to the UE4SS log (default false)
+
+The hint tints the piece to move next green and replans after every
+move from the lock's live state. Mined lock data can contain
+connections the game removed at runtime (suspected skill/precision
+mechanic); the mod prunes them as it observes your moves, so a hint can
+occasionally be one move behind reality.
 
 ## Install / update
 
@@ -48,8 +65,19 @@ a working UE4SS setup, see the G1R modding guide (`../README.md`).
   value gets raised, an already-raised value is recognized and left alone
   (idempotent, nothing can stack across sessions or saves), anything else
   is left untouched and logged
-- Deliberately minimal: no hotkeys, no polling loops, no function hooks.
-  UE4SS script hooks crash against this game's AngelScript layer, and a
+- The next-move hint uses lock layouts shipped in
+  `Scripts/lockgraphs.lua`, extracted offline from the game's compiled
+  AngelScript blob (`tools/extract_locks.py`); the running game exposes
+  no readable graph. Live piece positions come from the game's
+  `MPC_Lockpicking` material collection (Slot_i = world position of
+  piece i), the goal rotation from the scene's `m_RotationToBarOffset`,
+  and a budgeted BFS finds the shortest move sequence. A lean poll tick
+  (2.5x/s, cached references only) detects settled moves, prunes
+  connections the game deactivated, replans, and re-asserts the green
+  tint via the piece's dynamic material parameter `HighlightColor`.
+  Everything dies with the minigame scene
+- No hotkeys, no function hooks. G1R/AS natives cannot be intercepted
+  from Lua (hooks register but never fire, see the modding guide), and a
   boost-and-restore design would need exactly that machinery to detect
   the end of the minigame
 - The raised value is written to the attribute and can end up in saves.
@@ -61,7 +89,13 @@ a working UE4SS setup, see the G1R modding guide (`../README.md`).
 
 Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[LockpickSettings]` lines:
 
-- On game start: `Loaded: untrained 2->12, trained 4->14, master 6->16`
+- On game start: `Loaded: untrained 2->12, trained 4->14, master 6->16,
+  connection view on`
 - On each pick attempt: `Minigame: trained tier, tries 4 -> 14`
+- On each discovered connection: `Connection discovered, tinting group
+  (color 1)`
 - `durability X not a known tier, leaving it alone`: a game patch likely
   changed the vanilla tier values; update `baseTries` in the config
+- `Connection view error, stopping`: the watcher shut itself down (a
+  game patch may have changed the scene classes); picking continues
+  unaffected without tints

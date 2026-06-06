@@ -15,4 +15,21 @@ return {
     -- Keep it large enough that the boosted values can never collide with
     -- another tier's base value.
     extraTries = 10,
+
+    -- Next-move hint: the piece you should move next is tinted green,
+    -- recomputed after every move from the lock's live state. Entirely
+    -- state-driven: needs no input tracking, works identically with
+    -- keyboard and controller. The first hint of a lock can point at a
+    -- suboptimal piece until your first move calibrates the rail
+    -- direction; hints self-correct from there.
+    -- This is the state at game start; toggle ingame with the hotkey.
+    showNextMove = false,
+
+    -- Hotkey that toggles the next-move hint ingame (UE4SS key name,
+    -- e.g. "F7", "F8", "H"). Set to "" to disable the hotkey.
+    nextMoveHotkey = "F7",
+
+    -- Log solver internals (moved sets, replans, calibration) to the
+    -- UE4SS log. Leave false for normal play.
+    debugSolver = false,
 }
