@@ -213,7 +213,9 @@ local function solverReplan(s)
         queue[qi] = false -- release processed nodes to the GC
         qi = qi + 1
         expansions = expansions + 1
-        if expansions > 12000 then
+        if expansions > 60000 then
+            -- enough for 6-7 piece locks; the abort crash once blamed on
+            -- BFS memory was actually the session lifecycle bug
             if DebugSolver then log("solver: search budget exhausted") end
             return nil
         end
