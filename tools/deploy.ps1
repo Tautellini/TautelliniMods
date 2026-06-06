@@ -2,13 +2,13 @@
 # Usage:  powershell -File tools\deploy.ps1 -Mod LockpickSettings
 param(
     [Parameter(Mandatory = $true)]
-    [string]$Mod
+    [string]$Mod,
+    [string]$GameRoot = "C:\Program Files (x86)\Steam\steamapps\common\Gothic 1 Remake"
 )
 
 $ErrorActionPreference = "Stop"
 
 $RepoRoot   = Split-Path $PSScriptRoot -Parent
-$GameRoot   = Split-Path $RepoRoot -Parent
 $SourceDir  = Join-Path $RepoRoot "G1R\$Mod"
 $ModsDir    = Join-Path $GameRoot "G1R\Binaries\Win64\ue4ss\Mods"
 $TargetDir  = Join-Path $ModsDir $Mod
