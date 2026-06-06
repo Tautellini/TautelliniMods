@@ -14,8 +14,6 @@ Hard-won facts about this game's tech. Read before writing any mod code.
 - No anti-cheat. Single player. Exit crash with UE4SS installed is a known
   cosmetic teardown issue (access violation after everything is saved)
 
-These collide with the AngelScript VM dispatch. Keep them off.
-
 ## What is SAFE from Lua (verified)
 
 - `NotifyOnNewObject` (also on AS classes like `/Script/Angelscript.IoChestDefault`)
@@ -24,10 +22,36 @@ These collide with the AngelScript VM dispatch. Keep them off.
   `ExecuteInGameThread`, `RegisterKeyBind`
 - `RegisterHook` on plain ENGINE natives (e.g. PlayerController:ClientRestart)
 
-## What CRASHES (verified the hard way)
+## What does NOT work (re-verified 2026-06-06, clean conditions)
 
-- `RegisterHook` on G1R/AS-bound native UFunctions
-  (GothicLockConfig:AddPiece/AddConnection, AbilityTask_LockPick:TryOpenLock):
-  infinite recursion between the UE4SS detour and the AS binding layer,
-  dies ~55s into load. Assume ALL G1R natives are unhookable from Lua
-- UE4SS TMap property access returns a COPY: `:Empty()` etc. do not stick
+- `RegisterHook` on G1R natives fires ONLY for engine-dispatched calls.
+  AngelScript calls its bound natives directly through the binding
+  table (Binds.Cache), bypassing UFunction dispatch: hooks on
+  GothicLockConfig:AddPiece/AddConnection register fine and saw zero
+  calls across a full world load (416 locks instanced). BUT calls that
+  arrive through the engine (input dispatch, ProcessEvent) DO fire:
+  hooks on AbilityTask_LockPick:UpPressed/DownPressed/LeftPressed/
+  RightPressed fire reliably for keyboard AND controller input
+  (verified in-game). Rule of thumb: hook G1R natives only where the
+  caller is the engine, never where the caller is script logic. An
+  earlier load crash blamed on these hooks did not reproduce and likely
+  belonged to the 2026-06-06 instability (frame generation, stale UE4SS
+  after a game patch)
+- Reading instance properties off AS CLASS objects (e.g. the per-chest
+  classes in RandomLockSubsystem.m_RegisteredChests) returns reflection
+  garbage and access-violates; `GetCDO()`/`StaticFindObject` on them
+  crash natively. `pcall` does NOT catch native access violations
+- Lifecycle: ACTORS go pending-kill (IsValid() false) the moment their
+  scene ends, but subobjects like MaterialInstanceDynamic merely become
+  unreferenced and stay "valid" until the next GC. A polling session
+  keyed on MID validity outlives its minigame, and the GC purge of a
+  SAVE LOAD leaves the Lua wrappers dangling: the next touch is a
+  native AV. Key liveness on an actor, and additionally kill all
+  sessions in RegisterInitGameStatePostHook without touching any stored
+  wrapper
+- UE4SS TMap property access returns a COPY: `:Empty()` etc. do not
+  stick. TMap ITERATION via reflection is also suspected of native
+  access violations under unclear conditions (a session-start ForEach
+  over GothicLockSceneActor:m_RotationToBarOffset correlates with two
+  early-session AV crashes); pcall cannot catch native AVs, so avoid
+  TMap iteration in shipped mods unless unavoidable
