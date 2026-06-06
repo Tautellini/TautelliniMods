@@ -1,9 +1,11 @@
 [center][size=5][b]LockpickSettings[/b][/size]
 [i]Your toolbox for the lockpicking minigame: more tries, an optional next-move hint, fully configurable.[/i][/center]
 [line]
-[size=4][b]What it does[/b][/size]
+[size=4][b]Features[/b][/size]
 
-[b]1. More tries.[/b] When the lockpicking minigame starts, the mod raises your lockpick durability (the number of failed attempts before the pick breaks) from the vanilla value of your Picklock skill tier to vanilla + 10:
+[quote][size=4][b]&#128274; More Tries[/b][/size]
+
+Your lockpick durability (failed attempts before the pick breaks) is raised from the vanilla value of your Picklock skill tier to vanilla + 10:
 
 [list]
 [*][b]Untrained:[/b] 2 -> 12 tries
@@ -11,16 +13,25 @@
 [*][b]Master:[/b] 6 -> 16 tries
 [/list]
 
-Every tier gets the same bonus, so learning the skill still matters. Both the bonus and the per-tier vanilla values are configurable.
+Every tier gets the same bonus, so learning the skill still matters. Both the bonus and the per-tier vanilla values are configurable.[/quote]
 
-[b]2. Next-move hint (optional, off by default).[/b] Press [b]F7[/b] during the lockpicking minigame and the piece you should move next lights up, [color=#66ff66][b]green[/b][/color] when the correct turn is [b]LEFT[/b], [color=#5e9eff][b]blue[/b][/color] when it is [b]RIGHT[/b], recomputed after every move from the lock's live state. Follow the colors and the lock opens on the shortest path.
+[quote][size=4][b]&#128161; Next-Move Hint[/b] [i](optional, off by default)[/i][/size]
+
+Press [b]F7[/b] during the lockpicking minigame and the piece you should move next lights up, [color=#66ff66][b]green[/b][/color] when the correct turn is [b]LEFT[/b], [color=#5e9eff][b]blue[/b][/color] when it is [b]RIGHT[/b], recomputed after every move from the lock's live state. Follow the colors and the lock opens on the shortest path.
 
 [list]
+[*]Toggle it any time, even mid-pick: the mod follows every lock from its start, the key only switches the highlight.
 [*]Works identically with keyboard and controller; the hint follows the lock, not your inputs.
 [*]The lock layouts (pieces and their hidden connections) ship with the mod, extracted from the game's own data files for all 416 locks.
 [*]The game removes some connections at runtime depending on your skill; the mod detects that from your moves and adapts, so a hint can occasionally lag one move behind.
-[*]Toggle it any time, even mid-pick: the mod follows every lock from its start, the key only switches the highlight.
 [*]The master perk (removing connections when a pick breaks) keeps its full value.
+[/list][/quote]
+
+[size=4][b]Planned[/b][/size]
+
+[list]
+[*][b]Highlighting of connected pieces:[/b] see which pieces the selected one would drag along, before you move it.
+[*][b]Reduction of connections:[/b] genuinely simpler locks, without exchanging original lock layouts and without changing base character stats.
 [/list]
 
 [size=4][b]Requirements[/b][/size]
