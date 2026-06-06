@@ -1,5 +1,5 @@
 [center][size=5][b]LockpickSettings[/b][/size]
-[i]More tries before your lockpick breaks, and an optional next-move hint.[/i][/center]
+[i]Your toolbox for the lockpicking minigame: more tries, an optional next-move hint, fully configurable.[/i][/center]
 [line]
 [size=4][b]What it does[/b][/size]
 
@@ -19,7 +19,7 @@ Every tier gets the same bonus, so learning the skill still matters. Both the bo
 [*]Works identically with keyboard and controller; the hint follows the lock, not your inputs.
 [*]The lock layouts (pieces and their hidden connections) ship with the mod, extracted from the game's own data files for all 416 locks.
 [*]The game removes some connections at runtime depending on your skill; the mod detects that from your moves and adapts, so a hint can occasionally lag one move behind.
-[*]For best results activate the hint at the start of a lock, not midway through.
+[*]Toggle it any time, even mid-pick: the mod follows every lock from its start, the key only switches the highlight.
 [*]The master perk (removing connections when a pick breaks) keeps its full value.
 [/list]
 
@@ -72,7 +72,6 @@ Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
 [list]
 [*][b]No log lines / mod not loading:[/b] check the folder layout (exactly as shown above, with enabled.txt directly inside the LockpickSettings folder).
 [*][b]"durability X not a known tier" in the log:[/b] a game patch changed the vanilla values; update baseTries in config.lua.
-[*][b]Hint seems wrong right after toggling it on mid-lock:[/b] the mod cannot know moves made before activation; toggle it on at the start of a lock.
 [*][b]"No graph data for lock" in the log:[/b] that lock is not in the shipped data (one lock in the game has none, and future patches may add locks); the hint stays off for it, everything else works.
 [*][b]Game hard-freezes when loading a save with UE4SS installed:[/b] some UE4SS engine hooks can collide with this game's AngelScript layer. The mod needs none of them, so you can safely turn them off in ue4ss\UE4SS-settings.ini: set HookProcessInternal, HookProcessLocalScriptFunction, HookUObjectProcessEvent, HookCallFunctionByNameWithArguments and HookAActorTick to 0, and bUseUObjectArrayCache to false.
 [*][b]Access violation when quitting the game:[/b] known cosmetic UE4SS teardown issue, happens after everything has been saved. Harmless.
