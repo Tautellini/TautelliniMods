@@ -1,0 +1,50 @@
+# Deploys a mod from the TautelliniMods repo into the live game folder.
+# Usage:  powershell -File tools\deploy.ps1 -Mod LockpickSettings
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$Mod
+)
+
+$ErrorActionPreference = "Stop"
+
+# Repo mod folder name -> deployed UE4SS mod folder name.
+# LockpickSettings keeps its historical in-game name so mods.txt and logs stay stable.
+$DeployNameMap = @{
+    "LockpickSettings" = "EasyLockpicking"
+}
+
+$RepoRoot   = Split-Path $PSScriptRoot -Parent
+$GameRoot   = Split-Path $RepoRoot -Parent
+$SourceDir  = Join-Path $RepoRoot "G1R\$Mod"
+$ModsDir    = Join-Path $GameRoot "G1R\Binaries\Win64\ue4ss\Mods"
+$DeployName = if ($DeployNameMap.ContainsKey($Mod)) { $DeployNameMap[$Mod] } else { $Mod }
+$TargetDir  = Join-Path $ModsDir $DeployName
+
+if (-not (Test-Path "$SourceDir\Scripts\main.lua")) {
+    throw "No mod found at $SourceDir (expected Scripts\main.lua)"
+}
+if (-not (Test-Path $ModsDir)) {
+    throw "UE4SS Mods folder not found at $ModsDir. Is UE4SS installed?"
+}
+
+# Copy Scripts (the deployable payload). Docs/specs stay in the repo.
+New-Item -ItemType Directory -Force "$TargetDir\Scripts" | Out-Null
+Copy-Item "$SourceDir\Scripts\*" "$TargetDir\Scripts\" -Force
+
+# Make sure the mod is registered in mods.txt (before the Keybinds line).
+$ModsTxt = Join-Path $ModsDir "mods.txt"
+$lines = Get-Content $ModsTxt
+if (-not ($lines -match "^\s*$DeployName\s*:")) {
+    $keybindsIdx = ($lines | Select-String "^\s*Keybinds\s*:" | Select-Object -First 1).LineNumber
+    if ($keybindsIdx) {
+        $insertAt = $keybindsIdx - 1
+        $newLines = $lines[0..($insertAt - 1)] + "$DeployName : 1" + $lines[$insertAt..($lines.Count - 1)]
+    } else {
+        $newLines = $lines + "$DeployName : 1"
+    }
+    Set-Content $ModsTxt $newLines -Encoding ascii
+    Write-Host "Registered '$DeployName : 1' in mods.txt"
+}
+
+Write-Host "Deployed $Mod -> $TargetDir"
+Write-Host "If the game is running, press CTRL+R ingame to hot-reload."

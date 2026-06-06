@@ -1,0 +1,10 @@
+# logs and dumps copied in for analysis
+*.log
+*ObjectDump*.txt
+*.usmap
+*.dmp
+
+# editor noise
+.vs/
+*.swp
+Thumbs.db
