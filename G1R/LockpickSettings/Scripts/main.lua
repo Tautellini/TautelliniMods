@@ -1,4 +1,4 @@
--- EasyLockpicking for Gothic 1 Remake
+-- LockpickSettings for Gothic 1 Remake
 -- Grants extra lockpick tries, configured in config.lua:
 --   when the lockpicking minigame starts and LockpickDurability is at a
 --   known vanilla tier base (config.baseTries), it is raised to
@@ -12,7 +12,7 @@
 -- the G1R modding guide in the repo).
 
 local function log(msg)
-    print("[EasyLockpicking] " .. tostring(msg) .. "\n")
+    print("[LockpickSettings] " .. tostring(msg) .. "\n")
 end
 
 -- ---------------------------------------------------------------- config --

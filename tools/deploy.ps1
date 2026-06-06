@@ -7,18 +7,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Repo mod folder name -> deployed UE4SS mod folder name.
-# LockpickSettings keeps its historical in-game name so mods.txt and logs stay stable.
-$DeployNameMap = @{
-    "LockpickSettings" = "EasyLockpicking"
-}
-
 $RepoRoot   = Split-Path $PSScriptRoot -Parent
 $GameRoot   = Split-Path $RepoRoot -Parent
 $SourceDir  = Join-Path $RepoRoot "G1R\$Mod"
 $ModsDir    = Join-Path $GameRoot "G1R\Binaries\Win64\ue4ss\Mods"
-$DeployName = if ($DeployNameMap.ContainsKey($Mod)) { $DeployNameMap[$Mod] } else { $Mod }
-$TargetDir  = Join-Path $ModsDir $DeployName
+$TargetDir  = Join-Path $ModsDir $Mod
 
 if (-not (Test-Path "$SourceDir\Scripts\main.lua")) {
     throw "No mod found at $SourceDir (expected Scripts\main.lua)"

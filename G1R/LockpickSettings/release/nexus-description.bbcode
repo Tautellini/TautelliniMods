@@ -1,4 +1,4 @@
-[center][size=5][b]EasyLockpicking[/b][/size]
+[center][size=5][b]LockpickSettings[/b][/size]
 [i]More tries before your lockpick breaks.[/i][/center]
 [line]
 [size=4][b]What it does[/b][/size]
@@ -23,18 +23,18 @@ Grab the regular UE4SS zip, not the zDEV developer package.
 
 [list=1]
 [*]Extract the UE4SS zip into [b]...\Gothic 1 Remake\G1R\Binaries\Win64[/b], so that dwmapi.dll sits next to G1R-Win64-Shipping.exe and a ue4ss folder appears beside it.
-[*]Extract the EasyLockpicking zip from this page into [b]...\G1R\Binaries\Win64\ue4ss\Mods[/b]. You should end up with:
-[code]...\ue4ss\Mods\EasyLockpicking\enabled.txt
-...\ue4ss\Mods\EasyLockpicking\Scripts\main.lua
-...\ue4ss\Mods\EasyLockpicking\Scripts\config.lua[/code]
+[*]Extract the LockpickSettings zip from this page into [b]...\G1R\Binaries\Win64\ue4ss\Mods[/b]. You should end up with:
+[code]...\ue4ss\Mods\LockpickSettings\enabled.txt
+...\ue4ss\Mods\LockpickSettings\Scripts\main.lua
+...\ue4ss\Mods\LockpickSettings\Scripts\config.lua[/code]
 The included enabled.txt activates the mod automatically; you do NOT need to edit mods.txt.
 [*]Start the game. [b]...\ue4ss\UE4SS.log[/b] should now contain:
-[code][EasyLockpicking] Loaded: untrained 2->12, trained 4->14, master 6->16[/code]
+[code][LockpickSettings] Loaded: untrained 2->12, trained 4->14, master 6->16[/code]
 [/list]
 
 [size=4][b]Configuration[/b][/size]
 
-Edit [b]...\ue4ss\Mods\EasyLockpicking\Scripts\config.lua[/b]:
+Edit [b]...\ue4ss\Mods\LockpickSettings\Scripts\config.lua[/b]:
 
 [list]
 [*][b]extraTries[/b]: the bonus added on top of the vanilla tries (default 10)
@@ -55,7 +55,7 @@ Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
 [size=4][b]Troubleshooting[/b][/size]
 
 [list]
-[*][b]No log lines / mod not loading:[/b] check the folder layout (exactly as shown above, with enabled.txt directly inside the EasyLockpicking folder).
+[*][b]No log lines / mod not loading:[/b] check the folder layout (exactly as shown above, with enabled.txt directly inside the LockpickSettings folder).
 [*][b]"durability X not a known tier" in the log:[/b] a game patch changed the vanilla values; update baseTries in config.lua.
 [*][b]Game hard-freezes when loading a save with UE4SS installed:[/b] some UE4SS engine hooks can collide with this game's AngelScript layer. The mod needs none of them, so you can safely turn them off in ue4ss\UE4SS-settings.ini: set HookProcessInternal, HookProcessLocalScriptFunction, HookUObjectProcessEvent, HookCallFunctionByNameWithArguments and HookAActorTick to 0, and bUseUObjectArrayCache to false.
 [*][b]Access violation when quitting the game:[/b] known cosmetic UE4SS teardown issue, happens after everything has been saved. Harmless.

@@ -1,4 +1,4 @@
--- EasyLockpicking configuration
+-- LockpickSettings configuration
 -- Apply edits with a game restart, or CTRL+R ingame (UE4SS hot reload).
 
 return {

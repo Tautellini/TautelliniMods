@@ -1,7 +1,7 @@
 # LockpickSettings
 
-More lockpick tries for Gothic 1 Remake. Deployed into the game as the
-UE4SS Lua mod `EasyLockpicking` (name mapping in `tools/deploy.ps1`).
+More lockpick tries for Gothic 1 Remake, shipped as the UE4SS Lua mod
+`LockpickSettings`.
 
 ## What it does
 
@@ -35,7 +35,7 @@ powershell -File tools\deploy.ps1 -Mod LockpickSettings
 ```
 
 This copies `Scripts/` and the `enabled.txt` activation marker to
-`G1R\Binaries\Win64\ue4ss\Mods\EasyLockpicking` (UE4SS starts any mod
+`G1R\Binaries\Win64\ue4ss\Mods\LockpickSettings` (UE4SS starts any mod
 folder containing `enabled.txt`, no `mods.txt` entry needed). Requires
 a working UE4SS setup, see the G1R modding guide (`../README.md`).
 
@@ -59,7 +59,7 @@ a working UE4SS setup, see the G1R modding guide (`../README.md`).
 
 ## Troubleshooting
 
-Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[EasyLockpicking]` lines:
+Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[LockpickSettings]` lines:
 
 - On game start: `Loaded: untrained 2->12, trained 4->14, master 6->16`
 - On each pick attempt: `Minigame: trained tier, tries 4 -> 14`
