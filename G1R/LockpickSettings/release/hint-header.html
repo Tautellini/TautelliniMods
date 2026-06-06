@@ -75,7 +75,7 @@
   </g>
   <!-- caption under the frame -->
   <text x="1460" y="872" font-family="Palatino Linotype, Georgia, serif" font-size="30"
-        fill="#8d7b54" text-anchor="middle" letter-spacing="2">INGAME &#8226; FOLLOW THE GREEN</text>
+        fill="#8d7b54" text-anchor="middle" letter-spacing="2">INGAME &#8226; <tspan fill="#7ddb62">GREEN = LEFT</tspan> &#8226; <tspan fill="#6f9fe8">BLUE = RIGHT</tspan></text>
 
   <!-- ===================== text block, left side ===================== -->
   <g font-family="Palatino Linotype, Georgia, serif">
@@ -83,9 +83,11 @@
     <text x="158" y="476" font-size="110" font-weight="bold" letter-spacing="2"
           fill="url(#gold)" filter="url(#softShadow)">Next-Move Hint</text>
     <rect x="164" y="526" width="820" height="4" fill="url(#divider)"/>
-    <text x="164" y="606" font-size="44" fill="#c2ad7e">The piece to move next glows green.</text>
-    <text x="164" y="664" font-size="34" fill="#776747">Computed from the lock&#8217;s live state, replanned after every move.</text>
-    <text x="164" y="712" font-size="34" fill="#776747">Lock layouts for all 416 locks built in. Keyboard and controller.</text>
+    <text x="164" y="600" font-size="44" fill="#c2ad7e">The next move lights up:</text>
+    <text x="164" y="654" font-size="44">
+      <tspan fill="#7ddb62" font-weight="bold">green = turn left</tspan><tspan fill="#c2ad7e">, </tspan><tspan fill="#6f9fe8" font-weight="bold">blue = turn right</tspan><tspan fill="#c2ad7e">.</tspan></text>
+    <text x="164" y="708" font-size="32" fill="#776747">Computed from the lock&#8217;s live state, replanned after every move.</text>
+    <text x="164" y="750" font-size="32" fill="#776747">Lock layouts for all 416 locks built in. Keyboard and controller.</text>
   </g>
 
   <!-- F7 keycap -->

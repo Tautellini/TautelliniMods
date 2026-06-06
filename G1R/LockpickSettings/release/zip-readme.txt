@@ -2,8 +2,9 @@ LockpickSettings for Gothic 1 Remake
 1. More tries before your lockpick breaks: 12/14/16 instead of vanilla
    2/4/6, scaling with your Picklock skill tier.
 2. Optional next-move hint: press F7 during the minigame and the piece
-   to move next is tinted green, recomputed after every move. Works
-   with keyboard and controller. Off by default.
+   to move next lights up (green = turn it left, blue = turn it right),
+   recomputed after every move. Works with keyboard and controller.
+   Off by default.
 
 Requires UE4SS, experimental build (the game runs UE 5.4.3):
 https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest

@@ -13,7 +13,7 @@
 
 Every tier gets the same bonus, so learning the skill still matters. Both the bonus and the per-tier vanilla values are configurable.
 
-[b]2. Next-move hint (optional, off by default).[/b] Press [b]F7[/b] during the lockpicking minigame and the piece you should move next is tinted [color=#66ff66][b]green[/b][/color], recomputed after every move from the lock's live state. Follow the green and the lock opens on the shortest path.
+[b]2. Next-move hint (optional, off by default).[/b] Press [b]F7[/b] during the lockpicking minigame and the piece you should move next lights up, [color=#66ff66][b]green[/b][/color] when the correct turn is [b]LEFT[/b], [color=#5e9eff][b]blue[/b][/color] when it is [b]RIGHT[/b], recomputed after every move from the lock's live state. Follow the colors and the lock opens on the shortest path.
 
 [list]
 [*]Works identically with keyboard and controller; the hint follows the lock, not your inputs.
@@ -52,6 +52,7 @@ Edit [b]...\ue4ss\Mods\LockpickSettings\Scripts\config.lua[/b]:
 [*][b]baseTries[/b]: the vanilla tries per skill tier; only touch these if a game patch changes them
 [*][b]showNextMove[/b]: whether the next-move hint is active at game start (default false)
 [*][b]nextMoveHotkey[/b]: the key that toggles the hint ingame (default "F7", "" disables the hotkey)
+[*][b]hintColorLeft[/b] / [b]hintColorRight[/b]: the hint colors as {r, g, b}, encoding which way to turn the hinted lock (defaults: green = left, blue = right; set both equal for a directionless hint)
 [*][b]debugSolver[/b]: verbose solver logging for bug reports (default false)
 [/list]
 
