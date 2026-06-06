@@ -1,0 +1,1601 @@
+﻿2DAudioSubsystem: FMODCutsceneEvent, FMODUIEvent, CinematicFMODEvent, SequencePlayer, SequenceDirector
+3DDebugCharacterWidget: m_Character, HealthBar, SuperArmorBar, StateLabel, DirIcon, HealthNumberLabel, m_DataModule_Combat, m_AbComp
+AbilityTask_ActConversationTopic: TopicToAct
+AbilityTask_AI: CancelIfCharacterGainsAnyOf, CancelIfCharacterLosesAnyOf, BlockAbilitiesWithTagsWhileActive, CancelAbilitiesWithTagsOnActivate, CancelAbilitiesWithoutTagsOnActivate, OwnedTagsToAddWhileActive
+AbilityTask_AlignCharacterAtLocation: bOnFloor, TargetLocation, TargetRotation, Duration, StartLocation, StartRotation, SecondsMoved, EasingFunction
+AbilityTask_AmbientConversation: OtherCharacter, TopicToAct
+AbilityTask_Archery_PrepareAimedShot: StringTensionRatio
+AbilityTask_Attack: ComboChain, bLastMoveHasHit, NumHits, bEndComboOnMiss, OnContinueCombo
+AbilityTask_CameraFade: m_OnFadeOutFinished, m_OnFadeInFinished, m_FadeSetup
+AbilityTask_CastSpell: NumLaunches
+AbilityTask_CheckClimb: m_ClimbingConfig, m_Character
+AbilityTask_CheckWaterLevel: m_SwimConfig
+AbilityTask_ConsumeItem: KindOfItem
+AbilityTask_CraftItems: m_OnFinish, m_ContainerActor
+AbilityTask_CraftItemsDelegate__DelegateSignature: mustFinish
+AbilityTask_CustomizeArmorWith: ArmorOwner
+AbilityTask_DirectMove: StartLocation, TargetLocation, ReachDistance, ProjectionRadius, bProjectTargetLocation
+AbilityTask_Dodge: DesiredDirection
+AbilityTask_DrawWeapon: InventoryType, SlotId, ExpectedItemDefinition, CarryComponent
+AbilityTask_EndEquip: m_Ended
+AbilityTask_EndInteraction: EndAction
+AbilityTask_FlyingManager: m_Character
+AbilityTask_Follow: TurnToTask, SpeakTask, MoveOutOfTheWayTask, bMatchTargetWalkSpeed, SprintWhenFurtherAwayThan, WalkSpeedChangeNoticeDelay, LastTimeWalkSpeedChanged
+AbilityTask_GiveItem: ItemToGive, GiveItemActionTag, Count, ReceivingCharacterState
+AbilityTask_GotoInteractionSpot: TargetSpot, bFailIfClaimed
+AbilityTask_GotoPositionOutOfWay: OtherCharacter
+AbilityTask_GotoWaypoint: TargetWaypoint
+AbilityTask_GuideToLocation: FollowCharacterState, GuideState, ContinueMoveAfterTurnToInterruptHandle, WaitBeforeTurnToHandle, TurnToTask, WalkSpeedChangeNoticeDelay
+AbilityTask_HandleSubdialog: bReturnToThis, ActTask, TopicSet
+AbilityTask_Interact_Ladder: LootAtPointOffset
+AbilityTask_InteractionSpot: bForceCrowdIdleBehaviourToIgnoreMe, DefaultForCharacterClass, DefaultInteractionForActions, TaskEndingTags, SupportedSubActions, SubtaskOf, RequestedSubtaskTemplate, ParentTask, StartedAtGameTime, SecondsToSkipOnActivation, Spot, Action, bPossibleAnywhere, bRequiresObjectToInteractWith, BlockedOwnedTags, RequiredOwnedTags, InteractionInputs, OwnedTagsWhileActive, CurrentSubtask, bIsPartOfNavigation, bPutAwayItemInHandsBeforeInteraction, PreferredExitDirection, EndInteractionBehavior, OtherInteractionEndBehaviorOnSwitch, bKeepCharacterZLocationForAlignment, GameplayTagEventSubscriptions, CurrentlyOwnedGameplayTags
+AbilityTask_InteractionSpot_Montage: m_LoadAssetsPriority, SubtaskEntrySection, SubtaskExitSection, MontageLoopSectionPattern, MontageEntryFrontSection, MontageEntryBackSection, MontageEntryLeftSection, MontageEntryRightSection, MontageEntryHasItemInHandSection, MontageExitFrontSection, MontageExitBackSection, MontageExitLeftSection, MontageExitRightSection, MainMontage, SectionToPositioningSocketMapping, ObjectSectionMapping, ObjectMontage, SimulationLoopAnimation, AutoTransitionCheckSecondsMin, AutoTransitionCheckSecondsMax, bAllowInterruptLoopOnCancel, bAllowInterruptAtAnyTime, bBlockExitWhenNoExitSectionAvailable, bAllowInstantExitWhenBlocked, QuickExitMode, Transitions, ExternalTransitions, stance, QuickExitAnimationRate, FastExitSectionName, TakeOutItemWithSpecFromInventory, TakeOutItemWithItemTypeFromInventory, DisableAutoTransitionsForTags, bPutAwayItemInHandsAfterInteraction, TakeOutItemTask, ActAsInteractiveObjectWhileActive, bSetUsedActorAsViewTargetForPlayers, bShouldFocusInteractiveObject, MoveTask, MontageTask, bStartWhileMoving, NowPlaying, LastTimeTransitionHappened, BlockTransitionsUntilSeconds, bIsDoingExternalCancel, bTaskDisablesFootIK, bAllowTimeSkipAnimationNotifies, CurrentVisuallyEquippedItem
+AbilityTask_InteractionSpot_Montage_Sleep: MontageEntrySleepLeft, MontageEntrySleepRight, MontageLoopSleepLeft, MontageLoopSleepRight, MontageExitSleepLeft, MontageExitSleepRight, MontageLoopSit, MontageTransitionTagSleepEntryLeft, MontageTransitionTagSleepEntryRight, MontageTransitionTagSleepExitLeft, MontageTransitionTagSleepExitRight
+AbilityTask_InteractWith: ActionDuration, GotoSpotTask, InteractionSpot, bRequireSpot, bVerifyActionStillPossibleInTick, Action, PossibleActions, OnActionTimeLimitReached, OnActionStarted
+AbilityTask_JumpToWallClimbing: ClimbableWall, JumpTask, TriggerWallClimbTask
+AbilityTask_LaunchSpell: SpellTarget, SpellConfigurationContainer, RuneItem, AimingAssistance, OwningAbility
+AbilityTask_LockPick: OnNoLockPick, OnSuccessLockPick, OnFailedLockPick, OnSetLockUnlocked, OnSectionMoved, OnLockPickActorBecameInactive, OnLockPickActorBecameActive, OwnedTagsWhileActive
+AbilityTask_LootWorldContainer: OnFinish, m_ContainerActor
+AbilityTask_MoveIntoPositionForInteraction: MoveTask, TurnTask, AlignTask, bIsReadyToStartAnimation, MaxAlignDuringAnimationSecondsEstimate, MaxTotalAlignmentDurationSeconds, AngleDegreeDifferenceThatNeedsExplicitTurn, bTryPutOntoFloor, TurningSpeed, StartStrafingWhenWithinDistance
+AbilityTask_MoveRotateToLocation: OnPositionReached, m_TimeMoveStarted, m_TimeMoveWillEnd, m_ActorToIgnore, m_IsMovementDone, bUseDirectMoveInstead, m_IsRotationDone, m_Character, m_PathfollowingComponent, m_TurnToTask, m_AlignTask
+AbilityTask_NavigationRequest: MoveRequest, BackToNavMeshTask
+AbilityTask_NavLinkJump: MovementComponent, OwningAbility
+AbilityTask_Parkour: GoalLocation, bIsUsingNavLink
+AbilityTask_Parkour_Jump: bIsJumpingTowardsClimbableWall, LinkEndLocation
+AbilityTask_ParkourAction: ActionTag, AlignTask
+AbilityTask_PickUpDroppedItem: ItemDefinition
+AbilityTask_PlayLevelSequence: LevelSequenceName, LevelSequenceActor
+AbilityTask_PlayMontage_Extended: OnCompleted, OnBlendInEnded, OnBlendOut, OnInterrupted, OnCancelled, MontageToPlay, bAllowInterruptAfterBlendOut, Rate, StartSection, AnimRootMotionTranslationScale, bStopWhenAbilityEnds, StartTimeSeconds
+AbilityTask_PlayMontageAndWait_MultipleAnimationsForDifferentAbilities: OnCompleted, OnBlendInEnded, OnBlendOut, OnInterrupted, OnCancelled, MontageToPlay, bAllowInterruptAfterBlendOut, Rate, StartSection, AnimRootMotionTranslationScale, StartTimeSeconds, bStopWhenAbilityEnds
+AbilityTask_PlaySlowMo: OnFinish, m_Target
+AbilityTask_RidingCamTransition_Mount: m_PlayerController, m_NewCharacter, m_OldCharacter, m_NewCameraConfig, m_OldCameraConfig, m_InitialFov
+AbilityTask_Roll: DesiredDirection
+AbilityTask_SayVoiceline: AudioComponent, DynamicFacialMontage, SoundAttenuation, FacialAnimSlotName, FacialAnimBlendInTime, FacialAnimBlendOutTime, SoundKind, TextID, FacialAnimationAsset
+AbilityTask_ServerWaitForClientTargetData: ValidData
+AbilityTask_SmoothPositionToSaddle: m_riderCharacter, m_mountCharacter
+AbilityTask_Speak: TargetCharacter, SoundTags, Text, ForcedSubtitleLanguage, Expression, Posture, ForceCameraPresetWithName, bUnskippable, Loudness
+AbilityTask_StandUp: OnStandUp, m_InteractiveComponent, m_CharacterState
+AbilityTask_StateBasedAction: StateTag, Stage, bEndWhenEnteredState, bOnlyEndOnShouldEndNow, bCanEndEarly, bBlockStateMachineWhileBlocked
+AbilityTask_StateBasedAnimation: StateMachineName, AnimInstance
+AbilityTask_StateBasedInputAction: InputEventTag, InputDirectionTag, Target
+AbilityTask_SwapWeaponFromInventoryToAnother: InventoryType, SlotId, ExpectedItemDefinition, CarryComponent, DataModule_Container, InventoryComponent
+AbilityTask_Swim: m_OnSwimTypeChanged, m_Character, m_SwimConfig
+AbilityTask_TakeOutItem: ItemDefinition, bAttachOnly
+AbilityTask_TaskSequence: TasksToExecuteInReverse, CurrentTask
+AbilityTask_Taunt: AllTagsRequiredContainer, OneTagRequiredContainer, BlockedTags
+AbilityTask_TradeWith: Buyer
+AbilityTask_TrasnsformCameraTransition: m_PlayerController, m_NewCharacter, m_OldCharacter, m_NewCameraConfig
+AbilityTask_TraverseNavLink: NavLinkStart, NavLinkEnd, ActionTag
+AbilityTask_TriggerWallClimb: ClimbableWall
+AbilityTask_TurnTo: StartRotation, StartLocation, RealtimeTaskStarted, TurnOnSpotAsset, TurnMontageTask, TurnDurationSeconds, MinAngleDifferenceForUsingAnimation, MinAngleDifferenceToSkipAnyTurn, Direction, LerpToLocationWhileTurning, EasingFunction
+AbilityTask_UpdateAttackAxis: OnAttack, m_Character
+AbilityTask_UpdateAttackMagnet: m_CombatConfig
+AbilityTask_UpdateChargeAttack: m_MoveComp
+AbilityTask_UpdateClimb: m_ClimbingAnimConfig, m_EdgeTransform, m_ClimbingObject, m_ClimbingConfig
+AbilityTask_UpdateFishingBait: m_CarryComponent
+AbilityTask_UpdateFlyingAttackMagnet: m_RootMotionModifierScale
+AbilityTask_UpdateHits: m_OverlapActors, m_OutOverlapping, m_OverlappingActorHitMap, m_UseComponentRotation
+AbilityTask_UpdatePOI: m_Target
+AbilityTask_UpdateRiposteMagnet: m_CombatConfig
+AbilityTask_UpdateRotationToTarget: m_MagnetTarget, m_MoveComp
+AbilityTask_UpdateRotationToTargetDodge: m_MoveComp
+AbilityTask_UpdateRotationToTargetMeleeMagnet: m_MagnetTarget, m_MoveComp, m_DataModule_Locomotion
+AbilityTask_UpdateTarget: OnTargetVisualLost, OnTargetDie, OnTargetDefeated, m_Target, m_TargetConfig
+AbilityTask_UpdateTraverse: m_Character, m_CharacterMovementComponent, m_Montage
+AbilityTask_UpdateWallClimbing: m_Character, m_CapsuleComponent, m_AnimInstance, m_CharacterMovementComponent, m_verticalPelvisOffset, m_wallClimbingGA, m_TraversalInfo, m_ClimbableWall, m_timerHandle
+AbilityTask_UpdateWallClimbingNavLink: m_Spline
+AbilityTask_UpdateWaterWeapon: m_Character, m_CarryComponent
+AbilityTask_WaitAbilityEnd: OnEnd
+AbilityTask_WaitDelay_Extended: OnFinish
+AbilityTask_WaitForAllPlayersToConfirmSleep: m_OnAllPlayersConfirmed
+AbilityTask_WaitPressAxis: OnPress, m_Axis_X, m_Axis_Y, m_Threshold, m_InputComponent
+AbilityTask_WaitPressInput: OnPress, m_ActionId, m_InputComponent
+AbilityTask_WaitSeconds: SecondsToWait
+AbilityTask_WaitTargetDataUsingActor: ValidData, Cancelled, TargetActor
+AbilityTask_WaitUntilLookForward: OnAligned
+AbilityTaskAttackPushComboDelegate__DelegateSignature: Attack
+AbilityTaskCameraFadeSetup: m_Duration, M_Color, m_StartAlpha, m_TargetAlpha, m_FadeAudio, m_LerpType, m_LerpParam1
+AbilityTaskCoroutine: BudgetWorkload, bIsHighPriorityBudget
+AbilityTaskGeneric: TimeTaskActivated, OnTaskEnded, TaskResult, bHasCustomPathfollowSetting, bCouldNotPushPathfollowSetting, PathfollowSettingCache
+ActionKeywords: m_ActionTag, m_Keywords, m_OnEquipActionEffect
+ActivePersonalRelationshipModifier: ActivatedAtTime, ValidFor, bCanTick, bDiscardIfNotHighestRelationshipWeight, bDiscardIfNotHighestHostilityWeight, bDiscardIfNotHighestRankWeight, OwnedTagsWhileActive
+ActivePersonalRelationshipModifier_SingleCharacter: TargetCharacterGlobalID
+ActorLightingChannels: OwningActor, OriginalLightingChannels
+ActorMapBoundingBox: ZoneTagMap
+AdditionalConversationLight: Name, bIsForSpeaker, RectLightComponent, LightValues
+AIAgentCharacter: ReplicatedMesh, DefaultAIAgentConfig, m_TalkBalloonComponent
+AIAgentConfig_Navigation: m_NavigationQueryFilter, m_PreferedNavigationType, m_NavDataTags, NavShotQueryDistance, GlobalMetaRepathRadius, DefaultPathfollowSettings
+AIAssessmentResponseModule: ModuleCategoryTags, RequiredOwnedTags, RequireAnyOwnedTags, BlockIfHasAnyOwnedTags, RequireAssessedToHaveAllOwnedTags, RequireAssessedToHaveAnyOwnedTags, BlockIfAssessedHasAnyOwnedTags, RequirePursueCrimesOnAssessedCharacter, RequirePursueCrimesOnAssessedInstigator, RequireNotPursueCrimesOnAssessedCharacter, RequireNotPursueCrimesOnAssessedInstigator, SubModules, Rules
+AIAssessmentResponseRule: MaskRequiredTrueConditions, MaskRequiredFalseConditions, RequireEventMustHaveAllExtraTags, RequireEventMustNotHaveAnyExtraTags, Responses
+AIAssessmentResponseRuleList: Rules
+AIAssessmentResponseRules: Lists
+AICombatTargetScoringEntry: Description, Weight
+AICombatTargetScoringEntryDescription: Description, ScoreChange, Weight, bVetoUsage
+AICombatTargetScoringEntryManager: TargetScoringEntryGroups, LastTargetScores, ValidAvailableTargets
+AIEventResponse: Category, bExecuteImmediately
+AIGroup_Combat_Base: WeakestMember, StrengthRatioOfGroupMembers, FitnessOfGroupMembers, HighestStrengthInGroup, HighestLevelInGroup, HighestHealthInGroup
+AIInteractionBinding: TagParent, Prefix, bIsVerb
+AIItemActionScoringEntry: GroupTag, Description, bIsMultiplier
+AIItemActionScoringEntryDescription: Description, ScoreChange, bVetoUsage, bMultiplier
+AIItemActionScoringEntryGroup: ItemScoringEntries
+AIItemActionScoringEntryManager: ItemScoringEntryGroups, ItemScoringEntryGroupTags
+AIMessageGatherGroupsOfClass: Group, Found
+AIMessageGatherStatesOfClass: State, Found
+AimingAssistance: m_enableAimingAssistance, m_MaxTurnAngle, m_MaxDistance, m_MinDistance, m_DetectionRadius
+AirConfig: m_InAirRotationSpeedLimit, m_MaxFallingSpeed, m_MinFallingSpeed
+AISpawnpointConfig: m_SpawningDefinition
+AISpawnpointConfig_Ambient: m_MinSpawnCount, m_MaxSpawnCount, m_SpawningRadius
+AIState_DailyRoutine: ScheduleTimeOffsetMinutesMin, ScheduleTimeOffsetMinutesMax, WeatherPerceptionDelay, WeatherPerceptionDelayVariance, SortedTaskList, CurrentTaskDesc, CurrentTask, ScheduledTaskDesc, ScheduledTaskForTheDayIndex, ScheduledTask, InterruptState, NextPotentialTaskSwitchScheduledAt, CurrentTaskStartedAtTime, FallbackTaskClass, KnownPlaces, TeleportToCurrentTaskWhen, bSimulateRoutineTasksFromStartTime, bReactsToWeather, bIsPendingScheduleCheck, CurrentMovementBoundsEstimation, ReactsToWorldEventsOfClass, AutoSwitchAfterTime, AutoSwitchToRoutine, PassiveAssessmentModule, RelationshipModifiersToApply, RolesWhileAssigned, AreaOwnership, ItemOwnership, RestoreAttributesAfterTimespan, TryReviveAfterTimespan, TryReviveIfDeathMemoryHasAnyOf, bForceSimulationUpdateEveryTick, AssociatedCrimeAreas
+AIState_DailyRoutine_RandomInteractions: CharactersActualPotentialInteractionsWithSpot, CharactersActualPotentialInteractionsInSimulation, CharactersActualPotentialInteractionsWithoutSpot, CharactersActualPotentialSpotHandles, CharactersSimulationSpotHandles, CurrentTask, Interactions, BackupInteractions, AdditionalLocationAndRadius, WaitSecondsIfAllFails, ChanceToDoActionOnSpot, SpotReachRadius, NumInteractionLimit, InitialWalkspeed, TryTakeOutItemIfPossible, bAddItemToTakeOutToInventoryIfMissing, UnreachableSpotHandlesToPathingInfo, ReachableSpotHandlesToPathingInfo
+AIState_RandomInteractions_ChainedSpots: SpotNames, bAllowSkippingToNextWhenInteractionNotPossible, bRestartWithFirstInteraction
+AIState_RandomInteractions_RandomSpots: bPreferSpotsInLookingDirection, bPreferSpotOutsideSpotReachRadius, AlwaysStartInteractionOnSpotWithInteractions
+AIState_SelfConversation: ActConversationTopic, TopicClassToAct
+AITestSpawner: bEnable, CharacterKind, DailyRoutine, PreviewCharacterActorComponent, OldRootComponent
+AIWorldEvent: MaxAllowedNonMainParticipants, MainParticipantUniqueNames, JoinedNonMainParticipants, JoinedMainParticipants, EventLocations, EventLocationRadius, bRequireCharactersToBeAtEventLocationBeforeJoining, bEndInteractionOfNonMainParticipantsWhenEnding, RequireCharactersHaveAnyOfToJoin, BlockCharactersWithAnyOfFromJoining, bWaitUntilMainParticipantsAreAtEventLocation, bWaitUntilAllMainParticipantsHaveJoined, WaitForMainParticipantsToHaveAnyOf
+AIWorldEventEndedDelegate__DelegateSignature: AIWorldEvent
+AIWorldEventExplicit: KeepActiveCount
+AIWorldEventRequirements: WorldEventClass, bAllowWhenActive, bAllowWhenInactive, bAllowWhenPending
+AIWorldEventStartedDelegate__DelegateSignature: AIWorldEvent
+AIWorldEventSubsystem: InactiveExplicitEvents, PendingExplicitEvents, ActiveExplicitEvents, InactiveTimeBasedEvents, PendingTimeBasedEvents, ActiveTimeBasedEvents, OnAnyWorldEventStarted, OnAnyWorldEventPending, OnAnyWorldEventStoppedPending, OnAnyWorldEventEnded
+AIWorldEventTimeBased: TimeRange, MinDaysBetween, AllowOnWeekday, AllowOnWeather, LastTimeActive, CharactersRequiredToBeAlive
+AlkButtonBoxWidget: m_OnButtonClickedBP, m_OnButtonSecondaryClickedBP, HorizontalBox_Buttons
+AlkFilterCategory: m_FilterTag, m_DisplayName, m_Description, m_IconImage, m_SortOrder
+AlkFilterWidget: m_OnSelectionChangedBP, ListView_Filters, m_FilterEntries, m_Filters
+AlkFilterWidgetEntry: m_FilterTag, m_IconImage, m_DisplayName, m_Description, m_Visibility, m_CanBeMarkedUnseen, m_SortOrder
+AlkFilterWidgetFilter: m_OnEnabledStateChanged, m_OnUnseenStateChanged, m_Settings
+AlkInputAction: m_DataTableRowHandle, m_IsPersistent, m_ConsumeInput
+AlkListView: m_OnItemClickedBP, m_OnItemLongClickedBP, m_OnItemLongClickAbortedBP, m_OnItemLongClickProgressChangedBP, m_InitialRepeatDelay, m_RepeatDelay, m_MouseInteractionSettings
+AlkSimpleListViewWidget: ScrollBox_Content, SizeBox_Content, m_EntryWidgetClass, m_Orientation, m_UseFixedWidth, m_FixedWidth, m_UseFixedHeight, m_FixedHeight, m_UseEdgeSnapping, m_EdgeSnappingDistance, m_SmoothScrolling, m_SmoothScrollingSpeed, m_ScrollSpeedMouse, m_ScrollSpeedStick, m_InitialRepeatDelay, m_RepeatDelay, m_ScrollBackwardActions, m_ScrollForwardActions
+AlkUserWidget: m_OnHoveredChangedBP, m_CurrentInputType
+AlkVerticalBoxSlot: m_Padding, m_Size, m_HorizontalAlignment, m_VerticalAlignment
+AmbientAnimInstance: m_Speed, m_MovementMode, m_IsLanding, m_IsGrounded
+AmbientItemSpawner: bAllowRefillWhilePlayerIsLooking, bShowPreviewActors, NavigationSpotHandle, ItemSlots, StaticMesh, NavSpotRelativePosition, NavSpotName
+AmbientLife: m_AmbientLifeActor, m_CreatureDefinition, m_Num
+AmbientLifeConfig: m_CharacterInstanceClass, m_FleeForwardSpeedMaxMin, m_FleeUpwardSpeedMaxMin, m_TimeForEndFleeSpeed, m_RefillHours, m_CheckRadius, m_WaitTime, m_PerceptionSettings, m_RegisterToEvent, m_EventId
+AmbientLifeWarningFlock: m_AmbientConfigDefinition, m_RootComponent, m_PerceptionComponent, m_Positions, m_Creatures, m_ListenerHandle, m_Listeners
+AngelscriptAssetCookSettings: ExtractSoftPtrAssetsOfClassesInPackage
+AnimatedBookSubsystem: m_BookCaptureActor
+AnimatedBookUIWidget: m_CachedBookCaptureActor
+AnimConfig: m_TimeToBeTired, m_MinTimeTired, m_TransitionNL, m_TransitionNR, m_LocoBlendCurvesConfig, m_IKConfig, m_PhysicalBonesConfig, m_ItemsAnimData, m_ActionAnimData, m_DefaultMovementAnimData
+AnimInstance_AmbientLife: m_IsLanding
+AnimInstanceLayerFishingRod: m_FishingState, m_CurrentDirection
+AnimNotify_Block: m_NewState
+AnimNotify_CameraShake: m_CameraShake, m_OnlyTriggerOnPlayerCharacter
+AnimNotify_CancelAbility: AbilityTagToCancel
+AnimNotify_ChangeMaterial: m_Material, SlotNames
+AnimNotify_ChangePose: m_NewPose
+AnimNotify_ExecuteCue: m_CueTag, m_Level
+AnimNotify_FreezeFrame: m_slowAmount, m_Duration
+AnimNotify_GameplayCueEvent: m_CueTag, m_Event, m_ShouldConsiderChildTags, m_Level
+AnimNotify_GameplayMessage: m_InteractTag, m_EventMagnitude, m_MessageName
+AnimNotify_GameplayTagEvent: EventTag, RemoveTag
+AnimNotify_Interact: m_InteractTag, m_EventMagnitude
+AnimNotify_InteractProp_Hidden: m_PropName, m_Hidden
+AnimNotify_InteractProp_Spawn: m_SocketName, m_PropName, m_StaticMesh, ItemVisualClass, m_DontDuplicate, m_InventoryHidde
+AnimNotify_InteractProp_UnSpawn: m_PropName, m_InventoryHidde
+AnimNotify_Invisible: M_Invisible
+AnimNotify_MoveFromBoneToBone: m_FromBone, m_ToBone
+AnimNotify_PlayCustomFX: EffectTag, EffectSpecs, TargetSockets, FXDefinitionTemplate, FMODEvent, PerceptionSoundTag, PerceptionLoudness, PerceptionLength, NiagaraSystemPath, NiagaraAttachPoint, NiagaraPositionOffset, NiagaraRotationOffset, bIsUnderWaterEffect, bIsLooping, bIsInstantEffect, FMODPreview, NiagaraPreview, FXComponent
+AnimNotify_PlayCustomFXByActorTag: EffectTag, EffectSpecs, TargetSockets, FMODEventMap, FMODEvent, FMODEvent1, FMODEventMapTagToTest, PerceptionSoundTag, PerceptionLoudness, PerceptionLength, NiagaraSystemPath, NiagaraAttachPoint, NiagaraPositionOffset, NiagaraRotationOffset, bIsUnderWaterEffect, bIsLooping, bIsInstantEffect, FMODPreview, NiagaraPreview, FXDefinitionTemplate, FXDefinition
+AnimNotify_PlayCustomLoopingFX: EffectTag, EffectSpecs, TargetSockets, FMODEvent, PerceptionSoundTag, PerceptionLoudness, PerceptionLength, NiagaraSystemPath, NiagaraAttachPoint, NiagaraPositionOffset, NiagaraRotationOffset, bIsUnderWaterEffect, FXDefinition, ActiveEffects, FMODPreview, NiagaraPreview, FXDefinitionTemplate
+AnimNotify_PlayFX: EffectTag, AttachPoint, PreviewNiagara, PreviewNiagaraPositionOffset, PreviewNiagaraRotationOffset, FMODPreviewInstance, NiagaraPreviewInstance, PreviewFMODEvent, FMODOEventOverride, LocationOffset, RotationOffset
+AnimNotify_PlayLoopingFX: EffectTag, AttachPoint, PreviewNiagara, PreviewNiagaraPositionOffset, PreviewNiagaraRotationOffset, FMODPreviewInstance, NiagaraPreviewInstance, PreviewFMODEvent, FMODOEventOverride, LocationOffset, RotationOffset
+AnimNotify_PlayMontage: AnimSequenceList, SlotName
+AnimNotify_PlayNiagaraEffectByTag: TagToCheck, TemplateWithTag
+AnimNotify_Prop: m_SocketName, m_PropName, m_StaticMesh
+AnimNotify_Prop_Spawn: m_ItemDef
+AnimNotify_Ragdoll: m_ActivateRagdoll
+AnimNotify_RemoveTag: m_TagToRemove
+AnimNotify_Rumble: m_forceFeedbackEffect
+AnimNotify_SaveFloat: m_Key, m_Value
+AnimNotify_SayVoiceline: VoicelineTag
+AnimNotify_SendGlobalEvent: m_EventTag, m_EventName, m_NewValue, m_Forced
+AnimNotify_SetCinematicCamera: m_CameraName
+AnimNotify_SetCombatStance: m_Stance
+AnimNotify_SetMovementMode: m_MovementMode
+AnimNotify_SetMovementState: m_MovementState
+AnimNotify_Slime: m_SlimeAction, m_SlimeName
+AnimNotify_Stance: m_Stance
+AnimNotify_StopFX: EffectTag, bIgnoreSpecs
+AnimNotify_SwimType: m_SwimType
+AnimNotify_UnAttach_Weapon: m_InvType
+AnimNotifyState_AmbientAnimationProp: AttachToSocket, StaticMesh, SkeletalMesh, AnimationMontage, bFollowCharacterAnimation, RelativeTransform, PropActorTag, StaticMeshActorClass, SkeletalMeshActorClass
+AnimNotifyState_Charge: m_HitCollisionName, m_TargetSearchRadius, m_TargetSearchAngle
+AnimNotifyState_CollResp: m_ApplyOnCapsuleComponent, m_ApplyOnAllSubCapsules, m_CollisionResponesesMap
+AnimNotifyState_Damage: m_DamageSocketName, m_HitCollisionName, m_AdditionalHitCollisionNames, m_MeshComp
+AnimNotifyState_Deflectable: m_HitCollisionName, m_SocketName, m_MinHeightToDeflect, m_MinAngleToDeflect, m_MaxAngleToDeflect, m_DeflectMethod, bInverted
+AnimNotifyState_DisableSubcapsule: m_SubcapsuleName
+AnimNotifyState_DodgeAndBlockWindow: Timeframe
+AnimNotifyState_EarlyBlendout: m_BlendoutTime, m_CheckMovementState, m_MovementState, m_UpdateMovementStance, m_NewMovementState, m_CheckMovementInput, m_CheckNoInput, m_CheckStance, m_Stance, m_CheckRotationMode, m_RotationMode, m_ForceBlendOut, m_IgnorePlayer, m_IgnoreAI
+AnimNotifyState_ExecutionMagnet: m_TargetSocket, m_WeaponSocket, m_HitboxName
+AnimNotifyState_FlyingMagnet: m_MagnetRangeXY, m_MagnetRangeZ, m_MagnetAngle, m_DistanceAfterAttack
+AnimNotifyState_Invulnerable: m_ApplyToNPCs
+AnimNotifyState_MagnetBase: m_DamageBone, m_MagnetConfigType, m_CoreBone, m_DamageNotifyIndex, m_DamagePosition, m_WeaponDirection, m_HitCollisionName, m_DebugConfigClass
+AnimNotifyState_MeleeMagnet: m_MagnetRange, m_MagnetRangeAI, m_MagnetAngle, m_UseNewRelocationSystem, m_PivotDistanceTip, m_PivotDistanceHandle, m_DistanceAfterAttack, m_AllowNegativeRMScale, m_OverrideRootMotionScaleRate, m_CustomRootMotionScaleRate, m_OverrideRotationSpeed, m_CustomRotationSpeed
+AnimNotifyState_ModifyPlayRate: m_AnimMontage, m_SectionFrames, m_OldPlayRate, m_IgnorePlayer, m_IgnoreAI
+AnimNotifyState_MovementAction: m_MovementAction
+AnimNotifyState_MoveToFirstPoint: m_RightOffset, m_HeightOffset, m_distanceOffset, m_entering, m_Overtime, m_MoveTo
+AnimNotifyState_OverrideRotationWithMovementRotation: m_Character, m_DisableRootMotion
+AnimNotifyState_PlayCue: m_CueTag, m_Level
+AnimNotifyState_ReorientPivotRotation: m_RotationOffset, m_UpdateRotation, m_Interpolate, m_InterpolationSpeed
+AnimNotifyState_ResetStates: m_ForceBlendOut, m_ForceContinuePlaying, m_BlendoutTime, m_BlockingBlendOutTime
+AnimNotifyState_RiposteMagnet: m_DamageBone, m_DamagePosition
+AnimNotifyState_SetRootMotionScale: m_RootMotionScale
+AnimNotifyState_SetTagState: m_TagState
+AnimNotifyState_Shrink: m_Scale
+AnimNotifyState_UseFov: m_NewFov
+ArcheryAccuracyParams: m_MaxMovementSpeed, m_MaxBowStringStretch, m_MinBowStringStretch, m_SpeedWhenMinStretch, m_SpeedWhenMaxStretch, m_UntrainedSkillPerformance, m_TrainedSkillPerformance, m_MasterSkillPerformance
+ArcheryComponent: m_ArrowInHand, m_CurrentArcheryState, m_AbilitySystemComponent, m_AbilityTaskPlayMontage, m_AnimInstance
+ArcherySkillParams: m_DrawAnimationRate, m_ReleaseAndNotchArrowOntoBowAnimationRate, m_DeviationRadius, m_DeviationMaxDistance, m_MaximumResistanceTimeWhileDrawing
+ArcheryWeaponVisual: m_MeshComp, m_ArrowNotched, m_HandleSocketName, m_StringSocketName, m_HasArrowNotched
+AreaSpellVFXParams: Duration, MaxLength, SpreadAngle, Height_Emitter_Size, Width_Emitter_Size
+AreaTagRegionTrait: AreaName, Priority
+ArmorCustomization: m_SectionSelectSlotSection, m_SectionSelectModificationSection, m_SelectNextSlot, m_SelectPreviousSlot, TileView_Items, m_ModificationSlots
+ArmorCustomization_Main: m_ContentWidget
+ArmorCustomizationSlotData: m_UpgradeDefinition, m_IsEmpty, m_IsEquipped, m_IsBought, m_bIsLocked, m_IsNew, m_CanAfford
+ArmorDefinition: m_ArmorVisualDefinition, m_UpperBody_Light01_ArmorUpgrade, m_UpperBody_Light02_ArmorUpgrade, m_UpperBody_Mid01_ArmorUpgrade, m_UpperBody_Mid02_ArmorUpgrade, m_UpperBody_Heavy01_ArmorUpgrade, m_UpperBody_Heavy02_ArmorUpgrade, m_MidBody_Light01_ArmorUpgrade, m_MidBody_Light02_ArmorUpgrade, m_MidBody_Mid01_ArmorUpgrade, m_MidBody_Mid02_ArmorUpgrade, m_MidBody_Heavy01_ArmorUpgrade, m_MidBody_Heavy02_ArmorUpgrade, m_LowerBody_Light01_ArmorUpgrade, m_LowerBody_Light02_ArmorUpgrade, m_LowerBody_Mid01_ArmorUpgrade, m_LowerBody_Mid02_ArmorUpgrade, m_LowerBody_Heavy01_ArmorUpgrade, m_LowerBody_Heavy02_ArmorUpgrade, m_ProtEdge, m_ProtBlunt, m_ProtPoint, m_ProtFire, m_ProtWind, m_ProtIce, m_ProtEnergy, m_BuffStrength, m_BuffDexterity, m_BuffHealth, m_BuffMana, m_BuffToughness, m_BuffWeight, m_BuffProtEdge, m_BuffProtBlunt, m_BuffProtPoint, m_BuffProtFire, m_BuffProtWind, m_BuffProtIce, m_BuffProtEnergy
+ArmorUpgradeDefinition: m_ArmorUpgradeVisualDefinition, m_ConditionalTags, m_BuffStrength, m_BuffDexterity, m_BuffHealth, m_BuffMana, m_BuffToughness, m_BuffWeight, m_BuffProtEdge, m_BuffProtBlunt, m_BuffProtPoint, m_BuffProtFire, m_BuffProtWind, m_BuffProtIce, m_BuffProtEnergy
+ArmorVisualsDefinition: m_WeaponHolderOffsets, m_HasPreBakedSK, m_PreBakedName, m_UpperTeethOffset, m_CharacterVisualFeatures, m_TagsToAdd, m_MutableAsset, m_MutableAssetPath, m_GTOAssetPath, m_PreBakedSKsPath
+ArrowData: mArrow
+ArrowsStuckComponent: m_Arrows, m_InventoryComponent
+ArrowVisual: m_Bounciness, m_Friction, m_BounceVelocityStopSimulatingThreshold, m_MinFrictionFraction, m_SurfaceHardnessMakesBounce, m_MeshComp
+ASCodegenTestStruct: IntValue, FloatValue, StringValue, NameValue, BoolValue, ByteValue, EnumValue
+ASCodegenTestStructContainer: A, IntValue, B
+AttachedItem: m_ItemInvType, m_ItemInvSlot, m_ItemCarrySlot
+AttackCapsuleLoopConfig: m_CapsuleHalfHeight, m_CapsuleRadius, m_CapsuleLengthSpeed
+AttackConeLoopConfig: m_ConeLengthMeters, m_ConeAngleDegrees, m_ConeLengthSpeed, m_ConeSphereRadius
+AttackConfig: m_CanKnockback, m_DamageMultipliers, m_SuperArmorDamageMultiplier, m_SuperArmorResistanceMultiplier, m_AttackDirection
+AttackDirectionDelegate__DelegateSignature: Direction
+AttackLoopConfig: m_AttackMontage, m_AIMaxSeconds, m_PlayerSeconds
+AttackMeleeConfig: m_AttackMontage, m_ParriedMontage, m_DeflectedMontage, m_AttackDistanceFromMontage, m_AttackHandle
+AttackMeleeLadderConfig: m_MontageUpLeft, m_MontageUpRight, m_MontageDownLeft, m_MontageDownRight
+AttackPoseDirectionConfig: m_Options
+AttackRiposteConfig: m_Ripostes
+AttackSpawnActorConfig: m_AttackMontage, m_ActorClass, m_SocketName
+AttackThrowConfig: m_AttackMontage, m_ProjectileClass, m_ArrowGravityModifier, m_ProjectileSpeedMin, m_ProjectileSpeedMax, m_ProjectileRotator
+AttributeSet_Alcohol: Alcohol, MaxAlcohol, AlcoholDepletionRate
+AttributeSet_Armor: SuperArmor, MaxSuperArmor, Resistance_Blunt, Resistance_Edge, Resistance_Point, Resistance_Fire, Resistance_Energy, Resistance_Ice, Resistance_Wind, Resistance_Falling
+AttributeSet_Dexterity: Dexterity
+AttributeSet_Fatigue: Fatigue, MaxFatigue, FillRatio, FillRatioPeriod, MaxThresholdIndex, RecoveryRatePerHourOfSleep
+AttributeSet_Health: Health, MaxHealth, DamageMultiplier, RecoveryRatePerHourOfSleep
+AttributeSet_LevelProgression: Level, Experience, SkillPoints, XPExecutedBounty, XPKillOrDefeatBounty, Toughness, ToughnessA, ToughnessB, ToughnessC
+AttributeSet_Lockpicking: LockpickDurability, LockpickPrecision
+AttributeSet_Mana: Mana, MaxMana, MagicianLevel, RecoveryRatePerHourOfSleep
+AttributeSet_Movement: SpeedModifier
+AttributeSet_Oxygen: Oxygen, MaxOxygen, OxygenDepletionRate, OxygenRecoveryRate, CriticalLevelPercent
+AttributeSet_Pickpocketing: PickPocketing
+AttributeSet_Sleep: SleepTime, MaxSleepTime, SleepTimeRecoveryAmount, SleepTimeRecoveryPeriod, MaxRestTime
+AttributeSet_Strength: Strength, Critical_Fists, Critical_OneHand, Critical_TwoHand, Critical_Orc
+AttributeSet_Swampweed: Swampweed, MaxSwampweed, SwampweedDepletionRate
+AttributeSetRecord: m_Class, m_ComponentData
+AudioEnvironmentRegionTrait: AudioEnvironmentTag, Priority, MinWeatherIntensity, MaxWeatherIntensity, ThunderIntensity
+AudioRegionTrait: ReactionType, ReverbSettings, SnapshotPriority
+AudioSnapshotSettings: SnapshotTag, FMODEventPath
+BaitVisual: m_CollisionComp, m_MovementComp, m_ParticleComp, m_MeshComp
+BarrierCharacterHandler: Character, DangerLevel, States
+BarrierCharacterState: m_SFXHandle, Character, m_FX_Tag, m_FXComp
+BarrierCharacterStateDomeProximity: m_Active
+BarrierCharacterStateWithEffect: LightConfig, Light, Handlers, m_FX_Tag_NPC
+BarrierCharacterStateWithSound: BarrierTransform, BarrierRadius
+BarrierEffectHandler: Amount, RandomFactor, RecalculateDistanceSquaredBias, Rays, Character, m_FeetRayParticleSystem, BonesSource
+BarrierManager: BarrierLocalRadius, m_SafeZoneDistance, m_WarningZoneDistance, m_RedZoneDistance, m_Barrier, m_BarrierCollider, CloseDistanceBarrier, m_PostProcess, CloseDistanceBarrierActivableActor, CustomSafeZones, m_BarrierRayRandomFactor, m_GroundRayRandomFactor, m_MaxHeight, m_GroundRaysAmount, m_BarrierRaysAmount, m_NewRayBarrierDist, m_NewRayGroundDist, m_MinBarrierRayDistance, m_LightColor, m_LightIntensity, m_LightVolumetricScattering, m_PostProcessFactor, m_LightFunctionMaterial, m_OrangeZoneEffect, m_RedZoneEffect, m_BarrierRayParticleSystem, m_FeetRayParticleSystem, m_GroundRaysSourceBones, m_RedRaysSourceBones, CharacterHandlers, m_FX_BarrierWarning, m_FX_BarrierOrange, m_FX_BarrierOrange_NPC, m_FX_BarrierRed, m_FX_BarrierRed_NPC
+BarrierParticlesManager: m_ParticleActor, m_ActivationDistance, m_ChecksPerFrame, m_SphereTraceRadius, m_UpDisplacement, m_ParticlePoints, m_ParticleSystemsPool
+BaseGothicAnimInstance: m_Character, m_DataModule_Animation, m_AbilitySystemComponent, m_LODLevel
+BehaviorModuleComponent: m_ControlledActor
+BiomeWeatherProbabilities: WeatherProbabilities
+BiomeWeatherProbabilitiesDataTable: BiomeWeather, UnselectedWeatherModifier
+BipedIKAnimInstance: m_RightOffsetTarget, m_LeftOffsetTarget, m_RightLockLocation, m_LeftLockLocation, m_RightLockRotation, m_LeftLockRotation, m_RightOffsetRot, m_LeftOffsetRot, m_RightFootNormal, m_LeftFootNormal, m_RightFootFound, m_LeftFootFound, m_PelvisOffset, m_LeftLockAlpha, m_RightLockAlpha, m_PelvisAlpha, m_RightOffsetLocation, m_LeftOffsetLocation, m_EnableFootIkL, m_EnableFootIkR, m_EnableHandIkL, m_EnableHandIkR, m_CarryComponent, m_LeftHandTransform, m_LeftHandPos, m_LeftHandRot, m_RightHandPos, m_RightHandRot, m_CurrentMeleeWeapon, m_IKConfig_Biped, m_CurrentLookAtState, m_RuntimeLookAtConfig, bImplementsLookAtSM, m_LookAtConfig_Idle, m_LookAtConfig_IdleCrouch, m_LookAtConfig_CombatMelee, m_LookAtConfig_Block, m_LookAtConfig_CombatArchery, m_LookAtConfig_Aiming, m_LookAtConfig_CombatArcheryCrouch, m_LookAtConfig_AimingCrouch, m_LookAtConfig_Interact, m_LookAtConfig_DrugsAlcohol, m_LookAtConfig_Conversation
+BipedIKConfig: m_MaxFootIKStandingTargetDistance, m_MaxFootIKCrouchedTargetDistance, m_IKBoneL_Target, m_IKBoneR_Target, m_RightBoneName, m_LeftBoneName, m_PelvisBoneName
+BipedLocomotionAnimInstance: CurrentMidIdleTime, TimeInMidIdle, m_ApplySpineCorrection, WeaponHoldersOffsets, WeaponOffsets, IsSayingASentence, m_IsInDialog, m_RandomLoopIdx, m_WalkLoopsBS, GTO, ReloadGTOData, UpperTeethOffset, EyesOffset, TeethOffset, m_CurrentMood, m_DataModule_Combat
+BipedMagicAnimInstance: m_Channeling, m_SpellPitchLimit, m_SpellYawLimit, m_IsAimingLaunchingSpell, m_IsFirebolt
+BipedMeleeCombatAnimInstance: m_CombatStance, m_BlockState, m_DesiredCombatStance, m_Pose, m_TransitionHorizontal, m_TransitionVertical
+BipedRangedCombatAnimInstance: m_HasAmmo, m_IsArrowLoaded, m_IsReloading, m_IsDrawing, m_IsQuickshoot, m_CanDoAiming, m_LeftHandPos, m_LeftHandRot, m_CurrentWeapon, m_DrawAnimationRate, m_NotchAnimationRate, m_DrawingStringAlpha, m_DrawingStringTime, m_StartDrawStringResistanceAtRatio, m_FinishDrawStringResistanceAtRatio
+BipedRidingAnimInstance: m_mountCharacter, m_DataModule_MountLocomotion, m_MountAnimInstance, m_RiderVelocity, m_RiderAcceleration
+BlockAbilitiesRegionTrait: BlockAbilitiesWithTags, bCancelBlockedAbilitiesIfActive
+BloodCharacterConfig: BloodDataLookup, BloodCharactersLookup
+BloodCharacterContainer: Characters
+BloodCharacterData: Color
+BloodPuzzleSwitchBase_Component: m_Listeners, FillTankPosition, FillExitPosition, IsBeingFilled, IsFilled, m_InteractiveObjectActor, m_InternalName
+BoneConstraintsConfig: m_SimulationLOD, m_BonesToSimulate
+BoneFeetData: FeetTextureSize, Diffuse, Normal, AO
+BoneNames: Root, Head, Pelvis, Chest, FootL, FootR, HandL, HandR
+BonesConstraints: m_PhysicalAnimationData, m_usePhysicalAnimation, m_Bones
+BonesSettings: m_BoneNames, m_SpinePelvisBoneAmount
+BoneTrackedData: InvertX
+BookCaptureActor: m_MaxNumPageFlips, m_CurrentPageFlip, m_NumPages, m_CurrentLeftPage, m_CurrentRightPage, m_CurrentDocument, m_BookCoverWidget, m_LeftPageWidget, m_RightPageWidget, m_BlankPageWidget, m_PageWidgets, m_OnPageFlipped, m_BookMaterialTemplate, m_BaseTextureOverride, m_OrderedPages, m_RenderTargetSize_PageX, m_RenderTargetSize_PageY, m_BookMeshComponent, m_Animation_OpenBook, m_Animation_CloseBook, m_Animation_PrevPage, m_Animation_NextPage, m_BaseTextureName, m_TintColorParam, m_PageMaterialParamNames, m_DynamicBookMaterial, m_RendertargetForPage, m_FinalRenderTarget, m_WidgetForPage, m_OnBookInitialized
+BookCoverConfiguration: m_BookVisualConfiguration
+BookVisualConfiguration: m_LeftBorder, m_RightBorder, m_TopLeftCorner, m_TopRightCorner, m_BottomLeftCorner, m_BottomRightCorner, m_CoverLogo, m_BackgroundTexture, m_BookTintColor, m_BookDamageState, m_BookTitleFont, m_BookTitleFontSize, m_BookTitleColor, m_BookTitleOpacity, m_TitleHorizontalAlignment, m_TitleVerticalAlignment, m_BookTitleShadowIntensity, m_BookTitleWearIntensity
+BossfightMusicRegionTrait: DefaultContentID, Priority, HysteresisThreshold
+BoughtArmorUpgrades: Armor, AvailableUpgrades, BoughtUpgrades
+BowAnimInstance: Enable_BowString_Correction, m_RightHandTransform, m_Completion, m_IsAiming, m_IsEquipped, m_IsReloaded, m_IsReloading, m_Character, m_AbilitySystemComponent, m_ArcheryComponent, m_Weapon
+BowItemAnimConfig: m_NotchMontage, m_ReleaseAndNotchMontage, m_ReleaseAndNotchFailureMontage, m_QuickReleaseAndNotchMontage, m_QuickReleaseAndNotchFailureMontage
+BudgetSystemDynamicTickDelegate__DelegateSignature: DeltaTime
+BudgetSystemWorkloadConfig: WorkloadName, SecondsPerFrame
+BuoyantForceComponent: m_MeshDensity, m_FluidDensity, m_FluidLinearDamping, m_FluidAngularDamping, m_VelocityDamper, m_ClampMaxVelocity, m_MaxUnderwaterVelocity, m_TestPointRadius, m_TestPoints, m_PointsUnderWater, m_ApplyForceToBones, m_SnapToSurfaceIfNoPhysics, m_WaterVelocityMultiplier, m_PointDensityOverride, m_BoneOverride, m_DeactivationDistance, m_ReactivationDistanceThreshold, m_SignificanceManager
+ButtonWidget: m_OnClickedBP, m_OnSecondaryClickedBP, InputHint, m_HasSecondaryAction, m_SecondaryActionSettings, m_GameplayTag, m_ClickRowHandle, m_HoldDelay
+ButtonWidget_SecondaryActionSettings: m_PressTime, m_HoldTime
+CacheLocomotionData: DiagonalScaleAmountCurve, StrideBlendNWalk, StrideBlendNRun, StrideBlendCWalk, StrideBlendSwimmingWalk, StrideBlendSwimmingRun, StrideBlendDiveWalk, LandPredictionCurve, LeanInAirCurve, YawOffsetFBCurve, YawOffsetLRCurve
+CameraBehaviour: m_SocketOffset, m_SocketMinCombatOffset, m_ArmLength, m_Fov, m_LagSpeed, m_RotationLagSpeed, m_RotationLagSpeedPitch, m_LagMaxDistance, m_Condition, m_IsActive, m_IsAim, m_SpellPitchLimit, m_SpellYawLimit, m_CameraPitchId, m_PitchLimit, m_YawLimit
+CameraCombatSettings: DistanceCheck, FreeMode, VsOneOrTwo, VsThree, VsFly
+CameraCombatSettings_Mode: PivotOffset, RotationLagSpeed, CameraOffset, CameraRotOffset, PivotLagSpeed, FOV
+CameraDefinition: m_FileName, m_ArmLength, m_Fov, m_SocketOffset, m_LagSpeed, m_RotationLagSpeed, m_RotationLagSpeedPitch, m_LagMaxDistance, m_CombatDistance, m_CamBehaviours, m_CamBehavioursDefault, m_CamCinematic, m_TargetViewPitchMin, m_TargetViewPitchMax, m_EaseNavigationUp, m_EaseNavigationDown, m_EaseSpeedMenu, m_EaseSpeedNormal, m_EaseSpeedFast, m_EaseSpeedMedium, m_EaseSpeedSlow, m_EaseChangeTime, m_CameraFadeDist, m_WaterTransitionPitch, m_AimPitchLimit, m_AimWeaponPitchLimit, m_BottomPitchLimit, m_UpPitchLimit, m_PostProcessSettings, m_PostProcessingDuration
+CameraEase: m_Time, m_Ease, m_Blend
+CameraFadeManager: m_OnFadeOutFinished, m_OnFadeInFinished, m_FadeSetup, m_PlayerController
+CameraLights: KeyLight, RimLight, KeyReverseLight, RimReverseLight, AdditionalLights
+CameraMovementSettings: Walk, Run, Sprint, PivotOffset, RotationLagSpeed
+CameraMovementSettings_Speed: CameraOffset, PivotLagSpeed, BlendTime, FOV
+CameraSettings: VelocityDirection, LookingDirection, Aiming, Combat
+CameraSettings_Stance: Standing, Crouching
+CameraState: m_ArmLength, m_SocketOffset, m_SocketOffsetDesired, m_Fov, m_LagSpeed, m_RotationLagSpeed, m_RotationLagSpeedPitch, m_LagMaxDistance
+CameraViewParameters: Preset, Speaker, Listener
+CarriableWorldItem: bIsClickable, bCustomCollision, DestructionCheckIntervall, State
+CarryComponent: m_SlotsInfo, m_EquippedItem, m_Pouch, m_VisualAttachedItems, m_InventoriesWithVisualAttach, m_MapOfAttachedItems, m_bIsHidden, m_DataModule_Combat, m_DataModule_Container, m_DataModule_Animation, m_SafeCheckSlotInvSlot, OnItemEquipped, OnItemThrowed, OnItemUnEquipped
+CharacterAIState: Others, bShouldExitState, bSupportsSimulatedSteps, AssessmentModuleClass, AssessmentModule, WorldEventToActivate, IdleFocusSpotName, GameplayTagEventSubscriptions, OwnedGameplayTags, DynamicOwnedLooseGameplayTags, requestedWalkSpeed
+CharacterBloodSettings: m_HasBlood, m_CanDecompose, m_BloodColor
+CharacterCanTransformInto: m_SpawnDefinition, m_DataModuleComponent, m_AnimMontage, m_FromCharacter, m_ToCharacter, m_Montage
+CharacterConfig: m_CharacterDefinition, m_LocomotionConfig, m_AnimConfig, m_SpawnSettings, m_NavigationConfig, m_EffectStateComponentConfigurations, m_CharacterEffectComponentsConfig, m_CharacterDefaultInteraction
+CharacterDailyRoutineVisualsConfig: Meshes
+CharacterDefinition: m_CueData, m_AbilitiesEffect, m_OnPlayerEffect, m_InitialGuildEffect, m_KnownRecipes, m_CameraConfig, m_Skills, m_AIAbility, m_CharacterVisualsDefinition, m_PouchActorClass, m_PickpocketTargetCharacterModifierSettings, m_VoiceLinesOf, m_PerceptionSettings, m_Species, m_Mood, m_Blood, m_Personality, m_CharacterType, m_LightType, m_InventoryPreset, m_CharacterPreset, m_HealthBarAttachToSocket, m_CharacterSizeGroup, m_InitialAttributes, m_InitialValues, m_InitialValuesForTags, m_InitialValuesForDifficulties, m_SuperArmorParams, m_OnParriedDamageMultiplier, m_HitSpaceParams, m_CanAttack, bHideHealthBar, bPersistent
+CharacterEffectComponentsConfig: m_EffectComponentsConfiguration
+CharacterFeaturesConstantMaterialHandler: MIC
+CharacterFeaturesDynamicMaterialHandler: Mid
+CharacterGuildRequirements: AllowedGuilds
+CharacterRelationshipComponent: ActivePersonalModifiers, ActiveModifiersGeneration
+CharacterSignificanceSettings: MaxSignificanceRadius, InViewRadius, SpawnSignificance, KeepSpawnedSignificance, PreloadVisualsSignificance
+CharacterSpeciesRequirements: AllowedSpecies
+CharacterStatePersistentDataSubsystem: LoadedSaveGameData, LooseTagsToSaveOnCharacters, SecondsToBodyDisappear
+CharacterStateSaveGameData: AnyCharacterType, NPCCharacters, PlayerCharacters, GlobalIDFormat
+CharacterStateSaveGameData_ActiveEffects: ActiveEffects
+CharacterStateSaveGameData_ActiveGameplayEffect: EffectSpec, SetByCallerTagMagnitudes
+CharacterStateSaveGameData_AIValueStorage: SpawnedStorage, PersistantStorage
+CharacterStateSaveGameData_AnyCharacterType: AttributesByGlobalId, LongTermMemoryByGlobalId, ActiveEffectsByGlobalId, PartyInfoByGlobalId, LooseTagsByGlobalId
+CharacterStateSaveGameData_Attributes: AttributeSetsByClass
+CharacterStateSaveGameData_AttributeSet: Attributes
+CharacterStateSaveGameData_DailyRoutine: DailyRoutineClass, AssignedAt, LocationWhenStartedRoutine, UsedSpot
+CharacterStateSaveGameData_Inventory: InventoryItems, DefaultInventoryItems
+CharacterStateSaveGameData_LongTermMemory: MemorizedEvents
+CharacterStateSaveGameData_NPCCharacter: SpawnInfoByGlobalId, PositionByGlobalId, DailyRoutineByGlobalId, InventoryByGlobalId, RelationshipByGlobalId, AIValueStorageByGlobalId, GlobalIDsRemovedFromWorld
+CharacterStateSaveGameData_NPCSpawnInfo: CharacterConfig, VisualCharacterClass, SummonedBy
+CharacterStateSaveGameData_Party: InPartyWith
+CharacterStateSaveGameData_Position: CharacterLocation, CharacterRotation, SpawnLocation, SpawnRotation
+CharacterStateSaveGameData_Relationship: ActivePersonalRelationshipModifiers
+CharacterTrinketsComponent: m_GameplayEffectContextHandles
+CharacterTypeTagRequirements: AllowedCharacterTypes
+CharacterUniqueName: Name
+CharacterVisualFeaturesDefinition: DirtSettings, TattooSettings, ScarsSettings
+CharacterVisualsComponent: ReplicatedItemDef, m_CurrentTagsAdded, m_EquipArmorGameplayEffect, m_LoadedCustomizableObject, m_CSkeletalComponent, m_AbilitySystemComponent, m_GE_Armor_contextHandle, m_GE_Armor_Upper_contextHandle, m_GE_Armor_Mid_contextHandle, m_GE_Armor_Lower_contextHandle, m_CurrentFloatProperties, m_CurrentBoolProperties, m_CurrentEnumProperties, m_CurrentVectorProperties, m_CustomizableObject, m_RedEyeMaterial, m_gtoPtr, m_CustomizableObjectInstance, m_IsPlayer, m_faceName, m_PrebakedMeshName, m_charDef, m_currentVisualsDefinition, m_BakedSkeletalMesh, VisualFeaturesDefinition
+CharacterVisualsDefinition: m_WeaponHolderOffsets
+CharacterVisualsGameInstanceSubsystem: m_defaultLoadPriority
+CheckBoxWidget: m_OnCheckedStateChangedBP, InputHint, m_CheckedState, m_ToggleStateRowHandle
+ChooseBaitWidget: m_OwnerCharacter
+CinematicCharacter: AbilitySystemComponent, m_CharacterName, ForceCinematicLOD
+CinematicMainWidget: OnAnyInputEvent, SkipCinematicButton
+CinematicsTesting: IsEnabled, SafeDistancePercentage, DistanceFromCameraToShotCenter, FadeRadius, CinematicParameterCollection
+ClientAuthoritativeAbilityTask: OnFinish
+ClientAuthoritativeCharacter: bHasOverrideRootMotion
+ClientAuthoritativeCharacterMovementComponent: ServerLatestMoveData
+ClientAuthoritativeMoveData: Location, Rotation, Velocity, ControlRotation, MovementMode, BasedMovementBase, BasedMovementBaseBoneName, bBasedHasRelativeRotation, bHasOverrideRootMotion, bCrouching, bHasTimestamp, Timestamp, InputVector, SpeedForCurve, NewMaxSpeed
+ClimbableWall: m_BoxComponent, m_Character, m_CharacterCapsuleComponent
+ClimbDelegate__DelegateSignature: climbInfo
+Climbing_SearchEdgeSettings: m_MaxAutoClimbHeight, m_MaxEdgeHeight, m_MinEdgeHeight, m_ReachDistance, m_ForwardTraceRadius, m_DownwardTraceRadius, m_MaxFenceWidth
+ClimbingAnimConfig: m_AnimMontage, m_PlayRate, m_AnimStartingOffset, m_MinHeight, m_MaxHeight, m_WalkSpeed, m_RelativeMovement, m_NextStepRequestWindowStart, m_NextStepRequestWindowSize, m_ClimbingType, m_MovementState
+ClimbingConfig: m_AnimConfigs, m_PositionCorrectionBlendCurve, m_GroundSearchEdgeSettings, m_GroundJumpDownSearchSettings, m_AirSearchEdgeSettings, m_WallSearchEdgeSettings, m_SwimmingSearchEdgeSettings, m_CheckCapsuleStartTraceOffset, m_CheckSphereEndTraceOffset, m_limitClimbingAngle, m_MaxClimbableUnderWaterDepth, m_UnderWaterMidClimbHeight, m_MaxFallSpeedForFallingLow
+ClimbingMontages: m_LeftMontage, m_RightMontage, m_PositionCorrectionCurve
+ClockTime: Hour, Minute, Second
+ClockTimeRange: From, To
+CoffinSenseShape: SenseShapeModifier, Length, GoodVisionLength, CloseHalfWidth, MiddleHalfWidth, FarHalfWidth
+CombatAIModifiers: m_AttributeModifiers
+CombatConfig: m_RootMotionMod_AttacksHits, m_RootMotionMod_DodgesHorizontal, m_RootMotionMod_DodgesVertical, m_Pity_Critical_Increase, m_ParryMode, m_DrawDodge, m_DisableMagnetForAll, m_DrawMagnet, m_UseDebugMagnetAngle, m_DebugMagnetAngle, m_PrintMagnetData, m_PrintRootMotionMultiplier, m_ShowMagnetBack, m_DisableMultiplierSuperArmor, m_HideSuperArmorBars, m_ShowComboDebug, m_ShowLastKeyPressedDebug, m_GodMode, m_ParryCheatMode, m_AdditiveHits, m_DrawDamageSweeps, m_EnableFakeSloppyCombos
+CombatDifficultySettings: m_CombatAIModifiers
+CombatTargetMarkerWidget: m_TargetedActor
+ComboAttackConfig: m_GA_Attack, m_MetaData
+ConcertStageManager: m_AudioTrack, m_WasPaused, m_ActivateSequenceOnLoad, m_ActivateAudioTrackOnLoad, m_IsAudioTrackSyncEnabled, m_IsPlayerOutOfRange, m_PC, m_SequenceActor, m_SequenceFrameTime, m_AudioTrackTime, m_MaxUnsyncFrames, m_SFXTrackHandle, m_SFXTag, m_AudioStartEventFrame, m_PreSaveListenerHandle, m_PostSaveListenerHandle
+ConsumablesData: m_Consumables, m_Puke
+ContainerManagerWidget: m_LocalPlayerInventory, m_LocalPlayerInventoryFiltered, m_LocalPlayerInventoryFilteredEquipped, InventoryFilter, OldItems, InteractOpenContainerDelegateVariable
+ContainerVirtualData: m_Slots, m_InventoryType, m_ValidCategories, m_Capacity
+ContainerVirtualDataArray: Items
+ControlCharacterComponent: m_PlayerController, m_InstigatorControllerCharacter, m_ControlledAICharacter, m_ControlledAIController, m_ControlledOriginalState, m_BorderWarningHUDController, m_CameraModifier
+ConversationCameraHeightAdjustSpeaker: AdjustedPositionOffsetCurve, AdjustedRotationCurve, MinPitchToListener, MaxPitchToListener, PitchToListenerMultiplier, PitchFocusPoint
+ConversationCameraLightingAdjuster: CurrentlySelectedModifiers, IgnoredLights, bForceAlwaysOutside, bForceAlwaysInside, bEnableDaytimeIntensityLerp, bEnableDaytimeModifier, bEnableLocationModifier, bEnableWeatherModifier, bEnableSkinToneModifier, bEnableExternalLightModifier, bEnableShotModifier, bEnableParticipantNumberModifier, bEnableShadowModifier, bEnableFogModifier, bEnableSceneBrightnessModifier, bEnableSceneUniqueAreaModifer, RoughKeyLightReferenceIntensity, EyeIntensityBaseValue, AllModifiers, CurrentSpeaker, CurrentListener
+ConversationCameraPresetBase: PresetName, AssociatedTags, LightingParameters, PriorityInteractions, PossibleTransitions, CameraModifiers, InitialChoiceWeight, HideMode, LoopMode, FocusMode, PitchAdjustTarget, MultiConversationValidity, TransitionTime, bAlwaysValid, bIgnoreSideInvertsFromCamera, bInvertSide, bNeverUseForReverseShot, bViableForAdditionalParticipants, AnimSequenceName, StartTime, ReferencePoint, bStaticActorTransforms, FirstSpeakerTransform, FirstListenerTransform, CurrentSpeakerTransform, CurrentListenerTransform, SqueezeFactor, CropSettings, MaxHeightDifference, MinHeightDifference, MaxDistance, MinDistance, RequiredCharacterTagsSpeaker, RequiredCharacterTagsListener, RequiredTagsSpeakerOrListener, ForbiddenCharacterTagsSpeaker, ForbiddenCharacterTagsListener, ForbiddenTagsSpeakerAndListener, bWasInverted, bOnlyUseAsDefaultWithSameTag, CameraTransformBone, FilmbackPresetName, bDoObstructionCheckSpeaker, bDoObstructionCheckListener, bDoObstructionCheckMiddle, bDoObstructionCheckFootHeightSpeaker, bDoObstructionCheckFootHeightListener, CameraFoVCurve, CameraApertureCurve, CameraDoFOffsetCurve, CameraFocalLengthCurve, CameraFocusBone, CameraFocusPointOffset
+ConversationCameraPresetCenterOffset: CenterPositionCurve, CenterRotationCurve
+ConversationCameraPresetChoice: SpeakEventSubscriptions, TopicEventSubscriptions, TopicChoiceEventSubscriptions, PriorityEventSubscriptions, PriorityEventIgnores, ReverseShotSubscriptions, SkipLineSubscriptions, NextSpeaker, NextListener, AbilitySystemComponents, bNewPresetOnSameSpeaker, MinSpeakTime, LatestEvents, NumFramesToBufferEvents, FirstEventFrame, LastUsedEventTag, RapidSkipSecondsTimeWindow
+ConversationCameraPresetFocusActor: FocusActorPresetAlpha, LerpAlphaCurve, PositionOffsetCurve, RotationOffsetCurve
+ConversationCameraPresetFoVAngle: AngleInputCurve, PositionFoVOffsetCurve, RotationFoVOffsetCurve, ViewAngleCurve
+ConversationCameraPresetListenerOffset: ListenerPositionOffsetCurve, ListenerRotationOffsetCurve, bRotateToSpeaker
+ConversationCameraPresetSpeakerOffset: SpeakerPositionOffsetCurve, SpeakerRotationOffsetCurve, bRotateToListener
+ConversationCameraPresetWorldSpace: PositionCurve, RotationCurve
+ConversationCameraV2: ConversationInitiator, ConversationInitiatorPartner, MainParticipant, IndoorDetectionConfig, bUseRightSide, Volume, LightingAdjuster, CurrentPresetParams, EnvironmentIntensityCaptureActor, AdditionalLightMaterials, CameraAnimSequences, LastExternalLightIntensityScore, LastExternalLightColor, MonologTimeThreshold, CurrentMonologTimer, bForceAlwaysOutside, bForceAlwaysInside, AllPresetInstances, CharacterInShadowMap, PreferredCharacterDistance, ReferenceDistance, ParticipantIdealTransforms, FirstConversationTopicName, Participants, ParticipantInsideResults, DefaultTestAmount, ObstructionSweepTestSize, ObstructionSweepTestCharacterDistance, LastCamera, InitialParticipantLightingChannels, PresetReuseBuffer, bUseTagFallback, ActorPositionThreshold, ActorLerpSpeed, NavObstacleCameraView, NavObstacleParticipants, InputAdjustmentRestrictionX, InputAdjustmentRestrictionY, NavObstacleCameraDistance, CinematicParameterCollection, AppliedCameraModifiers, PostProcessSettings, AlphaFadeDistance, AlphaFadePercentage, AlphaFadeRadius, AlphaFadeDistanceResetValue, AlphaFadeOffsetResetValue, EyeIntensityResetValue, AlphaFadeRadiusResetValues, FeetHeightAddedForObstructionCheck, HideCharacterAroundCameraExtent, bDebugShowSideChoiceTest
+ConversationCharacterSettings: ForCharacter, IncludeTopicsOf, VoiceTypeSubsets, DefaultExpression, Priority
+ConversationGroup: ActedTopics, SubdialogStack, Initiator, Participants, TopicSet, ScheduledTopicToStart, ConversationCamera, ActiveTask, KnowledgesAddedDuringLastAct, bEndRequested, FixedPositionCharacter, CharacterIdealTransformMap
+ConversationSettingsV2: ConversationWidgetClass, ConversationCameraClass, ExpressionNameToTag, StoryProjectRelativePaths
+ConversationTopic: ForCharacter, WithCharacter, RequiredNearbyCharacters, ExtraCharactersToInvite, RequiredOtherCharactersMaxDistance, Caption, bStartedWithInitialForcedLine, PriorityRank, Rules, InitialForcedLine, ForcedSenseType, bIsSubTopic, bIsFollowupTopic, bIsFallbackTopic, bIsAmbientTopic, bSayHeyYou, JustOne, PropertyTags, DebugId, ForceSettings
+ConversationTopicDynamicRequirement: DebugId, bExpectedResult
+ConversationTopicForceSettings: ApproachBy, RangeType, ReactionVoiceline, bDoAmbientDuringCombat
+ConversationTopicListenedToRequirement: Character, Voiceline
+ConversationTopicLocationRequirement: Character, Waypoint, MaxDistance
+ConversationTopicQuestRequirement: QuestClass, bAllowWhenAvailable, bAllowWhenRunning, bAllowWhenSucceeded, bAllowWhenFailed
+ConversationTopicSet: AllTopics, AddedTopicClasses
+ConversationVoicelineData: m_SpeakerName, m_SpeakerText, m_SecondsDisplayed, m_OnSubtitleFinishedDisplay
+ConversationWidget: OnTopicSelected, OnSubTopicSelected, OnRequestSkip, OnKeyboardSelection, TriggeringSkipAction, SelectionKeys, SelectionKeyUpDpadAction, SelectionKeyDownDpadAction, m_DefaultSubtitleTextStyleSet, m_LargerSubtitleTextStyleSet, TopicListContainer, TopicList, SubTopicListContainer, SubTopicList, m_TypeSpeed
+CookExcludeRule: Contains, CaseSensitive, SpecificAsset, DoNotApplyToDirectories
+CookExcludeSettings: Rules
+CraftingActionStart__DelegateSignature: SelectedRecipe, RecipeQuantity
+CraftingIngredientUIData: m_OnAvailableAmountChanged, m_OnCraftingAmountChanged, m_ItemDefinitionClass
+CraftingMain: W_CraftingMenu, m_UICraftingState, m_TagStationType
+CraftingMenu: m_CraftingActionMetadata, m_SectionUpRowHandle, m_SectionDownRowHandle, m_WindowTitle, m_RecipeUIData, m_ProductsInventory, m_IngredientsInventory, DiscreteItemsView_Recipes
+CraftingMenu_CraftingActionMetadata: m_GameplayTag, m_WindowTitle, m_CanCraftMultipleItems
+CraftingMenuExit__DelegateSignature: UICraftingState
+CraftingProductUIData: m_ItemDefinitionClass, m_AmountGranted
+CraftingRecipeUIData: m_OnCraftableAmountChanged, m_OnUnseenStateChanged, m_ItemDefinitionClass, m_HasUnseenChanges, m_Products, m_Ingredients
+CreditsRowContent: m_PersonName, m_PersonPosition
+CreditsRowData: m_PersonData
+CreditsScreenWidget: m_BaseCreditsScrollSpeed, m_CreditsSpeedUpMultiplier
+CreditsSectionContent: m_SectionTitle, m_LogoTexture, m_SectionContent
+CreditsSectionData: m_DepartmentName, m_LogoTexture, m_DepartmentContent
+CrimeMemoryPersistentDataSubsystem: CrimeMemoryGameState
+CrimeMemorySubsystem: CrimeTypeTagToDeleteTimeInHours, DefaultDeleteTimeHours, CrimeTypesToNeverSync, CrimeTypesToNeverSave, CrimeTypesToNotSaveWhenForgiven, CrimeTypesForReactionVoicelines, CharacterToAreaTags, SpreadMemoryTimeIntervalSeconds, SyncLocationMemoryTimeIntervalSeconds, MinAgeOfCrimeToSpreadToLocationMemoryInHours, SpeciesSpecificCrimeTags, SpeciesToIncludeForMemorySpreadOfSpeciesExclusiveCrimes, CharacterGlobalIDsExcludedFromSpeciesSelection, TimesToSyncLocationMemory, CharacterToLastLocationMemorySyncTime
+CrimeVictimGuildHandle: Guild, RelationshipTowardsGuild, RelativeRankTowardsGuild, HostilityTowardsGuild
+CrimeVictimPersonHandle: VictimGlobalID, RelationshipTowardsPerson, RelativeRankTowardsPerson, HostilityTowardsPerson
+CrossbowItemAnimConfig: m_ReleaseMontage, m_QuickReleaseMontage, m_RelaxNotchMontage, m_RelaxNotchFailureMontage, m_QuickNotchMontage, m_QuickNotchFailureMontage, m_AimingNotchMontage, m_AimingNotchFailureMontage
+CueVisualConfig_Charm: m_CharmInMontage
+CueVisualConfig_Electrified: m_ElectrifiedInMontage, m_ElectrifiedOutMontage
+CueVisualConfig_Possessed: m_InMontage, m_OutMontage
+CueVisualConfig_Possessing: m_InMontage, m_OutMontage
+CueVisualConfig_Pyrokinesis: m_InMontage
+CueVisualConfig_Sleep: m_SleepInMontage, m_SleepOutMontage
+CueVisualConfig_Summoned: m_InMontage
+CueVisualConfig_Transformed: m_InMontage, m_CameraTravellingInitialDelay, m_CameraTravellingDuration
+CurveRootMotion: FloatCurves
+CustomNavCollisionStaticMeshComponent: bExportNavigableGeometryEvenIfNotCollidable, bUseCustomNavCollisionPawnChannel, CustomCollisionProfileName
+CutsceneAudioEventSet: AudioEvents
+DailyRoutineSimulatedCharacter: LastKnownTransform, LastTransformSetBySimulation, MovementBoundsEstimate, DistanceUntilUpdate, WalkingSpeedUnitsPerSecond, IdleUntil
+DailyRoutineSimulatedCharacterVisuals: PendingMesh
+DailyRoutineSimulatedLightSource: LightIntensity, LightRadius, LightColor, PositionOffset
+DailyRoutineSimulationComponent: LastUpdateAtTime, TimeNow, SimulationMeshOverride
+DailyRoutineSimulationMesh: SelectionPriority, SelectIfHasAllOf, Mesh, OffsetTransform, CustomOffsetTransform, WalkingAnimationLoop, IdleAnimationLoop, SimulatedLightPresets
+DailyRoutineSimulationSubsystem: ObserverMovementSinceLastTick, MaxDistanceConsideredForSpawning, LightContainerActor, LightsBySimulatedCharacters, ObserverActors, ObserverActorsLastKnownTransforms, ObserverActorTransforms, InteractionAnimsByHash
+DailyRoutineTaskConditionDelegate__DelegateSignature: ReturnValue
+DailyRoutineTaskDescription: StartTime, TaskInstance, AtWaypoint, WaypointRadius, InNavArea, ConditionDelegate, TerritoryOverride
+DailyRoutineValidationData: CharacterState
+DamageByMagicCircle: m_CircleTag, m_Damage
+DamageProgressionMagicCircle: m_DamageByMagicCircle
+DataModule_Animation: m_AnimConfig, m_CurrentAnimConfig, m_DefaultAnimConfig
+DataModule_BaseStats: m_CharacterDefinition
+DataModule_Combat: m_CurrentRangedState, m_Stance, m_DesiredStance, m_AttackState, m_BlockState, m_CurrentAttackDirection, m_DefeatingAttackDirection, m_CurrentParryDirection, m_CurrentPose, m_LastAttackerCharacter, m_CurrentCombo, m_LastWeaponDamaged, m_AttackCount
+DataModule_Container: m_Inventory, m_DefaultInventory, QuickMemoryItems
+DataModule_Locomotion: m_ClimbType, m_RequestedWalkSpeed, m_WalkSpeed, m_RotationMode, m_RequestedStance, m_Stance, m_MovementState, m_PrevMovementState, m_MovementAction, m_RequestedMovementAction, m_IsBuoyancyEnabled, m_MovementInputAmount, m_MaxSpeeds, m_ClimbingInput, m_RecoverDive, m_JumpSurfaceType, m_FallingSurfaceType, m_FallingSurfaceDistance, m_WaterDepthInJump, m_TimeToImpact, m_ImpactDelta, m_JumpPeakHeight, m_JumpPeakPosition, m_TotalFallDistance, m_OverrideLocoSpeedSettings, m_LastMovementInputRotation, m_LastMovementInput, m_StartFallingZPosition, m_StartFallingZDistance, m_LocomotionConfig, m_LocomotionCurveSettings
+DataModule_Targeting: m_Target, m_IsCameraRelevant, m_TargetComp, m_TargetedBy, m_TargetConfigClass
+DataModuleComponent: m_DataModules
+DeathSkillAnimMontage: m_ItemType
+DebugControlWidget: m_KeyMap, m_ControllerPanel, m_JoysticRight, m_JoysticLeft, m_KeyboardPanel, m_TimerWheelShowSeconds
+DebugPlayerWidget: m_DebugControlWidget, ComboLabel, m_TimeToResetComboLabel
+Decorator_CompoundInputHint: m_FlattenRows, m_CompoundScale, m_Owner, m_DataTable
+Decorator_InputHint: InputNameMappings
+DelegateHandleContainer: OnEventTag
+DeliverySpot: SpotTransform, Spotname, BlockingItem, PreviewActorComponent, PreviewItemClass
+DeliverySpotGroup: bIsFinalDestination, bShowPreviewItems, NavigationSpotHandle, bAdjustItemOnPutDown, Spotname, DeliverySpots, StaticMesh
+DemoGratitudeWidgetBase: m_FolderPath, m_BackgroundImages, bShutdownGameAfterTimeoutAndGratitudeScreen
+DemoTimerWidgetBase: OnTimerExpiredBP, m_IsEnabled, m_Duration, m_SpecialRemainingTimes, m_AllowTimerStart
+DetailBillboardComponent: ColorTint
+DifficultyManagerSubsystem: m_currentPreset, m_customCombatSettings, m_customResourcesSettings, m_customProgressionSettings, m_SurvivalMode, m_PermanentDeathMode, m_FakeSloppyCombos, m_availablePresets, m_availableCombatSettings, m_availableResourcesSettings, m_availableProgressionSettings
+DifficultyPreset: m_presetDifficultySettings, m_presetName, m_presetDescription, m_uiSortingPriority
+DifficultySelectionPageWidget: SlotsInfo
+DifficultySettings: m_settingsName, m_uiSortingPriority
+DifficultySlotInfo: DifficultyName, DifficultyDescription
+DirtVisualSettings: DirtAmount, HasDirt, DirtColor1, DirtColor2, DirtAlbedoIntensity, DirtAmountIntensity, DirtAmount0, DirtHit0, DirtRadius0, DirtAmount1, DirtHit1, DirtRadius1, DirtAmount2, DirtHit2, DirtRadius2
+DiscreteItemViewWidget: m_OnNumItemsChangedBP, m_OnSelectionChangedBP, m_OnItemIsHoveredChangedBP, m_OnItemClickedBP, m_OnItemLongClickedBP, m_OnItemLongClickAbortedBP, m_OnItemLongClickProgressChangedBP, m_OnScrollOffsetRowsChangedBP, m_OnInteractedBP, m_AdjustHeightDependingOnItemsDelegate, SizeBox_Grid, TileView_Grid, m_EntryWidgetClass, m_ItemWidth, m_ItemHeight, m_ItemMargin, m_RemoveOutermostMargin, m_AdjustHeightDependingOnItems, m_ViewWidthItems, m_ViewHeightItems, m_AdjustedMinHeight, m_AdjustedMaxHeight, m_HideWhenEmpty, m_IsHoverExclusive, m_MouseInteractionSettings, m_PreviewRows, m_SmoothScrolling, m_SmoothScrollingSpeed, m_StartWithInputEnabled, m_InitialRepeatDelay, m_RepeatDelay, m_HoveredItem, m_LastHoveredItem
+DisposableGroup: Disposables
+Document: AddedSegments, BuiltSegments, title, MetaData, PotentialSegmentClasses
+DocumentElement: Style, ExtraStyleParameters
+DocumentElementChapterHeading: Text
+DocumentElementChapterHeadingWidget: Text
+DocumentElementImage: Image, CaptionText
+DocumentElementImageWidget: Image, CaptionText
+DocumentElementList: ListEntries
+DocumentElementListWidget: ListStyle, ListEntries
+DocumentElementParagraph: Text
+DocumentElementParagraphWidget: Text
+DocumentElementQuote: QuoteText, QuoteSourceText
+DocumentElementQuoteWidget: QuoteText, QuoteSourceText
+DocumentElementSectionHeading: Text
+DocumentElementSectionHeadingWidget: Text
+DocumentElementViewItemWidget: m_Image
+DocumentElementWidget: ExtraStyleParameters
+DocumentPage: Contents
+DocumentPageWidget: PageContents, ParagraphWidgetClassByStyle, ChapterHeadingWidgetClassByStyle, SectionHeadingWidgetClassByStyle, QuoteWidgetClassByStyle, ImageWidgetClassByStyle, EnumeratedListWidgetClassByStyle, BulletListWidgetClassByStyle
+DocumentSegment: Contents, InDocument, AutoEvaluateUnlockFor
+DocumentSubsystem: AutoConditionalSegmentInstances
+DocumentWidget: PageWidgetClass, Pages, NumPageTurns
+DodgeData: m_SuperArmorResistanceMultiplier, Direction, Pose, Orientation, Montage, m_Montage
+DodgesData: m_Dodges, m_Roll, m_RollConfig
+DoorAnimInstance: m_State, m_CurrentState, m_ForceState, m_Direction, m_Type, m_ReceiveImpact, OwningPawn
+DoorInteractiveComponent: m_CollisionComp, m_NavMeshBlockComponent, m_InteractiveComponent, m_InteractiveActor, m_LocalPuzzlePositions, m_Model, m_Listeners, m_UserIdStep, m_InternalDoorName, m_DoorExtraData
+DoorInteractiveExtraData: m_OpenMultiple, m_NumSteps, m_ConnectedTrigger, m_DoorType, m_ObjectMontage, m_DefaultStep, m_SaveData, m_NpcSaveData, m_PuzzleTriggers, m_SendTrigger, m_PuzzleOrder, m_PuzzlePositions, m_GetAnimStep, m_LoadOnlyIfGlobal
+DroppedItem: m_Definition, m_Num, m_Origin, m_Rot, m_Payload, m_GenericData, m_IsDynamic, m_Switch
+DrugDebuffThreshold: MinValue, MaxValue, m_DrugDebuffGEClass
+DynamicMontage: Sequence, BlendIn, BlendOut, StartTime, PlayRate
+DynamicNavObstacle: BoxComponent, bIsEnabled, ObstacleExtends, CachedReferenceComponent, CachedReferenceExtentScale
+EditorIndoorDetectionTestActor: bUpdateOnTick, IndoorDetectionComponent
+EditorNavigationInvoker: Invoker, SphereComponent
+EffectActorBase: m_Target, m_OwnerComponent, m_IsActive, m_VisualEffectHandle, m_VisualGameplayEffect, m_DebuffEffectGameplayAbility, m_DebuffEffectGameplayAbilitySpecHandle
+EffectComponentActivatedByTag: m_InstigatorEffectHandle, m_DebuffEffectTag, m_PreviousTagCount
+EffectComponentBase: m_Target, m_EffectActor, m_EffectActorClassPtr, m_DoingRemoveEffect, m_ActiveGameplayEffects, m_IsLoadedFromFile, m_OnRemoveItemCompleted
+EffectComponentConfiguration: m_EffectComponent, m_EffectActorClass
+EnvironmentContext: m_WeatherCondition, m_TimeRanges
+EnvironmentLightIntensityCaptureActor: EnvironmentLightIntensityComponent
+EnvironmentLightIntensityCaptureComponent: LightRenderTarget, CapturedLightCube, MipLevelToCache
+EquipData: m_EquipMontages, m_UnequipMontages, m_DropAndEquipMontages, m_DropMontages, m_DropMontagesBack, m_PickAndEquipMontages, m_SocketName, m_SocketDrawName
+EquipMontage: m_Stance, m_HoldsterLocation, m_Montage
+EquippedWearablesBar: m_ToolTipEquippedItem, m_ToolTipNewItem
+ExchangeDailyRoutineRegionTrait: NewRoutineByCharacterUniqueName
+ExecutionData: m_ExecutionMontages, m_DefaultExecutionMontage
+ExplosionVisual: m_FXComponent, m_FXTag
+ExpressionMontageContainer: RequireAnyOfCharacterTags, RequireAllOfCharacterTags, RequireNoneOfCharacterTags, Layer, ForExpression, Posture, AnimSequences, AnimSequencesInPath
+FaceBlendshapeUserData: FaceBlendshapeAnimation
+FastActorOverlapBoxComponent: BudgetWorkload, FastOverlappingActors, FastOverlapActorClass
+FeedbackData: m_AttackCameraShakeParams, m_AttackRumbleParams, m_AttackFreezeParams, m_HitCameraShakeParams, m_HitRumbleParams, m_HitFreezeParams
+FeetDrawData: TrackerActor, Component, bOnGround, BoneName, FootData, TrackData
+FireActorDefinition: m_StartActive, m_StopWithRain, m_AttenuatedWithRain, m_HoursForUnLite, m_StopWithSpell, m_TimeRange, m_SpellActivated
+FireVisualComponent: m_InteractiveComponent, m_StartActive, m_CanSkipInitialSwitchOn, m_StopWithRain, m_AttenuatedWithRain, m_HoursForUnLite, m_StopWithSpell, m_TimeRange, m_SaveState, m_InteractiveSubsystem, m_Listeners
+FishDefinition: m_Strength, m_PowerDistance, m_Aggressiveness, m_TimeToEscape, m_MovementSpeed, m_CharacterVisual
+FishingRodDefinition: m_MaxResistance, m_LowResistanceThreshold, m_NearlyBrokenResistanceThreshold, m_PowerDistance, m_Widget
+FishingWidget: m_OwnerCharacter, m_ChooseBaitWidget, m_Left, m_Right
+FloatByWalkSpeed: m_valuesByWalkSpeed
+FloatingItemActor: m_ItemVisual, m_RotatingMovementComp, m_ItemVisualRotatingMovementComp, m_TargetMesh, m_DataModule_Animation
+FloatingItemClassSelectorConfig: m_ItemType, m_EffectActorClassPtr
+FloatingItemEffectComponent: m_FloatingItemSelector, m_Activated, m_StopInmediateGoToHandTime
+FloatingItemSelector: m_ItemEffectActorClassPtr
+FloatingRune_VFXCue: m_ItemVisual, m_RotatingMovementComp
+FlyConfig: m_PlayStartFlyingAnimation, m_StartFlyingAnimationImpulse, m_LandHeight, m_MaximumHeight, m_MinimunHeight, m_FallGravity, m_UpSpeedWhenMin, m_ReturnToHeightSpeed, m_UseOnlyControllerYaw, m_CanStrafe, m_FlyNotFall, m_FallFloating, m_LimitHeightFlying
+FogVolumeSettings: Alpha
+FoodDefinition: m_BonusHp
+FootstepTag: BoneData, BonesToTrack
+FreepointActionTagList: ActionTags
+FreepointActionTags_DEPRECATED: ActionTags, ActionTagList
+FreepointConfig_DEPRECATED: Name, LevelName, Transform, FreepointType, bCanChainAction, bAllowAnyOrientationWhenUsing, UsageRestriction, Actions, InteractObject, EntryDirection, bUseActionTagsForInteractObject, OnNavAreas
+FreepointManagerConfig: InteractionSpotSourceFiles, FreePoints
+FreepointUsageRestriction_DEPRECATED: CharacterTypeRestriction, CharacterUniqueNameRestriction, TimeRanges, WeatherCondition, CooldownSecondsAfterUse, Priority, Radius, NumUsersAllowed
+FreezeDebuffEffectActor: m_CustomMesh
+FreezeParams: m_CustomTimeDilation, m_FreezeDuration, m_BlendOutDuration
+FreezeVisual: m_CustomMesh
+FrontEndStackWidget: Stack_FrontEnd
+FXDecal: DecalMaterial, DecalSize, LifeSpan
+FXFMODEvent: FMODEventPath, EventParameters, bAttachToInstigator
+FXParticleSystem: NiagaraSystemPathBySurfaceType, bUnderWaterEffect, RotationOffset, BoolParameters, FloatParameters, VectorParameters, IntParameters, bIsLooping
+FXPerceptionSoundArea: PerceptionSoundTag, PerceptionLoudness, PerceptionSoundLength
+G1RGameInstance: MainMapLoadedComplete, GameInputDeviceChangedDelegate, GameControllerDirectionChangedDelegate, m_InvertedVerticalCamera, m_InvertedHorizontalCamera, m_CameraSensitivity
+G1RGameModeCooperative: m_WorldDefinition, m_MainPlayerConfig, m_SecondaryPlayerConfig, m_CleanSaveGame, m_CanAutosave
+G1RGameState: m_GameplayManagers, m_QueryComponent, m_GothicWorldActor, m_TraderManager, m_WorldDefinition, m_DoorsOpen, m_DoorsClosed, m_GenericDataName, m_GenericDataFloat, m_TempGenericDataName, m_TempGenericDataFloat, m_ItemMapClasses, m_TraderMapClasses, m_LockMapClasses, m_NpcSkelMeshesMapClasses, m_InteractiveMapClasses, m_MagicCircles, m_TorchIds
+G1RHasWaterChangedDelegate__DelegateSignature: hasWaterNew
+G1RPhysicsMaterial: Hardness
+G1RSwimTypeChangedDelegate__DelegateSignature: NewSwimType
+GameControllerDirectionChangedDelegate__DelegateSignature: Degree
+GameEventSend: m_Verb, m_InstigatorName, m_EventName, m_NewValue, m_Forced
+GameInputDeviceModeChangedDelegate__DelegateSignature: InputDeviceMode
+GameOverWidget: m_bIsSpecialReviveEnabled, m_ReviveCounter, m_ReviveButton, Quit, m_PersistentDataSubsystem
+GameplayAbility_CharacterAI: InitialDailyRoutineClass, ConversationAIStateClass, SelfConversationAIStateClass, AfterDefeatedAIStateClass, DefeatedAIStateClass, ControlledAIStateClass, FoundSomeoneInMyBedAIStateClass, CurrentStateStack, ActiveAITasks, ScheduledNextState, HighPriorityAssessmentModuleClass, AssessmentModuleClass, JoinedGroups, ActionsToBindAsFunctions, DesiredWalkSpeed, DailyRoutineInstance, SpawnedStorageValueSets, PermanentStorageValueSets, AIValueSetRemap
+GameplayAbility_EquipItem: m_NextItemDef, m_CarryComponent, m_EquippedItem, m_LastEquippedWeapon, m_LastEquippedMeleeWeapon, m_LastEquippedRangedWeapon, m_ItemToDrop, m_PlayMontageTask, m_WaitAxisTask, m_AnimInstance, m_InteractiveActor, m_NetSync
+GameplayAbility_EquipWaterWeapon: m_CarryComponent, m_Character, m_WeaponType
+GameplayAbility_MountCheckUnrideableZone: m_ExitZoneRoutine
+GameplayAbilityActivateStation: m_CharMontage, m_InteractiveObjectMontage, m_CharMontageTask, m_InteractiveObjectActor, m_UniqueName, m_RequiredUniqueName, m_EventTag, m_Character
+GameplayAbilityAim: m_AbilitySystemComponent, m_QuickSlotController
+GameplayAbilityAmbientConversation: TopicToAct, ActConversationTopic
+GameplayAbilityArchery: m_ArcheryComponent, m_AbilitySystemComponent, m_BowOrCrossbow
+GameplayAbilityAttackBase: m_ActorsHit, m_ContextData, m_UpdateAttackMagnetTask, m_UpdateFlyingMagnetTask, m_UpdateRotationTaskMeleeMagnet, m_CurrentTempCombo, m_CurrentCombo, m_UpdateHitsTask_Damage, m_AttackAxisTask, m_PressAttackTask, m_TaskBlock, m_HitCharactersInAttack, m_DamagedCharactersInAttack, m_DefeatedCharactersInAttack, m_KilledCharactersInAttack, m_NotifiesHitTasksMap, m_SuperArmorEffect, m_Character, m_HitComponentNames, m_MovementAction, m_NotifyDeflect
+GameplayAbilityAttackCharge: m_PlayMontageTask, m_UpdateChargeTask, m_UptdateHitsTask
+GameplayAbilityAttackDig: m_UpdateDiggingAttackTask
+GameplayAbilityAttackLoop: m_PlayMontageTask, m_MaxTimeLoopTask, m_WaitEndTask, m_Targets, m_CollisionComponent
+GameplayAbilityAttackMelee: m_PlayMontageTask
+GameplayAbilityAttackRiposte: m_UpdateMagnetTask, m_UpdateRotationTask
+GameplayAbilityAttackSpawnActor: m_PlayMontageTask
+GameplayAbilityAttackThrow: m_PlayMontageTask, m_Projectile, m_OnExectuion
+GameplayAbilityAttributeLevelUp: m_AttributePathToInstance
+GameplayAbilityBase: m_ActivateAbilityOnGranted, m_TickEnabled, m_bCanEverTick, m_FinishOnInputReleased, m_OnlyPlayer, m_LoadAssetsPriority, m_AssetPreloadContext, m_MaxActiveCount
+GameplayAbilityBase_Combat: m_DataModule_Combat, m_DataModule_Targeting, m_DataModule_Locomotion, m_DataModule_Anim, m_DataModule_BaseStats, m_DataModule_Container, m_CarryComponent, m_MoveComp, m_CombatConfig, m_UpdateRotationTask
+GameplayAbilityBase_Locomotion: m_DataModule_Locomotion, m_DataModule_Anim, m_LocomotionConfig, m_CharacterMovementComponent, movementModeChangeTask, m_Character
+GameplayAbilityBaseHit: m_DefaultFeedback
+GameplayAbilityBlockingInteraction: m_RotateTask, m_UpdateRotation, m_DesiredRotation, m_UseCameraTarget, m_UseCameraTeleport, m_MoveToLocation, m_StartBeforeRotation, m_ApplyCooldown, m_TaskMoveTo, m_AnchorTags, m_InteractEntryDirection, m_UnEquip, m_UnEquipBefore, m_InstantUnEquip, m_UnEquipIgnoreDrop
+GameplayAbilityBreakArmorHit: m_Montage, m_ResetEffect, m_ImmunityEffect, m_MontageTask, m_KnockbackDataClass, m_KnockbackData, m_timerHandle, m_HitType, m_FiredTimer, m_StunnedRandomTime, m_OriginalRooMotionTranslationScale, m_WasRestoredOriginalRooMotionTranslationScale, m_KnockbackEffect
+GameplayAbilityCallInteractFunction: m_EventTag, m_InteractiveObjectActor, m_CharMontage, m_InteractiveObjectMontage, m_InteractDefinition, m_FinishHandle
+GameplayAbilityCallMount: m_MountClass, m_MountNavigationAreaFilter, m_WhistleAnimMontage_LeftHand, m_WhistleAnimMontage_CrouchLeftHand, m_WhistleAnimMontage_RightHand, m_WhistleAnimMontage_CrouchRightHand, m_FollowDailyRoutine, m_DataModule_Animation, m_SpawningRadius
+GameplayAbilityCastFishingRod: m_CastMontage, m_EndMontage, m_CarryComponent, m_CastTask
+GameplayAbilityCastRechargeableSpell: m_GA_Attack
+GameplayAbilityCastSpell: m_HasCreatedSpellAbilityServer, m_PreviousMontageName, m_AbilitySystemComponent, m_TriggerBeginOnSpellTag, m_SpellConfigurationContainerClass, m_SpellConfigurationContainer, m_ExecutionValidator
+GameplayAbilityCastTransform: m_SpawnCreatureDistance, m_SpawnDefinition, m_ScrollComponent, m_Creature
+GameplayAbilityCheckClimb: m_Task, m_InputComponent
+GameplayAbilityCinematicActor: SayVoiceline, TalkingCharacterName, HUDCinematicController
+GameplayAbilityCombatStanceSelector: m_AttackTask
+GameplayAbilityConsumeQuick: m_CarryComponent, m_AnimTask, m_QuickSlotController, m_CurrentMontage
+GameplayAbilityConversationV2: ConversationGroup, AllowedInteractions, AllowedInteractionsNoVisionNeeded, AllowedInteractionsWhileWalking, AllowedInteractionsNotFromBehind, InteractionsRequiringOtherToFaceParticipant, InteractionPreferredExitDirection, InitialForcedTopic, LastSpeaker, LastCamFOV, AutoTopicSelection, bDoAutoTopicsOnly, bIgnoreAutoTopicConditions, TaskMoveIntoPlace, TurnToTask, PathfollowSettingTask, AllowedAIStateTags, AllowInstantCancelInteractions, InitialForceSpeak, PreferredDistanceToTarget, PreferredConversationDistanceOverrideFromTag, MaxAllowedDistanceFromPreferred, MaxAllowedYawFromPreferred, IdealPositionSweepPointSize, InteractAngleThreshold, RequiredSecondsSinceLastAttackForForcedConversation, TimeAbilityActivated, HeyYouVoicelineTag, NotNowVoicelineTag, WaitASecondVoicelineTag, HeyTurnAroundVoicelineTag, bInterruptOthersSpeakWhenRequesting, bInterruptOthersConversationWhenRequesting, NotBehindInteractionAngleThreshold, TurnedTowardsOtherThreshold, LookingDirectlyInteractionAngleThreshold
+GameplayAbilityConversationV2WithUI: OnSubTopicSelected, PlayerConversationWidget, PlayerController
+GameplayAbilityCoverHead: CoverHeadAnimations, SelectedCoverHeadAnimation, CoverHeadAnimationTask, RequiredRainLevel, QueryTickIntervall
+GameplayAbilityCrafting: m_MultiStageState, m_CraftingState, m_NumToCraft, m_ValidRecipes, m_InteractComp, m_TaskCraftItem, m_CharMontageTask, m_CharMontage, m_InteractiveObjectMontage, m_InteractiveObjectActor, m_CarryComponent, m_RecipeClass, m_RandSeed, m_IdleBreakers, m_InteractionAnim, m_HUDCraftingController, m_EventTag
+GameplayAbilityCreatureSpecialState: m_StateGameplayTag
+GameplayAbilityCrosshair: m_ReachabilityRadius, m_ReachabilityRange, m_HUDCrosshairController, m_ReachableTargetIndicatorComponent
+GameplayAbilityCustomizeArmor: CustomizationShopOwner
+GameplayAbilityDeath: m_ReviveEffect, m_RestoreOxygenEffect, m_MutilatedSkeletalMeshActor, m_Character, m_WeaponUsed, m_ItemTag, m_ItemSkill, m_IsExecuted, m_DeathGE, m_DeathGEHandle
+GameplayAbilityDefeated: m_StandUpEffect, m_TimeToStandUp, m_Character, m_StandUpTask, m_PlayMontageTaskHit, m_PlayMontageTaskLoop, m_PlayMontageTaskStandUp, m_DefeatedGE, m_DefeatedGEHandle, DynamicNavObstacle
+GameplayAbilityDeflectedHit: m_ResetEffect, m_ImmunityEffect, m_ParriedEffect
+GameplayAbilityDodge: m_RotateTask, m_PlayMontageTask, m_SuperArmorEffect
+GameplayAbilityDoor: m_LockPickTask, m_EventTag, OwnedGameplayTags, m_CharMontageTask_Door, m_LockpickingDoorKnobLeftMontage, m_LockpickingDoorKnobRightMontage, m_LockpickingInteractionTaskClass, m_LockpickingInteractionTask, m_UniqueNameDoorConnection, m_UniqueNameInteractive, m_Lock, m_Keys, m_PuzzleKeys, m_ConsumeKeys, m_SendTrigger
+GameplayAbilityDrugDebuff: m_AttributeSetClass, m_AttributeName, m_DepletionGEClass, m_SwimmingDepletionGEClass, m_ResetDrugAttribute, m_DrugDebuffThresholds, m_CurrentDrugDebuffGEClass, m_DebuffStateGEClass, m_PlayMontageTask, m_DrunkAffectAlpha, m_DrunkStrengthDegrees, m_NoiseFrequency, m_SmoothInterpSpeed, m_DrunkAffectAimingAlpha, m_DrunkStrengthDegreesCamera, m_NoiseFrequencyCameraPitch, m_NoiseFrequencyCameraYaw, m_SmoothInterpSpeedCamera, m_ShouldNotifyConsumeItem, m_StateTag, m_DrugAttribute
+GameplayAbilityEatItem: m_MontageTask, m_OnConsumeEffects
+GameplayAbilityEffectBase: m_MontageTask, m_Montage
+GameplayAbilityEffectStation: m_CharMontageTask, m_InteractionAnim, m_InteractiveObjectActor, m_EventTag
+GameplayAbilityEndRiding: m_DataModule_Locomotion
+GameplayAbilityEnsureWeaponUnequipped: m_TagToCheck
+GameplayAbilityExecution: m_PlayMontageTask, m_AlignTask, m_ItemTag, m_ItemSkill
+GameplayAbilityFalling: m_EnableDamageLimiter, m_DoOnce
+GameplayAbilityFatigueDebuffs: m_EffectsForThreshold, m_RefreshAttributesEffect
+GameplayAbilityFatigueEffects: m_GameplayEffects
+GameplayAbilityFloatingItem: m_HasRequestedRecoveredItem, m_GothicCharacter, m_GothicMagicComponent, m_FloatingItemComponent, m_RecoverItemTimeoutDelay, m_IgnoreFirstThrowRuneNotify
+GameplayAbilityFly: m_flyConfig, m_CanLand
+GameplayAbilityForceConversation: BlockForceWhenSelfHasAnyTags, ForcedConversationsByOther, ForceRangeTypeValues, ForceRangeTypeSenses, RequiredAwarenessOfOther
+GameplayAbilityGesture: ActiveIdleMontage, ActiveGestureMontage, IdleBlendInSeconds, IdleBlendOutSeconds, GestureBlendInSeconds, GestureBlendOutSeconds, bMatchTargetDurationViaPlayRate, MatchTargetDurationMaxSpeed, MatchTargetDurationMinSpeed, StayActiveAndPlayIdleForOwnedTags, GestureSets
+GameplayAbilityGetPettedWhileLaying: m_Montage_InstigatorCrouching, m_Montage_InstigatorStanding, m_PlayMontageTask
+GameplayAbilityGetPettedWhileStanding: m_PetMontageHeroStanding, m_PetMontageHeroCrouching
+GameplayAbilityGiveItemToCharacter: GiveItemMontage, ReceiveActionTag, bNotifyReached, bAllowedToTransferItem
+GameplayAbilityGroundedMovement: m_LandingMontageTask
+GameplayAbilityHit: m_OnHitEffect
+GameplayAbilityHitPhaseChange: m_Montage
+GameplayAbilityHitRiposte: m_OnHitEffect
+GameplayAbilityInteract: m_InteractionActor, m_AvatarActor
+GameplayAbilityInteractFreePoint: RootInteractionTask, RotateTask, ActionFilter, bEndRequested
+GameplayAbilityInteractionBase: m_AbilityEnded, m_InteractiveActor, m_InteractionSpot, m_PrevMovementMode, m_PrevStance, m_ShouldResetInteractiveLogic
+GameplayAbilityInteractSecondary: m_InteractionActor, m_AvatarActor
+GameplayAbilityInteractWallClimb: m_TaskMoveTo, m_TaskAlign, m_Character, m_interactiveWallActor, m_maxTime
+GameplayAbilityInWaterMovement: m_UpdateWeaponTask
+GameplayAbilityJump: m_LocomotionModule, m_Character
+GameplayAbilityLavaExtractor: m_InteractiveObjectActor, m_TriggerExtraData, m_UniqueName, m_UserName, m_EventTag, m_NumSteps, m_CharMontageTask, m_NewTaskIdle, m_PushTaskIdle, m_TaskMoveEnd, m_CanCancel, m_CancelHandle
+GameplayAbilityLever: m_CharMontage, m_InteractiveObjectMontage, m_CharMontageTask, m_MoveEndTag, m_MoveIdleTag, m_EndIdleTag, m_InteractiveObjectActor, m_UniqueName, m_TriggerExtraData, m_InteractDefinition, m_EventTag, m_DoorHandler, m_Character
+GameplayAbilityLightHit: m_Montage, m_OnHitEffect
+GameplayAbilityLoot: m_TaskLootContainer, m_CharMontageTask, m_CharMontage, HUDLootController, m_InteractComp, m_EventTag, m_FailsafeTimerHandle
+GameplayAbilityMagicBase: m_SpellContext, m_AbilityHasBlockMovement, m_DataModule_Locomotion, m_DataModule_Animation, m_Targets, m_MoveComp, m_MagicComponent, m_IgnoreReleaseInput, m_GE_Mana, m_EndAbilityTimeoutDelay, m_ActivateSpellCameraAbilityTag
+GameplayAbilityManagePetInteractiveObject: m_InteractiveObjectDefinition, m_BlockPettingTags
+GameplayAbilityManageTagUpdate: m_LookForTags, m_AbilitySystemComponent
+GameplayAbilityMining: m_CharMontageTask, m_InteractionActor, m_EventTag
+GameplayAbilityMovement: m_PathFollowing
+GameplayAbilityMovement_Debug: m_Pawn
+GameplayAbilityMovementOverride: m_AllowedWalkSpeed
+GameplayAbilityMumble: MinSecondsBetweenSentences, SecondsBetweenSentencesVariance, AvailableMumbleTopics, BlockMumblingForOwnedTags, AllowMumblingForOwnedTags
+GameplayAbilityOpen: m_InteractCharacterOpenAnimMontage, m_InteractiveObjectOpenAnimMontage, m_UniqueNameInteractive, m_Lock, m_Keys, m_PuzzleKeys, m_ConsumeKeys, m_LockPickTask, m_TaskCharMontage, m_TaskWaitIntroAnimation, m_TaskWaitOpenAnimation, m_InteractiveObjectMontage
+GameplayAbilityOpenContainer: m_TaskLootContainer, HUDOpenContainerController
+GameplayAbilityParriedHit: m_ResetEffect, m_ImmunityEffect, m_ParriedEffect
+GameplayAbilityParry: m_ParryData, m_SuperArmorEffect
+GameplayAbilityPassiveHourlyEffectBase: m_HourlyEffectClass, m_HourlyEffectPeriodInHoursAttribute
+GameplayAbilityPet: m_AlignTask, m_PlayMontageTask, m_PetMontage_ScavengerSTL_HeroN, m_PetMontage_ScavengerSTL_HeroSTL, m_PetMontage_ScavengerN_HeroN, m_PetMontage_ScavengerN_HeroSTL, m_PetMontage_WolfSTL_HeroN, m_PetMontage_WolfSTL_HeroSTL, m_PetMontage_WolfN_HeroN, m_PetMontage_WolfN_HeroSTL
+GameplayAbilityPhotoMode: m_PreviousOwner, m_Controller, m_PhotoPawn
+GameplayAbilityPick: UIItemNotification, m_AnimationPlayRate, m_Montage_Task, m_EventWhenPickUp, m_RequiredToPick, m_TaskWait, m_NameToSend, m_CarryComponent, m_EventTag
+GameplayAbilityPickAndCarry: ApplicableItemTypes, CarryMontage, CarryItemClass, CarryItemDefinitionClass, CarryItem, PutdownRotationOffset, PutdownPositionOffset, ActiveMontage, ObjectCarryMontage, MontageTask, ObjectMontageTask, AttachmentSocketName
+GameplayAbilityPickAndEquip: UIItemNotification, m_ToEquipItemDef, m_InteractiveActor, m_AutoPick
+GameplayAbilityPickpocket: m_DetectionRadius, m_DetectionAngleDegrees, m_Sight, m_targetActor, m_EventTag
+GameplayAbilityPivot: m_RotateTask, m_KeepUpdatingRotation, m_DesiredRotation
+GameplayAbilityPossess: m_PossessEffect
+GameplayAbilityPuzzleSwitch: m_CharMontageTask, m_NewTaskIdle, m_InteractiveObjectActor, m_TriggerExtraData, m_EventTag, m_CanCancel, m_CancelHandle, m_FinishHandle
+GameplayAbilityRagdoll: m_RagdollComponent
+GameplayAbilityReadWriting: m_WritingDefinition
+GameplayAbilityReceiveItemFromCharacter: ReceiveItemMontage, PlayingMontageInstance
+GameplayAbilityRegenerateSuperArmor: m_RegenerateArmorEffect, m_AbComp
+GameplayAbilityRide: m_SwimmingMountMontages, m_MountMontages, m_TorchMountMontages, m_DisMountMontages, m_TorchDisMountMontages, m_SwimmingDisMountMontages, m_mountCharacter, m_riderCharacter, m_MountMovementComponent, m_MountAbilitySystemComponent, m_DataModule_Locomotion, m_PlayerController, m_PlayerState, m_MountComponent, m_RiderComponent, m_MountClass, m_PlayMontageTask, m_UpdateTraverseTask, m_SmoothPositionToSaddleTask, m_SmoothPitchToZeroTask
+GameplayAbilityScavenging: m_interactiveWallActor, m_CorpseToEat, m_AlignCharacterToCorpseTask
+GameplayAbilitySelfConversation: SelfTopicSet
+GameplayAbilitySleep: m_TaskWaitSitAnimation, m_TaskWaitGoToSleepAnimation, m_TaskCameraFade, m_TaskWaitBetweenFadeOutAndIn, m_TaskWaitForAllPlayersToConfirmSleep, m_RootInteractionTask, m_RecoverAttributesBySleepingEffect, m_DecreaseSleepTimeEffect, m_OwnBedStatusEffect, m_FadeSetup, m_TimeBetweenFadeOutAndFadeIn, m_TimeBetweenStartAndSit, m_TimeBetweenSitAndFadeOut, m_SleepInterruptedBy, m_SleepingMontage, m_InteractionTaskClass, m_SleepUIController, m_SimpleMessageController, m_SleepEndedMessages
+GameplayAbilitySleepEndedMessageList: m_Messages
+GameplayAbilitySmalltalk: GreetingVoicelineTag, MinSecondsBetweenSentences, SecondsBetweenSentencesVariance, RequiredRelationship, AvailableSmalltalkTopics, BlockSmalltalkForOwnedTags, AllowSmalltalkForOwnedTags, TalkLoudness, MaxSmalltalkPartnerDistance, CurrentTopicMultiplicator, CurrentSubtopicMultiplicator, SubTopicImportance, MonologLimit, MaxTopicAge, OwnedLooseGameplayTags
+GameplayAbilitySmashMeatBug: m_Distance, m_DistanceToReposition, m_CharMontageTask, m_AlignTask, m_EventTag
+GameplayAbilitySpeak: AllowGesturesWhenHasAnyOf, BlockGesturesWhenHasAnyOf, SayVoiceline, SoundAttenuation, SoundAttenuationByLoudness, SpeakQueue
+GameplayAbilitySpell_Telekinesis: m_MovingSpeed, m_InteractSensor, m_TelekinesisInteractAbility, m_MaxOscillationDistance, m_MinOscillationDistance, m_IsDoingInteractAction, m_PickpocketingSight, m_TelekinesisItemMovementVisual, m_InteractiveComponent, m_TelekinesisVisualsComponent
+GameplayAbilitySpellBasic: m_SpawnCollisionHandlingOverride
+GameplayAbilitySpellCameraBase: m_DataModule_Locomotion, m_SpellContext, m_WasCharacterMoving
+GameplayAbilitySpellCommonProjectile: m_MinDistanceToAvoidShootingWhenTargetIsNotAccessible
+GameplayAbilitySpellControl: m_TargetControlledEffect, m_CasterControllingEffect, m_CameraTravelInitialDelay, m_CameraTravelDuration, m_WaitingForEndControlEventTask, m_Success
+GameplayAbilitySpellCreaturePlayMontage: m_Montage, m_StopWhenAbilityEnds, m_Rate, m_ShouldRestoreTickOptimizer, m_MontageTask
+GameplayAbilitySpellSummon: m_SummonedEffect
+GameplayAbilitySpellTargetable: m_ReticleClassPath, m_SpellStateTag, m_Target, m_SpawnedActors, m_TargetConfig, m_RequestDoEndSpellAction
+GameplayAbilitySpellTargetableWithDebuff: m_EffectHandle, m_DebuffEffect
+GameplayAbilitySpellTeleport: m_TeleportAppearingClass, m_MaxTraceDistanceToFindGround, m_TeleportLocationActor, m_TeleportAppearingActor, m_CharactersAroundTeleportOrigin, m_AppearingTime
+GameplayAbilitySpellTransform: m_UnTransformMontage, m_SpawnDefinition, m_SpawnCreatureDistance, m_NewCharacter, m_WaitingForEndUntransformEventTask, m_UnTransformMontageInternal, m_UnTransformPlayMontageTask, TransformationWitnesses, m_CameraModifier
+GameplayAbilityStanceBlock: m_BlockEffect, m_UnBlockEffect, m_AttackAxisTask, m_PlayMontageTask
+GameplayAbilityStationTeleport: m_SpawnTeleportPath, m_MaxTraceDistanceToFindGround, m_TeleportAppearingClass, m_RandSeed, m_EventTag, m_CharactersAroundTeleportOrigin, m_CharMontageTask_Teleport, m_TeleportMapFreepointName, m_TeleportExtraData, m_TeleportLocationActor, m_AppearingDuration, m_TeleportAppearingActor, m_AppearingTime, m_InteractiveObjectActor, m_TeleportData, m_CameraFade, m_TeleportAnimNotify, m_TeleportCameraNotify, m_TagsToAdd, m_TagsToRemove
+GameplayAbilityStatue: m_CharMontageTask, m_NewTaskIdle, m_EventTag, m_UniqueName, m_InteractiveObjectActor, m_TriggerExtraData, m_UserName, m_DoorHandler, m_CanCancel, m_CancelHandle
+GameplayAbilityStormOfFire: m_SpellProjectile
+GameplayAbilitySummon: m_SummonAnimations, m_SummonAnimationTask, m_ShouldRestoreTickOptimizer, m_MontageToPlay, m_EnableRandomDelayOnSummonAnim, m_MinRandomDelayOnSummonAnim, m_MaxRandomDelayOnSummonAnim, m_PlayRate
+GameplayAbilitySwim: m_SwimTask, m_OxygenDepletionEffect, m_OxygenRecoveryEffect, m_OxygenRanOutEffect, m_OxygenRestoreEffect, m_SwimParticlesToSpawnOnHands, m_SwimParticlesToSpawnOnHead, m_SwimParticlesToSpawnOnBody, m_DiveParticlesToSpawnOnHands, m_DiveParticlesToSpawnOnHead, m_DiveParticlesToSpawnOnBody, SpawnedSwimParticleComponents, SpawnedDiveParticleComponents, m_ParticlePausingTags
+GameplayAbilityTargetBase: m_Target, m_PotentialTargetsAround, m_GameUserSettings
+GameplayAbilityTargetCombat: m_EffectToApply, m_TargetConfig, m_UpdateTargetTask
+GameplayAbilityTargetData_AutoConversation: TopicsToChoose, bEndConversationAfterGivenTopicSetIsEmpty, bIgnoreTopicConditions
+GameplayAbilityTargetData_CameraEventSettings: ForcePresetByName
+GameplayAbilityTargetData_CastingBegin: m_SpellLevel, m_TotalLevels, m_ManaCost, m_CastDuration
+GameplayAbilityTargetData_ClimbTarget: m_TraversalInfo, m_CalculateEdgeHeightFromFeetLocation
+GameplayAbilityTargetData_CutsceneVoiceline: Character, CustomName, Text
+GameplayAbilityTargetData_EquipItem: NextItem
+GameplayAbilityTargetData_HealthManaBar: m_Heal, m_Mana, m_Duration
+GameplayAbilityTargetData_HitData: Impact, CanBeParried, CanBeDeflected, ImpactDirection, SourceAttackDirection, WeaponUsed
+GameplayAbilityTargetData_Input: Direction
+GameplayAbilityTargetData_InteractionSpot: SpotHandle
+GameplayAbilityTargetData_LandingHeight: m_Height
+GameplayAbilityTargetData_Posture: Posture
+GameplayAbilityTargetData_Ragdoll: Duration
+GameplayAbilityTargetData_RainCoverHead: TriggerOnRainLevel
+GameplayAbilityTargetData_Shrink: m_Scale, m_Duration
+GameplayAbilityTargetData_SingleTarget: Target
+GameplayAbilityTargetData_SingleTargetComp: TargetComp
+GameplayAbilityTargetData_Speak: Text, ForceSubtitleLanguage, Expression, Posture, GenericVoiceline, Context, bUnskippable, Other, Loudness
+GameplayAbilityTargetData_TriggerCastSpellBegin: m_InputID, m_InputPressed
+GameplayAbilityTargetData_WalkSpeed: m_WalkSpeed
+GameplayAbilityTargetPOIPassive: m_UpdatePOITask
+GameplayAbilityThrow: m_TaskCharMontage, m_LaunchItemTask, m_AttachItemTask, m_UnAttachItemTask, m_CarryComponent, m_VisualAttachedItem
+GameplayAbilityTorchStartFire: m_EventTag
+GameplayAbilityTraceTarget: m_TargetedActor, m_TraceRange, m_TraceRadius, m_TraceRate, m_SpellConfig, m_CollisionChannel, m_DrawDebugType, m_AbComp, m_ExecutionValidator
+GameplayAbilityTrading: m_TraderActor, m_HUDTradingController, m_TraderPayload
+GameplayAbilityTraverse: m_TraverseTask, m_CurrentMontage, m_TaskCharSleepInMontage, m_traversingConfig, m_TraversingAnimConfig, m_TraversalInfo, m_EdgeTransform
+GameplayAbilityTrigger: m_CharMontageTask, m_InteractComp, m_CharMontage, m_InteractiveObjectMontage, m_TriggerExtraData, m_UniqueName, m_UserName, m_InteractiveObjectActor, m_ListenerHandle, m_WinchState, m_IdleTag, m_MoveEndTag, m_MoveSTart, m_BufferedKey, m_TriggerEventTag, m_EventTag, m_CanCancel, m_CancelHandle, m_FinishHandle, m_Character
+GameplayAbilityUnControl: m_CameraTravelInitialDelay, m_CameraTravelDuration
+GameplayAbilityUnTransform: m_SpawnDefinition, m_CameraBehaviour, m_UnTransformPlayMontageTask
+GameplayAbilityWallClimbing: m_TraversalInfo, m_PlayMontageTask, m_UpdateTraverseTask, m_wallClimbingUpdateTask, m_StatesMontages, m_JumpsMontages, m_StartOffset, m_isJumping, m_ClimbingConfig, m_ClimbableWall, m_ClimbingAnimBP
+GameplayAbilityWallWalking: m_CheckWallWalkingTask, m_JumpMontage
+GameplayAblilitySpellDamageNotify: m_PlayMontageTask
+GameplayAttributeProgressBarWidget: m_GameplayAttributeCurrentValue, m_GameplayAttributeMaxValue, m_GameplayAttributeCurrentPercent, m_GameplayAttributeInterpolatedPercent, m_GameplayAttributeCriticalPercent, m_GameplayAttributeInterpolationSpeed, m_CurrentValueAttribute, m_MaxValueAttribute, m_CriticalLevelPercentAttribute, m_GameplayTagsToListenTo, m_AbilitySystemComponent, m_TimeOnScreenOnDynamic, m_Visibility
+GameplayCueNotify_Pool: m_cueClass, m_CancelTag
+GameplayEffect_SkillGeneric: SPCost, oreCost
+GameplayEffectBase: TargetTagsComponent, BlockAbilityTagsComponent, AssetTagsComponent, TargetTagRequirements, RemoveOther, AdditionalEffects, AbilitiesComponent, TagsToRemoveOther
+GameplayEffectContext_HitResponse: Impact, CanBeParried, CanBeDeflected, AttackLinearVelocity, SourceDirection, SourceAttackDirection, WeaponUsed, MultiplierDamages, MultiplierSuperArmor, BowStretch, CustomKnockbackData, AttackConfig
+GameplayEffectContext_Taunt: AllTagsRequiredContainer, OneTagRequiredContainer, BlockedTags
+GameplayEffectRegionTrait: AbilitySystem
+GameplayEventDynamicMulticastDelegate__DelegateSignature: GameplayEventData
+GameplayObjectWithEditorIcon: m_SceneComponent
+GameplayTeleportSpotConfig: m_MontageMap
+GamescomMenu: FPSLimit
+GameStateDataBaseSaveData: m_DoorsOpen, m_DoorsClosed, m_GenericData, m_SavedDoorsMessagesName, m_SavedDoorsMessagesStruct, m_InteractiveData, m_SavedInventories, m_Traders, m_CreatureKillCounterSaved
+GameStory: ChapterFormatText, Chapter, StoryDataLayersState, ChapterNotificationWidgetClass, bShouldActivateStory, SortOrder
+GameTimeSaveGameData: CurrentTime
+GameTimeSubsystem: CurrentGameTime, GameTimeSpeed, TimeConfig
+GameTimeSubsystemConfig: GameTimeSpeed, StartTime, StartTimeVariance, DemoTimerDurationSeconds
+GE_ModMagnitudeCalculation_BaseRecoverBySleeping: m_MaxAttributeDef, m_RecoveryRatePerHourOfSleepAttributeDef
+GeneralConfig_Camera: m_TPCameraTraceRName, m_TPCameraTraceLName, m_RightShoulder, m_MinDistToPlayer, m_MaxDistToPlayer, m_DistanceIncreaseInterpolationSpeed, m_UserInputDistanceChangeStep, m_UserInputDistanceChangeSpeed, m_MinDistBeforePlayerFade, m_DefaultCameraSettings, m_CameraSettings
+GenericAbilityTask_SendAndWaitForEvent: EventToSend, Payload
+GenericAbilityTask_WaitForEvent: EventToWaitFor, bWaitForExactTagMatch, ReceivedEvent, OptionalExternalTarget
+GenericAbilityTask_WaitForTagChange: EndWhenTagIsRemoved, EndWhenTagIsAdded, bCheckTagsOnActivate
+GenericAbilityTask_WaitForTasksToEnd: Tasks
+GenericAnimationConfig: m_WalkAnimSequence, m_WalkLeftAnimSequence, m_WalkRightAnimSequence, m_RunAnimSequence, m_RunLeftAnimSequence, m_RunRightAnimSequence, m_SprintAnimSequence, m_SprintLeftAnimSequence, m_SprintRightAnimSequence, m_IdleAnimSequence, m_IdleAnimSequence2, m_IKLinkedLayer
+GenericData: m_BoolData, m_IntData
+GenericStat: m_StatName, m_StatsTag, m_StatsArgs
+GenericVoicelineDefinition: VoicelineTag, Weight, MinRequiredWeight, GlobalCooldownSeconds, ExampleText
+GenericVoicelineRequestContext: TagsMe, TagsOther
+GestureAnimationEvaluation: AnimSequence
+GestureSet: Gestures, Idles, PoseMatchBones, PoseMatchingRandomness, MaxPoseDifference, WorstAcceptedPoseDifferenceMultiplier, AllowedDurationMinMultiplier, AllowedDurationMaxMultiplier, AdditionalAnimationStartTimeSecondsForPoseSearch, AnimSlotIdleAnimations, AnimSlotGestureAnimations
+GestureSetEntry: RequireAll, RequireAllExact, RequireAny, RequireNone, GestureSet
+GiveAbilityRegionTrait: GivenAbilitySpecs, AbilityToGive, AbilityLevel, bActivateOnGive, bRemoveOnLeave
+GlobalCrimeDataEntry: ID, CrimeType, AreaTag, TimeCommitted, bIsForgiven, AffectedEntitySource, ItemDefinitionClass, InteractiveObjectDefinitionClass, CriminalGlobalID, CriminalGuild, VictimGlobalIDs, VictimGuilds, TrueCriminalGlobalID
+GlobalNavigationData: bAddConnectiveObjects, bRemoveExtremEdges, ExtremEdgeDistanceThresholdFactor, bRemoveLongEdges, LongEdgeDistanceThresholdFactor, EdgeLongestAllowedDistance, bUseConnectOnSameStoreyLevel, ConnectNodeOnStoreyRadius, ConnectNodeOnStoreyHalfHeight, bReconnectIslands, WaynetEgdeCount, WaynetNodeCount, WaynetAreaFilterClass, Waynet, bIsEditorCameraNavigationInvoker, CameraInvokerRadiusRange, SearchRadius, AStarHeuristicScale, MetaRepathingRadiusFallback, MetaDiversionPointRadius, WaynetQueryExtent, bLoadWorldPartitionBeforeBuild, bMapCheckWaynetIslands, bDrawAbstractWaynet, Height_AbstractWaynet, Thickness_AbstractWaynet, Color_AbstractWaynet, bDrawPathWaynet, Height_PathWaynet, Thickness_PathWaynet, Color_PathWaynet, bVisualizeIssues, Height_Issues
+GlobalNavigationTestingActor: PathfindingType, NavigationConfig, QuerierSpeciesTag
+GlobalPathingInfo: Result, ResultReasons
+GlossaryCategory: m_PossibleSubcategories
+GlossaryDocument: m_OnUnseenStateChanged, m_CategoryClass, m_SubcategoryClasses, m_SortOrder, m_ThumbnailImage, m_BannerImage, m_InitialSegmentNameCrumbs
+GlossaryMainWidget: GenericFilter, SubfilterWidget, m_DefaultFilterIcon, m_Buckets
+GlossarySubcategory: m_ShowInFilters, m_ShowOnEntries
+GlossarySubcategory_Breadcrumbs: m_NameCrumbs
+GlossarySubcategory_ByAliveState: m_IsCharacterAlive
+GlossarySubcategory_ByRelationship: m_AcceptedRelationships, m_IgnoreDeadActors
+GlossarySubfilterData: m_FilterTag, m_IconImage, m_DisplayName
+GlossarySubfilterWidget: m_OnCurrentIndexChangedBP, m_Wrap, m_Data, m_InvalidData
+GlossaryWidgetBucket: m_FilterTag, m_CategoryClass, m_Documents, m_Subcategories
+GothicAbilitySystemComponent: OnGameplayEffectAppliedToSelfDynamicDelegate, OnGameplayEffectAppliedToTargetDynamicDelegate, OnActiveGameplayEffectAddedToSelfDynamicDelegate, OnPeriodicGameplayEffectExecuteOnSelfDynamicDelegate, OnPeriodicGameplayEffectExecuteOnTargetDynamicDelegate
+GothicAchievement: ID, StatId, Description, MaxAmount, RequiredMemoryTag
+GothicAchievementSubsystem: PendingAchievements, CompletedAchievements, bDemoAchievementUnlocked
+GothicActionContext: InputMappingContexts
+GothicActivitySubsystem: bEnabled, DelayBetweenActions, SubTaskNum
+GothicAIGroup: OwnedTagsToAddToMembers, MemberOwnedLooseTags, JoinedCharacters, ListenToAttributeChangesOf
+GothicAIMoveRequest: NavigationAgents
+GothicAnimationComponent: m_currentAnimInstance, m_LinkedAnimInstances, m_UseMotionMatching
+GothicAnimInstance: m_RandomCyclesStartPosition, m_Stance, m_PrevStance, m_DesiredStance, m_MovementState, m_PrevMovementState, m_MovementStateTime, m_MovementAction, m_DesiredMovementAction, m_WalkSpeed, m_DesiredWalkSpeed, m_PrevDesiredWalkSpeed, m_RotationMode, m_MovementDirection, m_Speed, m_prevSpeed, m_ControllerRotation, m_PreviousCharacterRotation, m_CharacterRotation, m_CharacterVelocity, m_PreviousVelocity, m_bHasMovementInput, m_HasControllerInput, m_FacingAngle, m_Direction, m_LookPointsOfInterestPassively, m_IsPoiAvailable, ViewMode, m_IsInFrontWall, TrackedHipsDirection, RelativeAccelerationAmount, bShouldMove, bStopped, bStopping, bBlockedState, bPrevBlockedState, bLockedMovement, bPrevLockedMovement, bRotateL, bRotateR, bPivot, PivotTrigger, RotateRate, AnimationRotateRate, RotateScale, DiagonalScaleAmount, WalkRunBlend, StandingPlayRate, CrouchingPlayRate, StrideBlend, VelocityBlend, LeanAmount, FYaw, BYaw, LYaw, RYaw, JumpPlayRate, FallSpeed, m_FallDistance, LandPrediction, m_IsInWater, m_InWaterDepth, m_JumpIntoWater, m_JumpIntoWaterDistance, m_SwimBlendPitchJumpingIntoWater, m_SwimTimeJumpingIntoWater, m_SwimBlendPitchSmoothTime, m_DesiredSwimType, m_SwimPlayRate, m_SwimSpeed, m_SwimBlendPitch, m_SwimBlendYaw, SpineRotation, AimingAngle, m_AimYawRate, SmoothedAimingAngle, AimSweepTime, InputYawOffsetTime, ForwardYawTime, LeftYawTime, RightYawTime, m_AimingRotation, FlailRate, m_BasePose_N, m_BasePose_CLF, m_BasePose_Combat, m_IsTurning, m_LookAtAngle, m_IsFiring, m_IsAiming, m_IsStrafing, m_IsAlive, m_IsTargeting, m_ItemState, m_IsAggressive, m_IsLinkedLayer, m_BoneToCut, m_CutBoneInvert, m_WeaponSkill, m_IsInCombat, m_IsUsingCrossBow, m_Enable_AimOffset, m_Enable_HandIK_L, m_Enable_HandIK_R, m_IsFootIKEnabled, OnNotifyEvent, m_SkipFacials, m_CarryComponent, m_ArcheryComponent, LookAtPoint, EnableLookAt, LookAtRotator, EnableMicroGestures, WeaponTagTS, bIsThrowing, bHasItemInHand, bHasTorchInHand, bIsTransformed, bIsTransforming, bIsUnTransforming, bIsInConversation, bIsInCinematic, bIsOnLadder, bIsCrouching, m_LocomotionSequencesData, m_DataModule_Locomotion, m_DataModule_BaseStats, m_DataModule_LookAt, m_DataModule_Targeting, m_LocomotionConfig, m_GothicMovementComponent, m_GothicAnimationComponent, m_CachedLocomotionData, m_UseLinkedLayers, m_UseMotionMatching, m_MMRootDelta, m_CurrentAnimConfig, m_RandomSequencePlayer, m_RandomSequencePlayerWalk, m_IdleBreakers, m_WalkBreakers
+GothicAssessmentResponseConfig: ConditionBits
+GothicAudioComponent: bIgnoreEnvironment, AudioEnvironmentTag, bShouldPlayWhenInRange, bShouldAlwaysPlay, bDestroyWhenOutOfRange, CachedMaxDistance
+GothicAudioOcclusionComponent: SamplePoints, bShowDebugLines, bShowDebugTarget
+GothicAudioSettings: MusicMasterEvent, UnderWaterAmbience, MainMenuMap, CreditScreenWidget, VolumeFadeDuration, CombatRadius, MusicIntensityMaxHealth, MusicLocations, SpecialContentIDs, VCA_Master, VCA_Music, VCA_SFX, VCA_VOICE, VCA_VOICE_Ambience, VCA_Cutscene, LocalizationBuses, LocalizationVolume, FMODEvent_Dialogue, FMODEvent_Cutscene, FMODEvent_Smalltalk, FMODEvent_AmbientConversation, FMODEvent_AmbientConversation_NPC, FMODEvent_Mumble, FMODEvent_SelfTalk, FMODEvent_Reaction, FMODEvent_UI, FMODEvent_Possessed_2D, FMODEvent_Possessed_3D, FMODEvent_Undead, PossessedIntensityParameter, PossessedIntensityValue2D, PossessedIntensityValue3D, CutsceneAudioEventSets, DaytimeParameter, SoundOcclusionParameter, SoundOcclusionInstantParameter, AudioEnvironmentMuteParameter, MaterialOcclusionValues, DefaultOcclusionValue, ChapterJingles
+GothicAudioSnapshotSubsystem: WaterVolumes, UnderWaterAmbientAudioComponent, UnderwaterAmbientEvent
+GothicBaseMovementComponent: bHadRootMotion, bWantsSweepWhileNavWalking, NavAgentPropsByMovementMode, IntendedLandMovementModeRequesterStack, PotentialLandMovementModes, RequestedPathMoves
+GothicBasicVerbMessage: m_Verb, m_ConnectedTrigger, m_Event, m_Magnitude, m_Saved, m_IsPlayer, m_UserCharacter, m_UserName
+GothicBloodComponent: SkeletalMesh, MaterialsComponent, WeatherComponent, m_WeaponBloodTrailParticles, m_BodyBloodTrailParticles, m_MutilationBloodNiagaraSystem, m_DecompositionFliesSystem, HitBloodAmount, CustomHitWorldLocation, CustomRadius, BloodFadeTimeSeconds, BloodInWaterFadeInSeconds, BloodParticlesTime, FliesStartMinFactor, TotalDecompositionTime, MaxFlies, m_DecompositionTimerHandle, m_DecalMaterial, m_DeathDecalMaterial, DeathDecalSize, DeathDecalDurationInSeconds, DeathDecalFreshDuration, m_DecalMID, m_DeathDecal, m_BloodHitData, m_BloodHitVector, BloodEffect, m_HasBlood, m_CanDecompose, m_BloodColor, WaterBloodSystem, WaterNiagaraComponent, FliesNiagaraComponent
+GothicBloodDecal: m_CanvasRenderTarget2D, M_Center, m_MinPoint, m_MaxPoint, m_Box, m_MaterialInstanceDynamic
+GothicBloodFallingDrops: m_BloodParticleComponent, m_BloodParticles, m_BloodDrops, m_DecalMaterial, m_PreviousLocation
+GothicBloodManager: m_Decals, m_MaxDecalNum, m_TexScale
+GothicCameraAnimInstance: m_Character, m_AbilitySystemComponent, m_GeneralConfigCamera, m_CameraSettings, m_RightShoulder, m_MovementState, m_MovementAction, m_RotationMode, m_WalkSpeed, m_Stance, m_InCombat, m_EnemiesGroundAround, m_EnemiesFlyAround
+GothicCameraManager: m_CameraConfig, LineOfSightProbeSize, m_TimeSinceLastEnemyCheck, m_EnemyCheckInterval, m_EnemiesGroundAround, m_EnemiesFlyAround, m_TargetIsBig, m_Character, m_UsedModifierList, m_Spell, m_SpellCameraBehaviour, m_CinematicCameraBehaviour, m_AbilitySystemComponent, m_CurrentBehaviour, m_ViewPitchMinCache, m_ViewPitchMaxCache
+GothicCameraModifierDefault: m_CameraOrigin, m_CameraFinal, m_CurrentBehaviour, m_OriginBehaviour, m_Behaviour, m_EaseSelected
+GothicCameraModifierDirectionInput: MouseIdleThreshold, MousePercentageThreshold, StickPercentageThreshold, MaxYawChangeMouse, MaxPitchChangeMouse, MaxYawChangeStick, MaxPitchChangeStick, MoveTimeStick, MoveTimeMouse, EasyInExponent, CustomPriority, LowestFramerate, RightStickPosition, bModifierIsActive
+GothicCameraModifierPitch: PitchToDistanceCurve, m_timerHandle
+GothicCameraModifierTargetActor: m_LastTarget, m_OriginalCharRotation, m_OriginalCamRotation, m_LastCamRotation, m_TargetLocation, m_PlayerLocation, m_CurrentTarget, m_CurrentTargetComponent, m_EaseTarget, m_SkipInState, m_TargetCombatState, m_LastFrameRotation
+GothicCameraModifierTransition: m_OriginalRotation
+GothicCameraSpringArmComponent: m_BaseTargetArmLength, CameraRotationLagSpeedPitch
+GothicCharacter: OnStanceChangedDelegate, OnGameplayIsReadyDynamicDelegate, m_BonesSettings, CurrentDebugWidgetComp, m_HealthBarComponent, m_HUDDisplayCombatMarkerPositionComponent, m_RagdollComponent, m_CarryComponent, m_MagicComponent, m_TimeDilationComponent, m_GothicWaterVolumeSensor, m_WalkSpeedModifierComponent, m_PerceptionComponent, m_SubCapsuleManagerComponent, m_FXComponent, m_CharacterVisualsComponent, m_CharacterTrinketsComponent, m_QuiverComponent, m_BloodComponent, m_MaterialsComponent, m_FocalPointComponent, m_WeatherComponent, m_DirtComponent, m_FootstepsDataComponent, m_DataModule_Locomotion, m_DataModule_BaseStats, m_DataModule_Targeting, m_MutilatedSkeletalMeshActor, m_AnimComponent, m_GothicCinematicActorComponent, m_SyncCharacterComponent, m_CollisionComponents, m_CharacterState, m_CameraBoom, m_FollowCamera, m_EyesLocationSocketName, m_HeadBone, m_InteractiveComponent
+GothicCharacterPersonality: WeaponPreferenceByType, WeaponPreferenceBySpec, OwnedPersonalityTags
+GothicCharacterSignificanceSubsystem: MainPlayerUniqueName
+GothicCharacterState: m_CurrentPersonality, bPersistent, AbilitySystemComponent, DataModuleComponent, LongTermMemoryComponent, CharacterRelationshipComponent, PersonalBelongingsComponent, PreferredLocationComponent, GenericVoicelineComponent, RegionComponent, GothicNavigationInvokerComponent, InventoryComponent, InteractorComponent, CharacterConfig, MassEntityConfig, m_PartyConfigId, m_PartySlotIndex, OwnedCharacter, CharacterGlobalId, InPartyWith
+GothicCharacterStateCharacterVisualsDestroyed__DelegateSignature: CharacterState
+GothicCharacterStateCharacterVisualsSpawned__DelegateSignature: CharacterState, Character
+GothicCharacterStateSpawned__DelegateSignature: CharacterState
+GothicCharacterStateSubsystem: OnPlayerGoToSleep, OwnedTagToMassTagMap
+GothicCharacterSubCapsuleComponent: m_UsedForMovementSweep, m_UsedForDeformation, m_ActiveStances, m_ActivatedDuringAttacks, m_CustomCollisionProfile
+GothicCinematic: LevelSequence, LevelSequenceAsset, TeleportToCinematicWP, OverrideTimeByRange, CinematicDataLayers, PreloadStoryDataLayers, PlaybackSettings, CameraSettings, FadeInSetup, FadeOutSetup, SavedTime
+GothicCinematicActorComponent: m_Character, m_Controller, m_TransitionWidgetClass, m_CinematicManagerSubsystem, m_CameraFade, m_HUDCinematicController
+GothicCinematicManagerSubsystem: m_GameMode, m_RequestCinematicState, m_CurrentCinematicState, m_CinematicClass, m_Cinematic, m_PlayersCount, StatePlayerCount, m_PlayerList, m_PlayerSkipRequests, m_LevelSequenceActor, m_LevelSequencePlayer, m_ActorsToBind, m_BoundActors, m_UnBoundActors, m_StartupCinematicClass, m_SelectedCinematicClass, m_CinematicAnimInstanceClassArray, m_CinematicAnimInstanceClassMap, m_ComponentsToReactivate, m_AllowTick
+GothicConversationCameraModifier: Name
+GothicCrashInfoFile: Game, Quests, Inventory, ThreadStacks, ContextStackByThreadID
+GothicCrashReportSubsystem: SentryData, SentryFile
+GothicCrimeMemorySaveGameData: GlobalCrimeDataEntries, RelativeCrimeDataEntries, LocationCrimeDataEntries
+GothicCrimeMemorySaveGameLocationMemoryCollection: LocationMemories
+GothicCrimeMemorySaveGameRelativeCrimeCollection: RelativeCrimes
+GothicDataLayerInstance: bIsGameplayRelevant
+GothicDeveloperSettings: ShowMouseInPIEIfGamepadUsed, DontFlushPressedKeysOnFocusChangeByGamepad, NoNetTimeOut, NetUpdateFrequencyForSwitchesOutOfProcessingRange
+GothicDirectionalLight: m_UpdateWithGameTime, m_DawnHour, m_DawnRotation, m_CurrentLightPreset, m_LightPresets, m_FogPresets, m_NightDirectionalLightComponent, m_DayDirectionalLightComponent, M_Moon, m_ExponentialHeightFog, m_DayArrowComponent, m_NightArrowComponent
+GothicDirtComponent: m_SkeletalMesh, m_MaterialsComponent, m_BloodComponent, m_WeatherComponent, m_AllowDebug, m_CurrentDirt, m_DirtParticlesTime, m_DirtFadeTimeSeconds, m_DirtInWaterFadeInSeconds, Radius, m_DirtHitData, m_DirtSeedScalar, m_DirtEffect, m_WaterDirtSystem, m_WaterNiagaraComponent
+GothicFlyDiveSettings: UseFlyDiveMinDistance, GroundedMoveBeforeGoalDistance, CharacterZDivergeOffset, AdaptToCollisionSampleZDistance, MinFocusSampleDistance, AdaptToNavLinkEndZInterpDistance, FlyDiveMode, AdaptZDivergeMode, RelativeZDivegeCharacter
+GothicFootstepsDataComponent: FootstepTag, DisappearFeetEffectTime, AppearFeetEffectTime, PhysicMaterialsColor, FootStepDecalMaterial, DirtFootStepDecalMaterial, CurrentDirtColor
+GothicFootstepsTrackerActor: PhysicMaterialsColor, DecalMaterial, DecalSizeFactor, DecalLifetime, Decals, MaxFeetTracking, DetectionRadius, PlayerController, TrackedCharactersData
+GothicFXDefinition: EffectTag, FXSpecs, RequiredTags, IgnoreTags, bIsInstantEffect, PreferenceLayer, CoolDownTime, FMODEvent, ParticleSystem, PerceptionSoundArea, decal, TargetSockets
+GothicGameMode: MainStoryClass, DifficultyPresetOverride
+GothicGameUserSettings: CharacterVisibilitySliderPosPercent, CleanShutDown, OnHUDSettingsApplied, IsInstallationInitialized, m_DisplayIdString, m_DisplayID, m_Gamma, m_ColorSaturationOffset, m_ColorContrastOffset, m_ColorBrightnessOffset, m_AimScalar_KBM, m_AimScalar_Gamepad, m_ShowPlayerSpeechBubble, MotionBlurIntensity, BloomIntensity, AmbientOcclusionIntensity, DepthOfFieldIntensity, SharpeningIntensity, ExtraInteriorExposure, AntiAliasingMethod, UpscalingMethod, UpscalingQualityDLSS, UpscalingQualityFSR, UpscalingQualityXeSS, UpscalingQualityTSR, FrameGenerationFSREnabled, FrameGenerationDLSS, StreamlineReflexEnabled, StreamlineReflexBoostEnabled, m_MasterVolume, m_MusicVolume, m_SFXVolume, m_VoiceVolume, m_BaseFOV, m_CameraPreset, m_ShowSubtitles, m_SubtitleStyle, m_DialogStyle, ShowSpeechBalloons, m_ShowScreenRainDroplets, m_EnableScreenshotOnSavegame, m_FakeSloppyCombos, ShowOutlines, ShowInteractionInputHints, ShowInteractionIcons, ShowInteractionNames, AutoCloseChests, m_DisplayLanguage, m_VoiceOverLanguage, HUDBarVisibility, ShowHUDBarNumbers, ShowProjectileCount, InventoryNotificationDuration, CharacterNotificationDuration, QuestNotificationDuration, BloodIntensity, WindQuality, ShareTelemetryData, ButtonGraphics, ForceFeedbackEnabled, CameraShakeEnabled, InvertXAxis, InvertYAxis, MovementSensitivity, CameraSensitivity, CameraSensitivity_KBM, CameraSensitivity_Gamepad, CameraSensitivityMargins_KBM, CameraSensitivityMargins_Gamepad, MouseRetargetingSensitivity_KBM, MouseRetargetingSensitivityMargins_KBM
+GothicGASActor: AbilitySystem, m_FXComponent
+GothicGlobalEventListenerDelegate__DelegateSignature: Channel, Payload
+GothicHUDBase: m_Controllers, m_HUDConfiguration, m_FocusWidget, m_FocusWidgets, m_LastMousePos, m_bMousePositionWasManuallySetLastFrame, m_IfIsFirstFrame, m_HUDSubsystem
+GothicHUDConfiguration: BlueprintPaths, BlueprintZOrders
+GothicInputAction: InputAction, InputTag
+GothicInputComponent: m_GothicInputConfig, m_GothicASC, m_IMCPriority
+GothicInputConfig: NativeInputActions, AbilityInputActionsPress, AbilityInputActionsRelease, AbilityInputActionsToggle, GameplayEventInputActions, AddInputContextActions, TagInputMappingContextArray
+GothicInputContextController: m_MappingContextsDefault, m_MappingContexts, m_TemporalMappingContexts, m_MappingContextsTorch, m_MappingContextDebug, m_ParentPlayerControllerBase, m_Pawn, m_TemporalMappingsCounter
+GothicInputContextData: m_GameplayTagContainer, m_ArrayMappingContext
+GothicInputContextDataTemporal: m_GameplayTagContainer, m_GameplayTagContainerBlock, m_ArrayMappingContext
+GothicInputMarvinCheatManager: GothicCharacter
+GothicInvokerActor: GothicNavigationInvokerComponent, NavigationConfigDefaultObject
+GothicLevelSequenceUserData: VoiceLinesIDs, ObjectPtrs, FacialAssets
+GothicLockCameraHelperComponent: m_targetActor, m_CameraDistance, m_RotationOffset
+GothicLockConfig: m_UniqueName
+GothicLockedStreamingSourceActor: AffectedGrids, bShouldBlockOnSlowLoading, DefaultStreamingSource, OuterShapeComponent
+GothicLockPickActor: m_LockPickAnimInstance
+GothicLockPieceActor: m_LockPieceType, m_PieceId, m_CanEverBeHighlighted, m_CanEverShake, m_MaterialInstanceDynamic, m_RuntimeRootComponent
+GothicLockPieceData: m_Plate, m_Bar, m_Latch
+GothicLockSaveGameData: m_UnlockedLocks
+GothicLockSceneActor: m_LockPieceInterpolationSpeed, m_UseConstantInterpolationSpeed, m_LockBarDownOffset, m_LockBarUpOffset, m_BarDistanceThresholdForInterpolation, m_RotationToBarOffset, m_LockPieceTranslationStep, m_LockPieceData, m_LatchCurve, m_HighlightColor, m_CameraHelper, m_LockPickActor, m_ShakeSpeed, m_ShakeDuration, m_ShakeAmplitude
+GothicMagicComponent: m_SpellSpawnedActor, m_HandHeldItemLastSlotId
+GothicMassFragment_OwnedGameplayTags: OwnedGameplayTags
+GothicMassFragment_Significance: BaseSignificance, FinalSignificance, ForcedSignificance, bAllowedToBeVisible, LastTimeOverSpawningSignificanceThreshold
+GothicMassSharedFragment_SignificanceParameters: SignificanceSettings
+GothicMassSharedFragment_WorldTime: TimeSeconds, RealTimeSeconds
+GothicMaterialsComponent: MeshComponent, DynamicMaterials
+GothicMod: MapModificationsByMapName, ClassDefaultsMods
+GothicModInstance: ModPackage, AddedLevels, AddedInteractionSpots
+GothicModMapInteractionSpots: SpotsToAdd
+GothicModMapLevelInstances: LevelsToLoad
+GothicModMapModifications: LevelInstances, InteractionSpots, WorldPoints
+GothicModMapWorldPoints: PointsToAdd, ItemSpawners, EventsToModify
+GothicModPackage: Desc, Modifications
+GothicModScriptDefaultModifications: ModifiedClasses
+GothicModWorldPointCharacterSpawnCountMod: DifferenceByCharacter, CountByCharacter
+GothicModWorldPointMod: Points
+GothicMountComponent: m_SaddleSocket, m_ActiveGameplayEffects, m_PreviousGameplayEffectsWithoutRider, m_EffectsToRemoveOnUnmount, m_AIMountController, m_MountPlayerState, m_PlayerController, m_mountCharacter, m_riderCharacter, m_LastGameplayEffectSpecApplied, m_AlcoholEffect, m_SwampWeedEffect, m_IsUnmounting
+GothicMountComponentData: m_Character, m_EffectHandle
+GothicMovementComponent: m_OnHasWaterChanged, StepSmoothStiffness, StepSmoothDamping, StepSmoothMinZDelta, m_wallSideEdge, m_wallVerticalEdge, m_WaterFrictionMultiplier, m_VelocityPreJump, m_AnimInstance, m_Character, m_NewMaxSpeed, m_SpeedForCurve, m_MaxWaterfallForceSpeed, m_ControllerRotation, m_LocomotionCurveConfig, m_GroundConfig, m_ClimbingConfig, m_JumpConfig, m_SwimConfig, m_AbilitySystemComponent, m_TrajectoryGenerator, m_AnimationComponent, m_WalkSpeedModifierComponent, m_PreviousWaterEffect, m_ActiveEffectHandle, m_PrevMovementInput, m_GothicMovementStateTags, m_MaxSecondsBeingStuck
+GothicMutilatedSkeletalMeshActor: m_SkeletalMeshComponent, m_StaticMeshComponent, m_Source, m_BoneToCut, m_LastPosition
+GothicMutilationCover: m_AssociatedPhysicAsset
+GothicNiagaraActor: AudioComponent
+GothicNiagaraAudioComponent: AudioCooldown
+GothicNPCState: DailyRoutineTemplate, DailyRoutineTemplateAtSpawn, DailyRoutineAssignedAtTime, DailyRoutineStartedAtLocation, DailyRoutineSimulation, AIAbility, SpawningSettings, OnCharacterSpawned, OnCharacterDestroyed, VisualCharacterClass, SpawnState, VisualCustomizableObjectInstance, ForcedSignificanceOverride, bRemovedFromWorld, BlockingTaskTimeskipSeconds, VisualFeaturesDefinition, SummonedBy
+GothicNPCStateMassTrait: LODParams
+GothicObjectDefinition: m_Name, m_Icon, m_Description, m_UniqueName
+GothicPathFollowingComponent: IdleNavObstacle, CurrentWalkedNavArea, LastValidNavLocation, DefaultNavigationType, CurrentNavigationType, CurrentMoveRequest, BumpedIntoCharacter, JostlingAgent
+GothicPathfollowSettings: OwningTask, DebugOwnerName, CrowdAgentSeparationWeight, CrowdAgentRadiusMultiplier, CrowdAgentHalfHeightMultiplier, AgentRadiusMultiplier, AgentHalfHeightMultiplier, bSlowDownAtGoal, bEnableAnticipateTurns, bStrafeTurnToPotentialBlockingAgent, CrowdGroupsBehaviour, CrowdIdleBehaviour, CrowdAvoidanceQuality, bEnablePathPolyOptimization, ModifyAvoidVelocitySettings, MoveFocusSettings, FlyDiveSettings
+GothicPersistentDataGame: m_SaveVersionNumber, m_Profile, m_GenericData
+GothicPersistentDataList: m_OwningPlayer, m_SaveVersionNumber, m_SavedGamesNames, m_SavedGamesPublicData, m_ScreenshotSave, m_ScreenshotSaveId, m_Profiles
+GothicPersistentUserSettings: m_DefaultSaveSize
+GothicPhysicsMaterialTags: m_tags
+GothicPhysicsVolumePriority: m_PhysicsVolume, m_Priority
+GothicPhysicsVolumePriorityTriggerVolume: m_PhysicsVolumePriorities_OnBeginOverlap, m_PhysicsVolumePriorities_OnEndOverlap
+GothicPlayerCharacter: m_TalkBalloonComponent
+GothicPlayerControllerBase: m_PathfollowingComponent, m_IndoorDetectionComponent, m_AudioOcclusionComponent, m_BehaviorModuleComponent, m_WeatherAudioComponent, m_GothicCharacter, m_WidgetClass, m_TransitionWidgetClass, m_WidgetDebugClass, m_Widget, m_TransitionWidget, m_DebugWidget, m_GothicInputConfig, m_InvertedVerticalCamera, m_InvertedHorizontalCamera, m_GeneralCameraSensitivity, m_LeftStickYAxis, m_LeftStickXAxis, m_RightStickYAxis, m_RightStickXAxis, ActiveAudioRegionTraits, ActiveAudioEnvironmentRegionTraits, ActiveAudioComponents, m_ActivePostProcessingRegions, m_ControlCharacterComponent, m_InputContextControllerClass, m_GothicInputContextController
+GothicPlayerState: DisplayNameTextOverride
+GothicRiderComponent: m_Character, m_mountCharacter
+GothicSaveGameFileMetadata: CustomPayload
+GothicScreenshotsSave: m_Screenshots, m_ProfileListSaveSize
+GothicSkeletalMeshComponent: AbilityComp, m_GenericAnimClass, m_GenericAnimationConfig, m_PhysicalBonesConfig, m_PhysicalAnimationComponent, m_prevLOD, m_BoneToCut, m_CutBoneInvert, m_BoneColliderUpdates
+GothicSmartLinkComponentFly: ChangePathfollowSettingsTask
+GothicSmartLinkComponentGeneric: bUseTraverseTask, TraverseTag, TraversalAllowedSpecies, BlockPathfindingIfAgentHasAnyOf, RequireAnyForPathfinding, BlockAbilitiesWithTagsWhileUsing, CancelAbilitiesWithTagsWhileUsing, CooldownWaitingAgents, bBlockPathfindingWhenLinkHasUser, SnapRadius, SnapHeight, bAddToWaynet, WaitingAgents, MoveOverLinkTask, FinishLinkMoveTask, CurrentPathFollowingComponent, bIsCharacterTraversingWithTask, requestedWalkSpeed, TraversalFailedPathfollowingComponentsToTime
+GothicSmartLinkComponentInteractionSpot: InteractionAllowedSpecies, bUseInteractionAnchors, bUseTaskForOpen, bUseTaskForClose, OpenTag, CloseTag, bTraverseWalkingWhenIsOpenUponArrival, State, InteractionSpotRadius, LinkSpotHandleStart, LinkSpotHandleEnd, OffsetLinkFromAnchor
+GothicSmartLinkComponentJump: MaxAngleDiffGoalToStartToMoveAnchor, JumpDownArrowLocationMode, TargetJumpDownToComponent
+GothicSmartLinkComponentWallClimbing: WallClimbStatus, InfoText, ClimbableWallBottom, ClimbableWallTop, StartBottomTransform, EndTopTransform, CustomBehaviourTransform
+GothicSmartLinkDoor: InitalRelativeLinkStart, InitalRelativeLinkEnd
+GothicSmartLinkOwner: SpriteComponent
+GothicSpectatorPawn: m_AbilitySystemComponent
+GothicTimeDilationComponent: m_EffectsHistory, m_GothicCharacter
+GothicTraderPayload: m_Trader_TotalItems, m_TotalOreCostTrader, m_Trader_Ore, m_TraderItems, m_Player_TotalItems, m_TotalOreCostPlayer, m_Player_Ore, m_SellTraderItNew, m_SellPlayerItNew
+GothicTrajectoryErrorWarping_MotionSimphony: m_DataModule_Locomotion, WarpRateStrafe, ErrorActivationRangeStrafe, WarpRateLocomotion, ErrorActivationRangeLocomotion
+GothicTrajectoryGenerator_MotionSimphony: m_OriginalFlattenTrajectory, m_FlattenTrajectoryCrouched, m_MovementComponent, m_AnimationComponent, m_Camera, m_DataModule_Locomotion, m_MMConfig, m_RepInputVector, m_CurrentInputProfile, m_HistoryTrajectoryMode, m_Controller, m_PathFollowing
+GothicTriggerVolume: m_EventName, m_VolumeDefinition, m_Subsystem, m_MustTick, m_IsInside, m_Player, m_Characters
+GothicTriggerVolumeDefinition: m_MustTick, m_OnlyPlayer
+GothicUIManager: m_LocalPlayerInventory, m_LocalPlayerInventoryFiltered, m_LocalPlayerInventoryFilteredEquipped, InventoryFilter, OldItems
+GothicUltraDynamicController: bOverrideSettings
+GothicUltraDynamicSky: DefaultLightUpdatePeriod, TransitionTimeA, TransitionTimeB, TransitioningTime, TransitionEasingExponent, TransitionTimer, TransitionDuration, TransitionDaysCounted, TransitionCanGoBackwards, DayNightIntensity, DayNightColor, DynamicLights, UpdateRectLightsPerFrame, ControlSkyAtmosphereSettings, RayleighScatteringColorDay, RayleighScatteringColorDawnAndDusk, RayleighScatteringColorNight
+GothicUltraDynamicWeather: ClearCacheAtDistanceDifference, AllowWeatherChange
+GothicWaterSplineComponent: m_WaterSplineMetadata
+GothicWaterSplineInstanceData: m_WaterSplineMetadata
+GothicWaterSplineMetadata: m_WaterSpeed, m_WaterSpeedInfluenceRadius
+GothicWaterVolumeSensor: m_GothicCharacter, m_GothicAbilitySystemComponent, m_ActiveEffectHandle, m_PreviousWaterEffect
+GothicWaterVolumeVectorFieldCell: M_Center, m_Speed, m_Direction
+GothicWaterVolumeVectorFieldComponent: m_CellSize, m_Cells, m_TopOnlyCellIndices
+GothicWeaponBloodComponent: m_MaterialInstance, m_WeatherComponent
+GothicWeatherAudioComponent: WindAudio, RainAudio, SoftThunderEvent, SoftThunderEchoEvent, ThunderAudioMaxDistance, RainIntensities, WindIntensities, RainIntensityParameter, WindIntensityParameter, ThunderIntensityParameter, WeatherIndoorParameter, EasingDuration, OcclusionEasingDuration
+GothicWeatherComponent: m_Character, m_DataModule_Locomotion
+GothicWeatherFogPostProcessSettings: GlobalContrast, SkyLightLeaking, SunVolumetricScatteringIntensity
+GothicWeatherFogSettings: Fog, BaseFogDensity, FogHeightFalloff, FogInscatteringColor, StartDistance, LightsVolumetricFogMultiplier, ExponentialFogStartingDistance, VolumetricFogStartingDistance
+GothicWeatherSettings: WeatherType, CloudCoverage, Rain, Snow, ThunderLightning, WindIntensity, GothicWindIntensity, Fog, BaseFogDensity, LightsVolumetricFogMultiplier, ExponentialFogStartingDistance, VolumetricFogStartingDistance, Dust, SunVolumetricScatteringIntensity, MaterialWetness, MaterialSnowCoverage, MaterialDustCoverage
+GothicWorldActor: m_WorldPointManagerConfig, m_WorldItemSpawnConfig, m_IsGothicWorldActorEnabled
+GothicWorldPartitionHLODModifier: OverrideCastDynamicShadows, OverrideCastContactShadows, OverrideEvaluateWorldPositionOffset, OverrideDetailMode, OverrideAffectDistanceFieldLighting, MaterialReplacements
+GothicWorldSettings: FreepointManagerConfig, SpawnpointManagerConfig, GameTimeConfig, WeatherConfig, TerritoryWorldConfig, SpawningManagerConfig, WorldPartitionGridToBeFullyLoadedForNPCSpawn, OutlineSubsystemConfig, WorldPointManagerConfig, WorldItemSpawnConfig, DifficultyPresetOverride, WorldBoundsMin, WorldBoundsMax, MapTexture, ParameterCollection, SleeperFadeParameterCollection
+GothicZDivergePathfollowingComponent: ZDivergeNavigationType, ZDivergeState
+GroundConfig: m_UpdateRotationMinimumSpeed, m_TargetInterpSpeedInteractuablesRotation, m_TargetInterpSpeedVelocityDirection, m_TargetInterpSpeedLookingDirection, m_TargetInterpSpeedAiming, m_ActorInterpSpeedFallingAiming, m_ActorInterpFalling, m_GroundedRotationRate_Aiming, m_GroundedRotationRate_Roll, m_GroundedRotationRate_Dodge, m_VelocityBlendInterpSpeed, m_GroundedLeanInterpSpeed, m_SmoothedAimingRotationInterpSpeed, m_InputYawOffsetInterpSpeed, m_MovementInputMinimumAmountToSprint, m_MovementInputMaximumYawToSprint, m_UpdateGaitSpeedOffset, m_LimitMovementOnEdge, m_MaxStepHeightNormal, m_MaxStepHeightStrafe, m_CrouchCapsuleHeight, m_EnterSlopeDegrees, m_ExitSlopeDegrees
+GuildAreaOwnershipModifier: OwnedAreas, Except, ForGuild, Weight
+HintMessageWidget: Text, StayOnScreenForSeconds, FadeoutDurationSeconds
+HitBoxCollisionComponent: m_WeaponData, m_HitCollisionDataContainer, m_CustomCollisionResponse
+HitCapsuleCollisionComponent: m_WeaponData, m_HitCollisionDataContainer, m_CustomCollisionResponse
+HitCollisionDataContainer: m_OutOverlapping, m_OverlapComponents, m_OverlappingMapComponent
+HitConeCollisionComponent: m_WeaponData, m_HalfAngle, m_ConeLength, m_LineThickness, m_HitCollisionDataContainer, m_CustomCollisionResponse
+HitCueData: m_DefaultHitData, m_HitCueDataBySpecie
+HitData: m_Hits, m_Deaths, m_SwimDeath, m_DrownDeath, m_RidingDeaths, m_DeathsFromDefeatedMontages, m_DefeatedMontagesHits, m_DefeatedMontagesLoops, m_DefeatedStandUpMontages
+HitSpaceParams: m_FrontAngleDegrees, m_BackAngleDegrees, m_HitBoneName, m_HitBoneSpace
+HitSphereCollisionComponent: m_WeaponData, m_StartPosition, m_HitCollisionDataContainer, m_CustomCollisionResponse
+HLODModifierMaterialRemap: From, To
+HUDAnimatedBookUIController: m_WidgetClass, m_WritingWidget, m_GothicPlayerController, m_AnimatedBookUIWidget, m_WritingUIWidget, m_OnBookClosed
+HUDArmorCustomizationController: m_MainWidget
+HUDBossInformationWidget: m_BossCharState, m_GameplayAttributeCurrentValue, m_GameplayAttributeMaxValue, m_GameplayAttributeCurrentPercent, m_GameplayAttributeInterpolatedPercent, m_GameplayAttributeInterpolationSpeed
+HUDCinematicController: m_CinematicVisibilityMode, m_WidgetClassCinematicMain, m_WidgetClassCinematicTop, m_GothicPlayerController, W_CinematicWidget
+HUDControllerBase: m_Widget, m_PlayerController, m_CreatedWidgetArray
+HUDControllerWidgetStruct: m_Widget, m_WidgetClass, m_LastStateVisibility
+HUDCraftingController: m_UICraftingMain, m_UICraftingProgress, m_UICraftingState, RecipeName
+HUDDisplayBossHealthBarController: m_WidgetClass, m_Character, m_BossInformationWidget, m_OverrideMaxHealthValue
+HUDDisplayCombatMarkerPositionComponent: m_SockedToAttach
+HUDDisplayHealthBarController: OldTarget, m_TargetCombatMarker
+HUDDisplayInteractController: m_WidgetClassBP, m_InteractSensor
+HUDDisplayNameGothicFontController: m_WidgetClassBP, m_Widgets
+HUDLockPickUIController: m_LockPickUIWidget
+HUDManagementController: m_WidgetClass, m_GothicPlayerController, m_ManagementMain, m_OpenedState, m_HUDQuickSlotController, OpeningTabTag, OpeningFilterTag, OpeningItem
+HUDMapController: m_MapWidget, m_WidgetClass
+HUDNotification_GameplayAttributeSettings: m_Attribute, m_NotificationWidgetClass, m_DesiredTimeOverride
+HUDNotification_GameplayAttributeWrapper: m_Attribute
+HUDNotification_GameplayTagSettings: m_GameplayTagContainer, m_EventType, m_TagType, m_NotificationWidgetClass, m_DesiredTimeOverride
+HUDNotificationAreaWidgetBase: m_AcceptedImportances, m_MaxActiveNotifications, m_ForbiddenAbilityTags, m_NotificationRequestQueue, m_ActiveNotifications, m_NotificationWidgetPool
+HUDNotificationController: m_InputHintManager, m_NotificationMainWidget
+HUDNotificationData_AreaDiscovered: m_AreaDiscovered
+HUDNotificationData_Chapter: m_Story, m_ChapterNumber
+HUDNotificationData_GameplayAttribute: m_Attribute, m_NewValue, m_OldValue
+HUDNotificationData_GameplayTag: m_GameplayTag, m_WasAdded
+HUDNotificationData_Generic: m_String
+HUDNotificationData_Glossary: m_GlossaryDocument
+HUDNotificationData_Item: m_Item, m_Count
+HUDNotificationData_Quest: m_Quest
+HUDNotificationData_Recipe: m_Recipe
+HUDNotificationData_SaveGame: m_Description
+HUDNotificationInputHintManager: m_InputHintRequests
+HUDNotificationInputHintRequest: m_Widget
+HUDNotificationMainWidgetBase: m_GameplayTagSettings, m_GameplayAttributeSettings, m_AreaWidgets
+HUDNotificationRequest: m_WidgetClass, m_Data, m_WidgetInstance
+HUDNotificationSettings: m_NotificationWidgetClasses
+HUDNotificationWidget_GameplayAttribute: m_AttributeWrapper
+HUDNotificationWidgetBase: InputHint, m_Importance, m_Group, m_DefaultDesiredShowTime, m_AllowedDuringConversations, m_AllowedDuringLooting
+HUDQuickSlotController: m_SlotType, m_CrossbarWidgetClass, m_HotbarWidgetClass, m_TransformedHotbarWidgetClass, m_WheelWidgetClass, m_ControlledHotbarWidgetClass, m_QuickSlot, m_ControlledQuickSlot, m_HUDManagementController
+HUDSleepUIController: m_OnCloseButtonClicked, m_OnConfirmButtonClicked, m_SleepUIWidget
+HUDTradingController: m_WidgetClass, m_GothicPlayerController, m_TradingMain, m_GothicTraderPayload
+HUDVisibilityStateManagerSubsystem: m_ConversationWidget, m_PauseMenuWidget, m_GameOverMenuWidget
+HurtBoxCollisionComponent: m_Priority, m_ForcePitchAtZero, m_PrioritiesByWeapon, GothicBloodComponent, m_tags
+IgnoredCrimeSetup: AffectedLocations, ByGuild
+IKAnimInstance_Ladder: m_RightHandTarget, m_LeftHandTarget, m_RightFootTarget, m_LeftFootTarget, m_RightFootLocation, m_LeftFootLocation, m_CapsuleColliderLength, m_InterpSpeed, m_InterpSpeedFoot, m_HandImpactOffset, m_HandDistanceTowardsCharacter, m_MaxHandVelocity, m_FootVerticalOffset, m_FootHorizontalOffset, m_FootRadius, m_RightSocketName, m_LeftSocketName, m_RightHandBone, m_LeftHandBone, m_RightFootBone, m_LeftFootBone
+IKAnimInstanceBase: SwitchLegIk, SwitchLookAt, m_IKConfig, m_AnimInstanceDirector, m_DataModule_Locomotion, m_DataModule_Targeting, m_DataModule_LookAt, m_ActorsToIgnore, GAS_Disable_IK, m_VelocityThreshold, m_IKForcePercentage, m_OverrideWorldGravity, m_OverrideWorldGravitySwimming, m_LookAtPosition, m_LookAtRotation, m_EnableHeadIK, m_EnableFootIK, m_EnableTargeting, m_LookAtActorName
+IKConfig: m_UpPelvisSpeed, m_UpSpeed, m_DownSpeed, m_HeadSpeed, m_UpTraceDistance, m_DownTraceDistance, m_DistanceLookAtPoint, m_HeadBoneName, m_NeckBoneName, m_SwitchLegSolve, m_SwitchLookSolve
+IncomingCameraEvent: EventTag, EventData, AtFrame
+IndoorDetectionComponent: DetectionUpdatedAtTime, bDetectedIsIndoor, bDetectedIsOutdoor, DetectionConfidence, DetectionScore, PositiveAxisFreeRatio, NegativeAxisFreeRatio, DetectionAveragingWindowSizeSeconds, bUpdateOnMove, DetectionSettings
+IndoorDetectionResult: TotalScore, bIsIndoors, IsIndoorsConfidence, FreenessNegativeAxis, FreenessPositiveAxis
+IndoorDetectionSampler: SweepTraceSphereRadius, NumSamples, CollisionChannel, TraceRadius, ConeFullAngleDegrees, ScoreWeight_Indoor_EnclosedByWalls, ScoreWeight_Indoor_HasRoof, ScoreWeight_Outdoor_NoWalls, ScoreWeight_Outdoor_VisibleSky, IgnoredActors
+InGameTime: TotalSeconds
+InitialAttributeValues: m_InitialValues
+InnerItems: m_Keys, m_Values
+InputHintWidget: m_OnInputActionTriggeredBP
+InputHintWidget_CommonUI: m_OnInputActionReleasedBP, m_OnHoldActionProgressBP, m_DataTableRowHandle, m_IsPersistent, m_ConsumeInput, m_HoldDelay
+InputHintWidget_EnhancedInput: m_InputAction
+IntegerPickerWidget: m_OnValueChangedBP, m_Value, m_MinValue, m_MaxValue, m_StepSize, m_StartWithInputEnabled, m_InitialRepeatDelay, m_RepeatDelay, m_Layout, m_IncrementRowHandle, m_DecrementRowHandle, m_SetToMaxRowHandle, m_SetToMinRowHandle
+InteractActionStarted__DelegateSignature: Task
+InteractAnimConfig: m_IdleBreakers, m_ExtraData, m_Sections, m_Montage, m_ObjectMontage, m_MontagesMap, m_ItemsAnimData
+InteractCameraDefinition: m_BlendFunction, m_BlendExp, m_LockOutgoing, m_Time
+InteractDurationTimeLimitReached__DelegateSignature: Task
+Interaction: ActionTag, Priority, Weight, DurationSeconds, DurationVariance, CooldownOnFail, LastTimeFailed, bMayUseCustomAbility, RequireTimeSinceAction
+InteractionAnimTransition: FromSection, FromMontage, ToSection, ToMontage, bSeamless, bReturnToMainLoopAfterEnd, bAutoTransitionForPlayer, bIgnoreCooldowns, CooldownSeconds, CooldownAfterAnyTransition, BlockOtherTransitionsForSeconds, Probability, Weight, ActionTags, RequireCharacterHasAnyOf, RequireCharacterHasNoneOf, OnTransition, Condition, DisplayText, TransitionKind, OverrideBlendInTime, BlendOutDurationMultiplier
+InteractionAnimTransitionCondition__DelegateSignature: ReturnValue
+InteractionSpot: Location, Rotation, Name, PossibleActions, bAllowAnyOrientationWhenUsing, bAllowChainingActions, EntryDirection, AreaRadius, NumAllowedUsers, Priority, ActorToInteractWith, DataLayer, CooldownDuration, LastTimeUsed, CustomRequirements
+InteractionSpotDefinitionList: InteractionSpots
+InteractionSpotHandle: Spotname
+InteractionSpotRequirements: bAlwaysAllowPlayerUse, AffectsActions, AllowWhenConditionsAre
+InteractionSpotRequirementsPack: bEnable_TagClaimRequirements, OwnedCharacterTags, bEnable_UniqueNameRequirements, UniqueNames, bEnable_CharacterSpeciesRequirements, Species, bEnable_CharacterTypeTagRequirements, CharacterType, bEnable_CharacterGuildRequirements, Guild, bEnable_WeatherRequirements, Weather, bEnable_OtherSpotOccupiedRequirements, OtherSpot, bEnable_StoryValueRequirements, StoryValue, bEnable_StoryQuestRequirements, QuestState, bEnable_TimeRangeRequirements, TimeRanges, bEnable_AIWorldEventRequirements, AIWorldEvents, bEnable_InventoryItemRequirements, InventoryItemRequirements, bEnable_TimeSinceLastUseRequirements, TimeSinceLastUseRequirements
+InteractionSubsystem: SpotsByName, InteractionSpotSourceFiles
+InteractiveComponent: m_InteractItem, m_CurrentInteractionConfigs, m_InteractiveAnchors, m_InteractiveVisualAnchors, m_ObjectPeripheralVisionCosine, m_PlayerPeripheralVisionCosine, m_IsBeingUsed, m_NumUses, m_CanBeUsed, m_DontPlayNotification, m_ForceDisableInteraction, m_FireVisualComponent, m_DoorComponent, m_ListenerHandle, m_ListenerHandleActiveUntil, m_OwnedInteractionSpots, bCreateInteractionSpots, bAddToWaynet, m_ActorToInteract
+InteractiveComponentConfigurationSet: ItemDefinition, DefaultInteractionBaseName, AdditionalPossibleActions
+InteractiveGasObjectActor: OnOverlapGameplayEffectClass, EventTag, m_FXComponent, m_AbilitySystemComponent
+InteractiveObjectActor: m_PersistentId, m_ItemDefinition, m_MustAlwaysTick, bCreateDefaultCameraComponent, bCreateDefaultStaticMeshComponent, bCreateDefaultSkeletalMeshComponent, bCreateDefaultAnchorComponent, bCreateDefaultUINamePositionComponent, m_InteractiveObjectDefinition, m_SceneComponent, m_SkeletalMeshComponent, m_MeshComponent, m_InteractiveComponent, CameraComponent, m_BaseAnchorComponent, m_DataModuleComponent, m_FreepointUsageRestriction, m_UseActionTagsForInteractObject, m_FreepointName, m_AdditionalPossibleActions, m_InteractionSpotRequirements, m_InheritOwnershipFromArea, m_OverrideOwnership, m_Ownership, m_bHasMigratedDataFromFreepointConfig, m_HasMigratedDataFromFreepointConfig2, m_FreepointActionTags, UINamePosition
+InteractiveObjectAnchorComponent: bIsEnabled, EntryDirection
+InteractiveObjectDefinition: m_ObjectInteractAngle, m_PlayerInteractAngle, m_PlayerInteractZDistance, m_PlayerInteractDistance, m_PlayerInteractDistanceFar, m_PlayerDetectDistance, m_UsableByPlayer, m_AddNPCInteractionSpots, m_tags, m_RequiredItemSpec, m_OptionalItemSpec, m_Effects, m_OptionalObject, m_RequiredIcon, m_ShouldShowNameIngame, m_Lock, m_Keys, m_PuzzleKeys, m_ConsumeKeys, m_CameraTarget, m_ActiveUntilEvent, m_DisabledUntilEvent, m_RequiredUniqueObject, m_RequiredIdObject, m_MustMove, m_StartBeforeRotation, m_Priority, m_ExtraTags, m_MinimalAction, m_DefaultInteraction, m_AdditionalInteractions
+InteractiveSubsystem: m_GenericData, m_SavedInventories
+InteractOpenContainerClickItemDelegate__DelegateSignature: ItemPos, InventorySlot
+InteractOpenContainerDelegateCMW__DelegateSignature: ItemComponent
+InteractorComponent: TasksByActionTags
+InteractSensor: m_SensingInterval, m_CarryComponent, m_FilterActor, m_CurrentInteractionActor, AiAgentAroundSetBefore, m_PreviousNearObject, m_AIAgentsNameDistance, m_EquippedObject, m_KnownRecipes, OnActorSensed, OnActorNoLongerSensed, OnActorsInSensors, m_SensorConfigDefinition
+IntermediateObjectDefinition: m_WorldVisualStages
+InventoryBase: ActiveTags, FilteredInventory
+InventoryBaseTrading: FilteredInventoryTrading
+InventoryByChapter: m_ItemsByChapter
+InventoryDefinition: m_Inventory
+InventoryFilter: m_ItemTags
+InventoryItemRequirements: ItemTypeTag, bRequireMinCount, MinCount, bRequireMaxCount, MaxCount
+InventoryItemTooltip: m_Input_Equip, m_Input_Unequip, m_Input_Drop, m_Input_Utilize, m_Input_ShowWearableComparisonTooltip, m_UnequipTimeThreshold
+InventoryLootContainer: TileView_Items, InventoryWidget, bCanStoreItems, ContainerActor, InventoryWorkContainer, m_SectionSelectInventoryHandle, m_SectionSelectLootContainerHandle, m_CurrentInputType
+InventoryMain: OnItemClickedDelegate, m_OnIsTabChangeAllowedChangedBP, m_OnButtonRelevanceChangedBP, m_OnUnseenStateChangedBP, TileView_Items, GenericFilter, ActivateStats, ActivateEquip, ActivateTooltip, m_FilterVisibility, Health, Mana, Strength, Dexterity, Toughness, SkillPoints, MagicCircle, m_SectionSelectWearablesSection, m_SectionSelectInventorySection, ToggleQuickSlotData, ToggleWearablesCompareTooltipData, LastItemClicked, ActivatedFilter, InventoryOwner, InventoryOpenedState, m_CurrentInputType, InventoryBase, InventoryBaseTrading, TargetActor, Instigator, m_ItemIdToEquip, m_LastHoveredIndex, m_GothicTraderPayload
+InventoryPreset: CleanInventory, m_ItemTypes, ApplyArmor, m_Items
+InventorySlotData: m_Pos, m_Name, m_Description, m_InventoryType, m_Value, m_PreviousValue, m_Hotkey, m_Amount, m_IconPath, m_IsEmpty, m_TraderItemIndex, m_ShowValue, m_IsActive, m_CanBeClicked, m_CanBeUsedByPlayer, m_OnUnseenStateChanged, m_HasUnseenChanges
+IslandGroupWrapper: NodeIDs, bOrdered
+ItemActionHandler: ItemDefinition, ItemActionClass
+ItemAdded: PickedItemName, PickedItemAmount, PickedItemCategory, Icon
+ItemAnimConfig: m_AnimInstanceClass, m_DodgesData, m_EquipData, m_NonCombatEquipData, m_HitsData, m_ConsumeData, m_ConsumablesData, m_PicksData, m_LootsData, m_StartFireData, m_EndFireData, m_ThrowItem, m_ThrowItem_Crouch, m_TurnsData, m_IdleBreakers, m_WalkBreakers, m_DeathSkillsAnimData, m_LocomotionSequencesData, m_SpeedsPlayer, m_SpeedsNPC, m_OverrideLocomotionConfig
+ItemDefinition: m_Value, m_MaxStack, m_Buoyancy, m_Weight, m_Mass, m_ItemVisual, m_ItemVisualWorld, m_ItemVisualWorldDrop, m_ItemGeneric, m_ItemEmptyVisual, m_EquipBlockingTags, m_OnEquipEffect, m_LearnRecipes, m_RequiredTagsToLearn, m_OnConsumeEffects, m_ForcedInteraction, m_RequiredStats, m_TryToStoreFirst, m_ActionsKeywords, m_ItemStatsTags, m_HoldsterLocation, m_ParticlesWhenPickUp, m_EventWhenPickUp, m_RequiredToPick, m_Ownership, m_ReplaceBy, m_AutoTarget, m_TargetConfigClass
+ItemDefinition_LTMData: m_LastUpdates, m_LastInspections
+ItemEffectDefinition: m_Effect, m_Magnitudes
+ItemInShop: m_ItemDef, m_AlternativeIconPath, m_ItemName, m_ItemAmount, m_ItemPrice, m_ItemPreviousPrice, m_ItemId, m_eInventoryType, m_SlotId, m_ItemAmountDefault
+ItemMapWrapper: ItemsList
+ItemPayload: m_GenericData, m_StageLevel, m_OptionalObject, m_InnerItems, m_Ownership
+ItemPickNotifDelegate__DelegateSignature: ItemName, InternalId, Amount, ItemDefinitionClass
+ItemRecipeDefinition: m_RequiredIngredients, m_RequiredTags, m_FinalItem, m_IntermediateItem, m_RequiredAttributes, m_RequiredTime, m_CraftingSteps, m_FinalItemSpawn, m_NextAbility, m_ForcedAnimCraft
+ItemSlot: m_ItemDefinition, m_ItemCount
+ItemSpawnConfig: m_WorldPoint, m_IsActive, m_Refillable, m_RefillHours, m_InitialItems, m_EventItems, m_InheritOwnerFromArea, m_OwnedByCharacter, m_OwnedByGuild
+ItemSpawnpointConfig: m_ItemDefinition
+ItemSpawnPosition: m_Transform, m_Mesh, m_SocketId, m_SocketTransform
+ItemStatsDefinitionContainer: m_ItemStatsDefinition
+ItemTooltipInfo: InventoryOpenedState, IsValid, ItemName, ItemDescription, ItemHotkey, IsEquipped, CanBeEquipped, CanBePurchased, CanAfford, ItemType, EquippedItemStats, SelectedItemStats, SelectedItemStatsArray, PlayerAttributeName, PlayerAttributeValue, WeaponRequiredStats, ItemTypeTag, ItemSpecTagContainer, ItemAttributes, OthersAttributes, RuneStats, InfoRecipe
+ItemTransferInfo: m_ToLootContainer, m_Inventory, m_ItemId, m_InventoryType, m_Amount
+ItemVirtualData: m_Id, m_InventoryType, m_SlotData, m_Payload
+ItemVisual: GripSocketName, SecondGripSocketNameUntrained, SecondGripSocketNameTrained, SecondGripSocketNameMaster, m_IsInMeleeSlot, Item, WeaponMaterialTag, m_ActionKeywords, m_IsEquipped, m_ShouldHide
+ItemVisualComponent: m_MeshesLevels
+ItemVisualWorld: m_SetupCollisions, m_FXComponent, m_PerceptionComponent, OnProjectileStopDelegate, m_ItemCount, m_ReplicatedWorldData, m_WorldItemDefinition, m_FloatingMovingDirection, m_Payload, m_CollisionComp, m_BallisticUnrealComp, m_RotatingUnrealComp, m_MinTumbleSpeed, m_MaxTumbleSpeed, m_BuoyancyForceComp, m_Switch, m_IsNpc
+JoinSessionCompleted__DelegateSignature: Result
+JumpConfig: m_JumpZVelocity, m_JumpGravityScale, m_FallGravityScale, m_ShouldUseJumpPrediction
+JumpDown_SearchEdgeSettings: m_StartForwardOffset, m_MaxJumpDownHeight, m_MinJumpDownHeight
+KeepCoroutineRunningCondition__DelegateSignature: ReturnValue
+KeepCoroutineRunningConditionEx__DelegateSignature: Task, ReturnValue
+KnockbackData: m_KnockbackFloorRange, m_KnockbackTopRange, m_MontageLoopSection, m_MontageEndLoopSection, m_KnockbackEffect, m_RootMotionMultiplierBreakArmorHit, m_RootMotionMultiplierKnockback
+KnowledgeSet: Knowledge
+LadderAnimConfig: m_Kick
+LadderObject: m_LadderStepSeparation, m_LadderStepHeight, m_LadderStepCount, m_MinStepCount, m_LadderInteractOffsetBottom, m_LadderInteractOffsetTop, m_NavSupportSurfaceTop, m_Users, m_LadderBottomPoint, m_LadderTopPoint, m_LadderMesh, m_DrawAlways, m_LadderDrawDebug, m_NavLinkLadder, m_NavLinkFlying
+LandingConfig: m_BrakingFrictionFactorStrong, m_BrakingFrictionFactorWeak, m_BrakingFrictionFactorResetTime, m_StopResetTimeWeak, m_StopResetTimeStrong, m_MaxFallingStrongStopHeight, m_LandingMontages
+LandingMontages: Montages
+LeanAmountS: LR, FB
+LightConfig: Color, Intensity, VolumetricScattering, LightFunctionMaterial
+LightingChannelsEditable: bChannel0, bChannel1, bChannel2
+LightingMagnetHandle: Timer, CallAfterTime, LastIndex, NextSelection
+LightingModifier: AssociatedActor, KeyLight, RimLight, KeyReverseLight, RimReverseLight, AdditionalLight, SkyMaterialParameterCollectionAsset, AdditionalLightValues, ModifierType, DiffuseColorBoost, MaxTraceDistance, EyeIntensityFinetuneFactor, TypePriority, GeneralPriority, SkyMaterialParameterCollectionParam_LightIntensity, SkyMaterialParameterCollectionParam_LightPosition, SkyMaterialParameterCollectionParam_LightDirection
+LightingModifierDebugValues: CurrentModifiers
+LightPreset: m_Intensity, m_DayHourColor, m_NightHourColor
+LightSet: KeyLightParam, RimLightParam, KeyReverseLightParam, RimReverseLightParam, AdditionalLights, BarnDoorAngle, BarnDoorLength, VolumetricScatteringIntensity, IndirectLightingIntensity, SpeakerLightingChannels, ListenerLightingChannels, AdditionalParticipantLightingChannels, LightUnitType, ShotMode, DiffuseColorBoost, MaxTraceDistance, EyeIntensity
+LightSourceData: Intensity, position, Direction
+LightValues: LightPos, LightRotOffset, LightColor, LightIntensityCurve, LightTransform, Intensity, SourceWidth, SourceHeight, AttenuationRadius, LightingChannels, LightMaterialName, RelativeParticipant
+LinkAnchorComponent: AnchorType, ForComponentWithTag
+LinkedActorDefinition: m_LinkedActor
+LinkedAnimInstance: m_BaseAnimInstance
+LinkedInstances: Group, LinkedAnimInstance
+LizardIKAnimInstance: m_Tail02Offset, m_Tail03Offset, m_Tail04Offset, m_Tail05Offset
+LocationMemoryCrimeDataEntry: AssociatedGuild, LocationTag, ContainerType, KnownCrimeIDs
+LockConnections: m_Ids, m_Direction
+LockOneConnection: m_Id, m_Direction
+LockPickAnimInstance: m_LockPickAnimState, m_SuccessAnimations, m_FailureAnimations
+LockPickSubsystem: m_LockSceneActor, m_PendingLockPickActor, m_PendingLockPieces, m_PendingCameraHelper, m_UnlockedActors, m_InstancedLocks
+LockPickUIWidget: m_OnUpPressed, m_OnDownPressed, m_OnLeftPressed, m_OnRightPressed, m_OnBackPressed, m_OnResetPressed, m_LockPickUIHint, m_OnFadedOut
+LocoBlendCurvesConfig: m_DiagonalScaleAmountCurve, m_StrideBlendNWalk, m_StrideBlendNRun, m_StrideBlendCWalk, m_StrideBlendSwimmingWalk, m_StrideBlendSwimmingRun, m_StrideBlendDiveWalk, m_LandPredictionCurve, m_LeanInAirCurve, m_YawOffsetFB, m_YawOffsetLR
+LocomotionAnimInstance: m_FallingSurfaceType, m_FallingSurfaceDistance, TriggerPivotSpeedLimit, m_AnimConfig, m_IsTired, m_AlcoholLevel, m_DrugsLevel, m_AllowDrunkTransition, bCheatFlying, m_TrajectoryGenerator, M_DistanceMatchPayload, m_DistanceMatching, m_CurrentTrajectory, m_MMRequiredTags, m_MarkerDistance, m_TriggerTransition, m_PrevMMRootLocation, m_DefaultNeckSpeed
+LocomotionConfig: m_ClimbingConfig, m_SpeedConfig, m_GroundConfig, m_WallWalkingConfig, m_LandingConfig, m_AirConfig, m_LookConfig, m_TransitionConfig, m_CollisionProfileName, m_GroundDetectionProfileName, m_SwimConfig, m_JumpConfig, m_WaterConfig, m_RagdollConfig, m_CurveConfig, m_flyConfig, m_MMConfig
+LocomotionCurveConfig: m_BuoyancyCurve, m_AirFrictionCurve, m_GroundFrictionCurveStanding, m_GroundFrictionCurveStandingStrafe, m_GroundFrictionCurveCrouching, m_DecelerationCurveStanding, m_DecelerationCurveStandingStrafe, m_DecelerationCurveCrouching, m_DecelerationCurveSwimming, m_DecelerationCurveFlying, m_AccelerationCurveStanding, m_AccelerationCurveStandingStrafe, m_AccelerationCurveCrouching, m_AccelerationCurveSwimming, m_AccelerationCurveFlying, m_RotationRateCurveStandingVelocityDirection, m_RotationRateCurveStandingLookingDirection, m_RotationRateCurveCrouching, m_RotationRateCurveSwimming, m_RotationRateCurveFlying
+LocomotionCurveSettings: m_BuoyancyCurve, m_GroundFrictionCurve, m_AirFrictionCurve, m_DecelerationCurve, m_AccelerationCurve, m_RotationRateCurve
+LocomotionSequencesData: m_CrouchToIdle, m_IdleToCrouch, m_AimingCrouchToIdle, m_AimingIdleToCrouch, m_TurnIP90L, m_TurnIP90R
+LocomotionSpeedModifierSettings_InWater: m_SpeedModifier, m_InWaterDepthThreshold
+LocomotionSpeedSettings: m_Speeds, m_WaterSpeedModifiers
+LocomotionSpeedSettings_Stance: m_Speeds
+LocomotionSpeedSettings_WalkSpeed: m_Speeds
+LogicalLightRegionTrait: AllowedLightSourceTags, IgnoredLightSourceTags, AmbientLightIntensity, AmbientLightColor
+LogicalLightsourceActor: LogicalLightsourceComponent
+LogicalLightsourceComponent: LightColor, LightsourceType, Attenuation, AssociatedLightTags, bBlockedByWalls, Radius, Intensity, SpotConeAngleDegrees, SpotConeInnerAngleFraction, BoxInnerFraction
+LogicalLightsourceSubsystem: AllowedTraceAgeFrames, ActiveReceivers
+LongTermMemoryComponent: OnMemorizedEvent_BP, OnUpdateMemorizedEvent_BP, OnForgetMemorizedEvent_BP
+LookConfig: m_LookUpDownRate, m_LookRightLeftRate, m_LookRightLeftEase, m_LookRightLeftMaxRate, m_LookRightLeftTime
+LoveStoryCollider: BoxComponent, IsAreaVisited, m_DecompositionFliesSystem, FliesNiagaraComponent, MaxFlies, FliesStartMinFactor, TotalDecompositionTime
+MainMenuWidget: m_StartWithInputEnabled, m_InitialRepeatDelay, m_RepeatDelay, m_MostRecentProfileId, m_MostRecentSlotData, m_ShowMultiplayer, QuitButton, TextBlock_UserName, VerticalBox_Buttons, ButtonPosition
+MainPlayerPersistentDataSubsystem: m_PlayersSavedData, m_GlobalDataBase
+MainPlayerSaveGameData: m_RandomNUmber
+ManagementContentWidgetBase: m_TabTag, m_RelevantButtonTags
+ManagementMain: CloseManagementMain, W_Inventory_Main, InventoryOpenedState, InventoryMainClassBP, m_ToggleInventoryAction, m_ToggleQuestsAction, m_ToggleGlossaryAction, m_ToggleStatsAction
+MapConfiguration: MapPath, MapName
+MapCustomMarkerWidget: m_MarkerPosition, m_MarkerSize, m_MarkerTag, m_PanelParent, m_MapWidgetOwner, m_RemovingMarkerFinished
+MapData: m_WorldMapBoundingBox, m_AreaBoxesDataMap, m_MapsMarkersData, m_MapsCanUsePlayer, m_MapsObtainedByPlayer
+MapFilterListWidget: m_CheckBoxWidgetClassBP, VerticalBox_FiltersList
+MapLayerWidget: m_LayerDefinitionClasses, m_FilterBoundTo
+MapMain: Map_World, Map_Area, AnalogCursorSettings, GameTimeSubsystem, CloseInputAction, DebugModeAction, InputHint_Marker_RemoveAll, m_MapData
+MapMarkerArrayData: m_MapMarkersDataArray
+MapStatsContainer: m_Stats
+MapWidget: OnMarkerSelectorVisibilityChanged, ImageMap, ImageMap_Overlay, ImageMap_Debug, MapImageSizeBox, m_IsWorldMap, m_IsEmpty, m_ActiveMapData, m_PlayerPosMapOriginal, m_PlayerPosMapCorrected, m_PlayerPosAngle, m_MapDebugMode, m_CustomMarkers, CanvasPanel_CustomMarkers, m_MarkerSelectorHoldTimer, m_DisableMarkerBorderPercent, m_HoldRemoveAllMarkersTimer, InputHint_Marker_RemoveAll, m_MapData, m_TexPosCorrection, m_MapPanelSlot
+MaterialInstanceDynamicParameterPack: ScalarParameterValues, VectorParameterValues, TextureParameterValues
+MaterialModifier: State, Modifiers
+MeleeWeaponVisual: m_MeshComp, m_WeaponMatInst, m_WeaponBlood, SecondBlockSocketName, m_ItemRequiredForStateA
+MemorizedEvent: position, Time, Duration, InstigatorGlobalId, AffectedCharacterGlobalId, EventTags, Magnitude, Payload, OptionalClass1, OptionalClass2
+MemoryFilter: Owner
+MinecrawlerIKAnimInstance: m_BackRightOffset, m_BackLeftOffset, m_MidRightOffset, m_MidLeftOffset, m_FrontRightOffset, m_FrontLeftOffset, m_FrontRightOffsetRot, m_FrontLeftOffsetRot, m_MidRightOffsetRot, m_MidLeftOffsetRot, m_BackRightOffsetRot, m_BackLeftOffsetRot, m_IKConfig_Minecrawler, m_EnableFootIkL_B, m_EnableFootIkL_M, m_EnableFootIkL_F, m_EnableFootIkR_B, m_EnableFootIkR_M, m_EnableFootIkR_F, m_LeftBackLockAlpha, m_RightBackLockAlpha, m_LeftMidLockAlpha, m_RightMidLockAlpha, m_LeftFrontLockAlpha, m_RightFrontLockAlpha, m_RightBackLockLocation, m_LeftBackLockLocation, m_RightBackLockRotation, m_LeftBackLockRotation, m_RightMidLockLocation, m_LeftMidLockLocation, m_RightMidLockRotation, m_LeftMidLockRotation, m_RightFrontLockLocation, m_LeftFrontLockLocation, m_RightFrontLockRotation, m_LeftFrontLockRotation, m_BackRightFootNormal, m_BackLeftFootNormal, m_MidRightFootNormal, m_MidLeftFootNormal, m_FrontRightFootNormal, m_FrontLeftFootNormal, m_BackLeftFound, m_BackRightFound, m_MidLeftFound, m_MidRightFound, m_FrontLeftFound, m_FrontRightFound
+MinecrawlerIKConfig: m_BackRightBoneName, m_BackLeftBoneName, m_MidRightBoneName, m_MidLeftBoneName, m_FrontRightBoneName, m_FrontLeftBoneName
+MiningSpotConfig: m_MiningDuration, m_HighOre, m_AmountAtHighOre, m_AmountAtLowOre, m_VisualMaxOre
+MiningSpotVisualComponent: m_MeshesOre
+MMBipedIKAnimInstance: m_RightOffsetTarget, m_LeftOffsetTarget, m_RightLockLocation, m_LeftLockLocation, m_RightLockRotation, m_LeftLockRotation, m_RightOffsetRot, m_LeftOffsetRot, m_PelvisOffset, m_RightFootNormal, m_LeftFootNormal, m_RightFootFound, m_LeftFootFound, m_LeftLockAlpha, m_RightLockAlpha, m_PelvisAlpha, m_RightOffsetLocation, m_LeftOffsetLocation, m_EnableFootIkL, m_EnableFootIkR, m_RootOffsetLocation, m_SpeedRootIk, m_IKConfig_Biped
+MMConfig: m_ProfileGeneral, m_ProfileStrafe, m_ProfileSprint, m_ProfileStealthGeneral, m_ProfileStealthStrafe, m_CamVelMultiplier
+ModExport_RegionVolume: Transform, Vertices, Polygons, Traits
+MontageHistory: Name, Slot, Section, SequenceName
+MoveFromBoneToBone: m_FromBone, m_ToBone
+MultiplayerGameMode: MaxNumPlayers, LobbyMapName, MainMapName, GameMapName, MapsPath, m_PlayerControllers
+MultipleMaterialPropertyModifier: Modifiers
+MultipleMaterialPropertyProvider: ScalarPropertyProviders, VectorPropertyProviders, TexturePropertyProviders
+MusicManager: AvailableMusicModes, CurrentMusicModeClass, MasterEventInstance
+MusicModeParameter: Mode, InappropriateModesToFollow, Priority
+MusicRegionTrait: MusicLocation, Priority, HysteresisThreshold, DefaultCustomValue
+NameForInputAction: InputAction, InputMappingContexts
+NavArea_Personal: OwnedByCharacterUniqueNames, OwnedByCharacters, OwnedByCharactersWithTag
+NavAreaActor: m_IsAutoGen
+NavAreaModifierTrait: AreaClass, NavigationDataResolution
+NavReplacementModifierTrait: AreasToReplace
+NearbyActorsSubsystem: DefaultTrackedActorClasses, DefaultTrackedComponentClasses, ActorsWaitingToBeTracked, ComponentsWaitingToBeTracked, TrackedActorClasses, TrackedComponentClasses, TrackedActors, PotentiallyDestroyedComponents
+NotifyUIItemAdded__DelegateSignature: NewItem, Count
+NPCHealthBarComponent: m_WidgetVisibility, m_CharacterTargeted
+NPCOverheadInfoWidget: CharacterName, HealthDeltaSpeed, HealthBarPercentCurrent, HealthBarPercentLow
+NpcTalentVirtualData: m_TalentName, m_TalentLevel
+NPCTalkBalloonComponent: EventTagsStartSpeaking, EventTagsEndSpeaking, SuppressWhileCharacterHasAnyOf, SuppressWhileCharacterHasAllOf, SuppressForVoicelines, RequireCharacterHasAnyOf, SecondsToWaitForNextVoiceline, m_IsPlayerCharacter
+OcclusionSamplePoint: position, OcclusionValue
+OffsetTestingCamera: LastSpeakerPosition, LastListenerPosition, TestingPreset, Speaker, Listener, Target, InsertTime, KeyLight, RimLight, KeyReverseLight, RimReverseLight, AdditionalLights, AdditionalActor, AdditionalLightIsRelativeTo, SpeakerLightingChannels, ListenerLightingChannels, AttenuationRadius, BarnDoorAngle, BarnDoorLength, VolumetricScatteringIntensity, IndirectLightIntensity, LightUnits, LightSpawnDistance, LightSpawnHeight, LightSpawnIntensity, LightSpawnUnits
+OnActorNoLongerSensed__DelegateSignature: Actor, IsItem
+OnActorSensed__DelegateSignature: Actor, IsItem
+OnActorsInSensors__DelegateSignature: SightOutlineArray, ActionOutline
+OnAnyInputEvent__DelegateSignature: InputPressed
+OnAttributeChanged__DelegateSignature: Attribute, NewValue, OldValue
+OnBookInitialized__DelegateSignature: _BookTitle, _BookCover
+OnEntitySpawnDelegateDynamic__DelegateSignature: SpawningRequest, Actor
+OnFinishSloMoDelegate__DelegateSignature: Target
+OnFloorReachedDelegate__DelegateSignature: HitResult
+OnForgetMemorizedEvent_BP__DelegateSignature: MemorizedEvent
+OnGameplayEffectAppliedDymamicMulticastDelegate__DelegateSignature: TargetAbilitySystemComponent, GameplayEffectSpec, ActiveGameplayEffectHandle
+OnGlossaryUnseenStateChanged__DelegateSignature: UnseenState
+OnGothicCharacterStateSpawned__DelegateSignature: CharacterState
+OnInventoryItemClickedDelegate__DelegateSignature: ItemId, InventoryType
+OnItemClickedInventory__DelegateSignature: ItemId, InventoryType, ItemAmount, InventoryMain
+OnItemEquipped__DelegateSignature: Item
+OnItemNoLongerSensed__DelegateSignature: Item
+OnItemSensed__DelegateSignature: Item
+OnItemThrowed__DelegateSignature: Item
+OnlineSessionFindResult: SessionId, serverName, numOpenPublicConnections, pingInMs
+OnlineSessionResult: Result
+OnLoadingScreenTypeChanged__DelegateSignature: ScreenType
+OnMemorizedEvent_BP__DelegateSignature: MemorizedEvent
+OnNotifyEvent__DelegateSignature: Notify
+OnOutlineStateChanged__DelegateSignature: IsActive
+OnOverlapComponentExitDelegate__DelegateSignature: PrimitiveComponent
+OnOverlapEnterDelegate__DelegateSignature: HitComp, Hit
+OnOverlapExitDelegate__DelegateSignature: Actor
+OnPageFlipped__DelegateSignature: _LeftPage
+OnPlayerStateSet__DelegateSignature: oldPlayerState, newPlayerState
+OnPreItemRemoved__DelegateSignature: RemovedItem, Count
+OnProjectileStop__DelegateSignature: Item
+OnReceiveEventDelegate__DelegateSignature: EventTag, Payload
+OnSharpenStateChanged__DelegateSignature: IsActive
+OnStanceChangedDelegate__DelegateSignature: stance
+OnSubtitleFinishedDisplay__DelegateSignature: _Voiceline
+OnTopReachedDelegate__DelegateSignature: HitResult, TraversalInfo
+OnUpdateMemorizedEvent_BP__DelegateSignature: MemorizedEvent
+OnWorldFadeStateChanged__DelegateSignature: IsActive
+OptimizedBoneColliderComponent: Transform
+OptimizedBoneColliderUpdate: ComponentsToUpdateToRelativeTransforms
+OtherSpotOccupiedRequirements: OtherSpotHandle, OtherSpotMustBe, OtherSpotMustUsedByCharacterThatHasAllOf, OtherSpotConditions, OtherSpotConditionAction
+OutlineComponentData: RenderingComponent, DefaultOutlineData, DesiredOutlineData
+OutlineInteractor: ComponentsData, OutlineVFX, KeepTrackFromSensor
+OutlineRenderingData: RenderCustomDepth, CustomDepthStencil, CustomStencilWriteMask
+OutlineStencilUsageData: Color, ShaderVariableName, RenderingData
+OutlineSubsystem: Config, RegisteredOutlines, QueueToRemove
+OutlineSubsystemConfig: OutlineClosestAlpha, OutlineFarthestAlpha, OutlineClosestThickness, OutlineFarthestThickness, OutlineClosestDistance, OutlineFarthestDistance, OutlineFadeTime, StencilOutlineData, StencilParameterCollection
+OutlineVFX: FadeTime, StencilValue, IsAppearing, NeedsUpdate, StencilUsage
+OverrideFogCache: FogSettingsWithAlpha, FogAlpha, WeatherAlpha, ExtraFogStart, ShouldStopRain
+OverrideTimeByRange: From, To, Time
+OverrideVolumeCache: Alphas, TemperatureOffset
+OwnedTagRegionTrait: AppliedTagsByASC, TagsToApplyOnEnter, ApplyToCharactersEnteringWith, IgnoreCharactersEnteringWith
+OwnershipSettings: UseOwnershipOfArea, OwnedByGuild, OwnedByCharacter
+OwnershipSubsystem: GuildAreaOwnershipModifiers
+PageContent: m_OrderedElements
+ParriesData: m_Parries, m_SuperArmorResistanceMultiplier
+ParticlePoint: m_Position, m_Rotator, m_ParticleSystem
+PathfollowModifyAvoidVelocitySettings: bUseBasicSpeedModification, MediumRangeVelocityMultiplier, ShortRangeVelocityMultiplier, bUseFastSpeedModification, FastSpeedVelocityMultiplier, bUseSlowdownNearCurves, SlowDownNearCurvesSpeed, SlowDownNearCurvesForecastTime, SteerSpeedAgentRadiusRangeMultiplier
+PathfollowMoveFocusSettings: FocalPointDistance, FocalPointHeightMultiplier, FocalPointHigherRankedCharacterHeightMultiplier
+PauseMenuWidget: QuitButton, m_LoadSaveBlockTags, CloseInputAction, m_PersistentDataSubsystem
+PerceivableItemComponent: ActivationType, PerceptionRadius, SensedByCharacters
+PerceivedAgent: AtPosition, AtNavPosition, Tags, ViaSense, Relationship, Hostility, RelativeRank, CrimesPursuedBySensor, RepresentedCharacterState, Awareness
+PerceivedInteractiveObject: ItemDefinition, InteractiveObjectDefinition, ObjectOwnershipSettings, InteractiveObjectActor
+PerceptionAgentSettings: Normal, HighAlert, HighAlertWhen, CustomUpdateRate, KeepAreaChangeTagForSeconds, bEnablePathFindingForPerception
+PerceptionComponent: CustomUpdateRate
+PerceptionConditionDelegate__DelegateSignature: CharacterSelf, Perception, Memory, ReturnValue
+PerceptionDelegate__DelegateSignature: Perception, Memory
+PerceptionHandler: WeakContext, Handle, HandleCharactersWith, HandleCharactersWithAny, IgnoreCharactersWith, HandleTargetCharactersWith, HandleTargetCharactersWithAny, IgnoreTargetCharactersWith, HandleAffectedCharactersWith, HandleAffectedCharactersWithAny, IgnoreAffectedCharactersWith, HandleInstigatorCharactersWith, HandleInstigatorCharactersWithAny, IgnoreInstigatorCharactersWith, HandleSensingCharactersWith, HandleSensingCharactersWithAny, IgnoreSensingCharactersWith, bOriginHasToBeACharacter, bTargetHasToBeACharacter, bAffectedHasToBeACharacter, bInstigatorHasToBeACharacter, TickRateSeconds, MaxDistanceToOther, MinDistanceToOther, EntryAwareness, ExitAwareness, MaximalPathLength, MinimalPathLength, bFilterForCharactersLookingAtSensor, bFilterForCharactersLookingAtAllys, bFilterForCharactersLookingAtSensorOrAllys, bFilterForSensorLookingAtSomeone, bRequireFreeLineOfSight, bRequireInteractiveObject, HandledOriginActors, ExcludedOriginActors, ExcludedInstigatorActors, HandledInstigatorActors, HandledAffectedActors, ExcludedAffectedActors, AllowedEventTags, AllowedExactEventTags, GainedCharacterTags, LostCharacterTags, HandleEffectCauserWithTags, IgnoreEffectCauserWithTags, PerceptionGained, PerceptionLost, ShouldUpdateOnOriginChangedTag, ShouldUpdateOnSensorChangedTag, ShouldUpdateOnEvent, HandleSensorObjectOwnership, IgnoreSensorObjectOwnership, HandleOriginObjectOwnership, IgnoreOriginObjectOwnership, HandleInteractiveObjects, IgnoreInteractiveObjects, OnlyHandleItemsOfType, IgnoreItemTypes, HandleItemSpecs, IgnoreItemSpecs, HandleItemConsumeEffects, RequiredSense, HandleItemValue, DelaySeconds, DelayVariance, PerceptionGainedCooldownSeconds, PerceptionLostCooldownSeconds, bRequiresSensing, bRequiresOriginToBeInSensorArea, bRequiresOriginToBeInSensorGuildArea, bRequiresOriginToBeInSensorPersonalArea, OnShouldHandlePair
+PerceptionHearingSettings: HearingRangeSettings, WeatherModifier, TargetOwnedTagModifiers, SensingOwnedTagModifiers, ExcludingTags, LoseAwarenessWithExcludingTags, OnScreenSkillModifier, OffScreenSkillModifier, bUseLowerOffscreenSkill, BlockAwarenessWearOffWithSensorTags, BlockAwarenessWearOffWithSensedTags, AwarenessWearoffFactor
+PerceptionSettings: Sight, Smell, Hearing
+PerceptionSightSettings: InnerCoffin, OuterCoffin, SixthSense, MinLightIntensity, MaxLightIntensity, MinLightModifier, MaxLightModifier, WeatherModifier, MovementModifier, MovementModeModifier, MovementModeDefaultModifier, TargetOwnedTagModifiers, SensingOwnedTagModifiers, ExcludingTags, LoseAwarenessWithExcludingTags, SenseModifier, SenseModifierThreshold, AwarenessWearoffFactorNoLineOfSight, AwarenessWearoffFactorOutOfShape, bRequiresFreeLineOfSight, PeripheralHalfAngle, MiniMalFocusDistance, HeightParabolAlpha, HeightParabolOffsetY, HeightParabolOffsetZ, ParabolMultiplier, BlockAwarenessWearOffWithSensorTags, BlockAwarenessWearOffWithSensedTags
+PerceptionSmellSettings: SmellRange, WeatherModifier, TargetOwnedTagModifiers, SensingOwnedTagModifiers, OnScreenSkillModifier, OffScreenSkillModifier, ExcludingTags, LoseAwarenessWithExcludingTags, bUseLowerOffscreenSkill, AwarenessWearoffFactor, BlockAwarenessWearOffWithSensorTags, BlockAwarenessWearOffWithSensedTags, bIgnoreObstacles
+PerceptionSoundArea: Loudness, CenterLocation, LifeUntilTime, StartedAtTime, SoundDuration, PerceptionTag, bIsInstantSound, IsBoundToOriginActor
+PerceptionSystem: PerceptionWorld, bSingleThreadedGather, bShowSightPerceptions, DefaultAgentSettingsClass, SubscribedEventTags, AgentTagWhitelist
+PerceptionSystemWorld: AgentSettings
+PersistentDataBaseSubsystem: m_PreSaveListenerHandle, m_PostSaveListenerHandle, m_PreLoadListenerHandle, m_PostLoadListenerHandle, m_CleanListenerHandle, m_LastSuccessfulLoadRequest, m_IsReplicated
+PersistentDataSubsystem: m_CurrentProfileId, m_IsPermaDeath, m_EmptyProfile, m_PersistentData, m_PersistentDataList, m_CurrentSaveRequest, m_LastSuccessfulSaveRequest, m_LastSuccessfulLoadRequest, m_LastGamePlayTime, m_Payload, m_SaveStatus, m_ProfileListSaveSize, m_timerHandle, m_HDRSettings, m_CompressedBitmapTemporal, m_SaveScreenshotEnabledSettings, m_IsAutosaveAllowedInCurrentMap, m_OnCannotSave, m_OnGameSaved, m_MaxProfileNumber, bAllowSaveLoad, m_autosavePermaDeathTimer, m_ScreenshotTimeout, m_SaveScreenshotEnabled, m_ScreenshotResolutionX, m_ScreenshotResolutionY, m_LoadPayload
+PersonalAreaOwnershipSettings: OwnedAreas
+PersonalBelongingsComponent: OwnedActors, StartingRegion
+PersonalItemOwnershipSettings: OwnedItems
+PersonalRelationshipEvaluation: Me, Other
+PersonalRelationshipModifier: Weight, ApplicableWhenOtherHasAnyOf, ApplicableWhenSelfHasAnyOf, ApplicableWhenOtherHasAllOf, ApplicableWhenSelfHasAllOf, NotApplicableWhenOtherHasAnyOf, NotApplicableWhenSelfHasAnyOf, NotApplicableWhenOtherHasAllOf, NotApplicableWhenSelfHasAllOf, bApplicableWhenOtherIsPlayer, bApplicableWhenOtherIsNPC, NotApplicableWhenStaticRelationshipToOtherIs, ApplicableWhenStaticRelationshipToOtherIs
+PhotoModeCameraModifier: m_PhotoModeManager
+PhotoModeConfig: m_MaxPlayerDistance, m_MaxCameraSpeed, m_LUTNames, m_LUTAssets, m_StickerAssets, m_ParticleNames
+PhotoModeManager: m_PhotoModeConfig, m_LoadedLUTs, m_LoadedStickers, m_LoadedParticles, m_PreviousOwner, m_PlayerController, m_PreviousCameraModifier, m_PhotoModePawn, m_PhotoModeCameraModifier, m_Emitter, m_Lights, m_Stickers, m_SavedImages, m_FullScreenTest, m_WorldDefinition
+PhotoModePawn: m_Camera, m_PawnMovement, m_PhotoModeManager
+PhysicalBonesConfig: m_SimulationLOD, m_PhysicalAnimationData, m_usePhysicalAnimation, m_Bones
+PhysicMaterialsColor: PhysicsMaterialColor, DirtyingMaterials, RainDirtyingMaterials
+PhysicsDefinition: m_ShouldBounce, m_Bounciness, m_Friction, m_BounceVelocityStop, m_ThrowSpeed, m_ThrowDistance
+PickAndEquipMontage: m_Height
+PickpocketPerceptionSightSettings: m_Modifier, m_MinTimeSeconds, m_AwarenessThreshold
+PickpocketTargetCharacterModifierSettings: m_Modifier
+PickpocketWidgetComponent: m_Widget
+PicksData: m_MontagesMap
+PlayerBarHealthMana: m_IsOutOfMana
+PlayerKeys: m_RequiredKeys, m_KeyBind
+PlayerPreset: TagsToRemove, effectsToApply, MaxHealth, MaxMana, Strength, Dexterity, Toughness, Experience, Level, SkillPoints, MaxSuperArmor
+PlayerSaveData: m_PlayerID, m_Location, m_Rotation, m_ResumeAtTransform, m_Inventory, m_MapOfAttachedItems
+PlayersSaveData: m_SavedPlayers
+PlayerWidget: InteractOpenContainerClickItemDelegateVariable, W_HealthBar, W_ManaBar, W_OxygenBar, SuperArmorBar, W_ObjectInteraction, W_AmmoLeft, NewLogEntrySound, m_AbilitySystemComponent, m_GameplayTagsToListenTo, m_Ready, m_CastingMaxTime, m_NumArrows, m_KeysUseQuick, m_KeysUseQuickHold, m_EquipTimerHandle, m_TimeToDrawSecondaryWeapon, ItemPickNotifDelegateVariable, InteractOpenContainerDelegateVariable, OldItems, Items, ManagementMainBPClass, Stack_GeneralMenu, Stack_GeneralPopup, Stack_PauseMenu, AreBindingsInitialized, m_GratitudeWidgetClass, m_GameOverWidgetClass, m_GameOverWidget, MarvinCheatManager
+PointItems: m_Actor, m_Name
+PointOfInterestInfo: m_POIAvailable, m_StaticTransform, m_Actor
+PopupPersistentDataTextInput: m_CheckProfileInsteadOfSaveGame, m_PersistentDataSubsystem
+PostProcessAnimInstance: FaceBlendshapeAnimation, GTO
+PostProcessingBooleanRegionTrait: RegionVolume, BlendWeight
+PostProcessingRegionTrait: PostProcessSettings, Priority, BlendRadius, BlendWeight, bDisableWhenOverlappingOtherPostProcessVolumes, bDisableOverlappingPostProcessingRegions
+PostProcessSubsystem: FadePostProcessTimer, OnSharpenStateChanged, OnWorldFadeStateChanged, OnOutlineStateChanged, FadeRadius, TransitionLength, NoiseScale, NoiseStrength, WorldFadeEnvironmentSeconds, WorldFadeTransitionSeconds, IdleBeforePlayerFadesSeconds, PlayerFadeSeconds, FadeInTimeScale, FadeOutTimeScale, SharpenActive, WorldFadeActive, OutlineActive
+PotionDefinition: m_BonusHp, m_BonusMana
+PouchActor: m_widgetComponent, m_CollisionEffectTag
+PreferredLocationComponent: StartingPosition, StartingRotation
+PresetTransitionEntry: PossibleNextPresetClass, TransitionTag, MonologStateValidity, Weight
+ProfileData: m_ProfileName, m_QuickSaveName, m_AutoSaveName, m_SavedSlotsNames, m_difficultyPreset, m_customCombatSettings, m_customResourcesSettings, m_customProgressionSettings, m_Survival, m_PermanentDeath, m_PermanentDeathGameOver, m_FakeSloppyCombos, m_MaxQuick, m_MaxAuto
+ProfileSelectionPageWidget: m_ProfileInfos, List_Profiles
+ProfileSlotInfo: ProfileName, TimePlayed, ProfileDate, DifficultyPreset, CustomCombatSettings, CustomResourcesSettings, CustomProgressionSettings, Survival, PermanentDeath, PermanentDeathGameOver, MostRecentChapterId
+ProgressionDifficultySettings: m_ExperienceMultiplier
+ProgressiveBoxCollisionByAngle: m_BoxDepth, m_YBoxRadius, m_ZBoxRadius, OnActorDetected, m_WeaponData, m_StartPosition, m_HitCollisionDataContainer, m_CustomCollisionResponse
+ProgressiveBoxCollisionDelegate__DelegateSignature: OverlappedActor
+ProgressiveCapsuleCollisionByRadius: OnTargetDetected, OnTargetLost, m_WeaponData, m_StartPosition, m_HitCollisionDataContainer, m_CustomCollisionResponse
+ProgressiveCapsuleCollisionTargetDetectionDelegate__DelegateSignature: Actor, SweepResult
+ProgressiveCapsuleCollisionTargetLostDelegate__DelegateSignature: Actor
+ProjectileCollideSignature__DelegateSignature: CollideActor
+ProjectileDefinition: m_Radius, m_MovementEffect, m_AimingAssistance, m_ArcParam, m_CurrentTarget
+ProjectileVisual: OnCollide, m_AimingAssistanceData, m_SpawnDirection, m_FXComponent, m_ProjectileDefinition, m_CollisionComp, m_MovementComp, m_PerceptionComponent, m_LastTarget, m_ProjectileProfileName
+PropSpawn_Data: m_PropName
+PursuedCrimeSet: CrimeAndSeverity
+PursuedCrimeSetup: AffectedLocations, ByGuild
+PuzzleBloodFontManager: m_StartPuzzleName, m_SwitchName_03, m_SwitchName_02, m_SwitchName_01, m_FontState, m_FontStateOld, m_BloodPuzzle03, m_BloodPuzzle02, m_BloodPuzzle01, m_Listeners
+PuzzleCountExtraData: m_PuzzleCount, m_FunctionToCall
+PuzzleCreatureCounter: m_RequiredKills, m_CreatureName, m_DoorToOpenName, m_SaveState, m_CurrentKills, m_NumPlays, m_PuzzleEvent, m_ExtraData
+PuzzlesSubsystem: m_OnDeathCreature, m_OnPuzzlePosition, m_OnPuzzleDoor, m_PuzzleCreatureArray, m_PuzzleStepArray, m_FinishedPuzzles, m_CreatureKillCounterSaved
+PuzzleStepsCounter: m_PuzzleCount, m_FunctionToCall, m_SaveData, m_PuzzleDone
+QuadrupedIKAnimInstance: m_BackRightOffset, m_BackLeftOffset, m_FrontRightOffset, m_FrontLeftOffset, m_BackPelvisOffset, m_FrontPelvisOffset, m_FrontRightOffsetRot, m_FrontLeftOffsetRot, m_BackRightOffsetRot, m_BackLeftOffsetRot, m_NeckOffsetRot, m_SpineOffsetRot, m_RightLockLocation, m_LeftLockLocation, m_RightLockRotation, m_LeftLockRotation, m_LeftLockAlpha, m_RightLockAlpha, m_RightBackLockLocation, m_LeftBackLockLocation, m_RightBackLockRotation, m_LeftBackLockRotation, m_LeftBackLockAlpha, m_RightBackLockAlpha, m_FrontRightFootNormal, m_FrontLeftFootNormal, m_BackRightFootNormal, m_BackLeftFootNormal, m_FrontRightFound, m_FrontLeftFound, m_BackRightFound, m_BackLeftFound, m_IKConfig_Quadruped, m_EnableFootIkL, m_EnableFootIkR, m_EnableFootIk_F_L, m_EnableFootIk_F_R
+QuadrupedIKConfig: m_BackRightBoneName, m_BackLeftBoneName, m_BackPelvisBoneName, m_FrontRightBoneName, m_FrontLeftBoneName, m_FrontPelvisBoneName, m_SpineBoneReferenceName, m_NeckCorrector, m_NeckMaxSlope, m_MinNeckRotation, m_MaxNeckRotation, m_HipNTailRayLength, m_MaxYawRotation, m_IKBoneFrontL_Target, m_IKBoneFrontR_Target, m_MaxFootIKStandingTargetDistance
+QuadrupedMeleeCombatAnimInstance: m_CombatStance, m_DesiredCombatStance, m_Pose, m_TransitionHorizontal, m_TransitionVertical
+Quest: OnUIViewStateChanged, State, StateReachedAtTime, TimeLastViewedByPlayer, BelongsToStory, Questline, QuestlogDocumentClass, PropertyTags, InvolvedCharacters, bIsOptional, bSucceedParent, bExternalAvailabilityTrigger, bExternalStartTrigger, bExternalFailTrigger, bExternalSuccessTrigger, OnStarted, OnFailed, OnSucceeded, OnAvailable, OnNotAvailableAnymore, NameText, DescriptionText, BannerImage, ThumbnailImage, InChapter, QuestGiverCharacterUniqueName, QuestKind, ParentQuestClass
+QuestDetailsWidget: m_SortOrder, m_StatesToShow
+QuestMain: GenericFilter_Quests, m_SortOrder, m_ActiveQuestStates, m_CompletedQuestStates, m_DefaultFilterIcon, m_QuestBuckets
+QuestSubsystem: AllQuests, AllQuestInstances, TickingQuestsWhenInStateNone, TickingQuestsWhenInStateRunning, TickingQuestsWhenInStateAvailable, OnQuestStarted, OnQuestFailed, OnQuestSucceeded, OnQuestAvailable
+QuestWidgetBucket: m_FilterTag, m_QuestlineClass, m_Quests
+QueuedSmalltalkLine: GenericVoicelineTag, SelectedVoiceline
+QuickSlotBase: m_SlotsData, m_InventoryBase, m_ItemType, m_ItemTypeGameplayTag, m_OnScreenTime, m_CloseQuickslotHandle, m_IsControlBarVisible, m_IsBindingPressed, m_OpenedFromState, m_CurrentInputType
+QuickSlotCrossbar: m_BCrossOnFront
+QuickSlotHotbar: m_AbilitySystemComponent
+QuickSlotTransformedHotbar: m_AbilitySystemComponent, m_GameplayTagsToListenTo
+QuickSlotWheel: SelectedItemPos, RightStickXValue, RightStickYValue, Button_EquipClick, CloseWheelData, UnequipItemData
+QuickStops: QuickStopL, QuickStopR
+QuiverComponent: m_QuiverVisual, m_QuiverBoltVisual, m_QuiverVisualClass, m_BoltHolderVisualClass, m_HUDAmmoLeftController
+RagdollComponent: HairPhysBone, m_TargetRagdollLocation, m_IsRagdollActive, m_PreRagdollCameraBoomRelativeTransform
+RagdollConfig: m_FloatRagdollCurve, m_GetUpBackAnimMontage, m_GetUpFrontAnimMontage, m_GetUpPlayRate, m_RagdollStartBlendOutTime, m_StopBonesMovementOnStart, m_GravityZFactorUnderwater, m_Ragdoll_Maxtime_Active, m_Ragdoll_Minvelocity_Active, m_Ragdoll_Seconds_At_Minvelocity, m_WaterResistance, m_BuySimStrength, m_FallingRagdollAbility
+RandomSequence: m_Path, m_Chance, m_LoopsBeforeRemove, m_CurrentChance
+RandomSequencePlayer: m_MinTimeToBreaker, m_MaxTimeToBreaker, m_BreakerSequenceToPlay, m_PlayBreaker, m_BreakerType
+RayPoints: position, Ray
+ReachableTargetIndicatorForProjectilesComponent: m_ItemVisual, m_HUDCrosshairController, m_HUDAmmoLeftController
+ReachedClockTimeDelegate__DelegateSignature: TimeReached
+ReachedInGameTimeDelegate__DelegateSignature: TimeReached
+ReactiveSmallPuddle: m_BoxComponent, m_StaticMeshComponent, m_MaterialInstanceDynamic, m_ActorInside, m_LastActorPosition, m_MaxIntensity, m_DecayFactor
+RegionCharacterComponent: ApplicableTraits, NonApplicableTraits
+RegionDefinitionMap: m_PricesModifiers
+RegionNumItems: m_Items
+RegionsDefinition: m_Regions
+RegionShape: RegionShapeComponent, RegionTraits
+RegionStoryActionCharacterCondition: CharacterName, MustBeCloseToSpot, MustNotBeCloseToSpot, WithinRadius, WithTheseTags, WithNoneOfTheseTags
+RegionStoryActionQuestCondition: bSucceeded, bFailed, bRunning, bAvailable
+RegionTagComponent: RegionName
+RegionTrait: CurrentlyHandledCharacters, bServerOnly, bRequireLocalPlayer, bRequireNetworkAuthority, bHandlePlayerCharacters, bHandleNonPlayerCharacters
+RegionVolume: RegionTraits
+RelationshipEvaluation: Relationship, FriendlinessWeight, Hostility, HostilityWeight, Rank, RankWeight, PursuedCrimesByArea, IgnoredCrimesByArea, AtTime
+RelationshipModifier: bIsGlobalModifierClass
+RelationshipSystem: PersonalRelationshipModifiers, StaticRelationshipModifiers
+RelativeCrimeDataEntry: ID, WitnessGlobalID, BaseSeverity, bIsSuppressed, RelationshipTowardsCriminal, RelativeRankTowardsCriminal, HostilityTowardsCriminal, bInPartyWithCriminal, Directness, VictimGuildHandles, VictimCharacterHandles, OriginSource
+RememberedPerception: Sensing, Origin, Affected, Target, Instigator, AffectedActor, TargetActor, EffectCauser, AffectedCharacterUniqueNames, PerceivedObject, EffectCauserTags, ContextTags, EventTag, Magnitude, EstimatedImpactAtSeconds, TimeUpdated, TimeFirstSensed
+ReplaceNavAreaPair: NavAreaToReplace, NavAreaNew
+ReplicatedInventoryMap: m_Keys, m_Values
+ReplicatedQuestNameTimeMap: Times
+ReplicatedQuestStateTimeMap: Times
+ReplicatedStringMap: m_Keys, m_Values
+ReplicatedWorldData: m_WorldItemDefinition, m_ItemCount, m_Payload
+ResourcesDifficultySettings: m_PlayerBuyModifier, m_PlayerSellModifier, m_RegenTime, m_SurPlusValueModifier, m_OreSpendingThreshold, m_MiniumPurchasePower, m_MaterialsGuaranteedRatio, m_ConsumablesGuaranteedRatio
+RichCompoundInputHintRow: m_MKBActions, m_ControllerActions
+RichCompoundInputHintRow_Entry: m_InputAction, m_InputMappingContexts, m_Location
+RiderIKAnimInstance: m_mountCharacter, m_LeftFootPos, m_RightFootPos, m_HandsPos, m_LeftFootSocketName, m_RightFootSocketName, m_HandsSocketName, m_EnableFootIK_Left, m_EnableFootIK_Right, m_EnableHandsIK
+RoadActor: SplineComponent
+RodVisual: m_MeshComp, m_Bait, m_BaitSocketName, m_Widget
+RollConfig: m_MaxFallingRollHeight, m_MaxFallingFallHeight, m_RollPlayRate, m_BreakFallPlayRate
+RotationModeComponent: m_CarryComponent, m_AbilitySystemComponent
+RuneSpellContainer: m_CrosshairWidget, m_IsTargetingIndicatorEnabled, m_CanEquipAfterUse, RequiredMagicCircleLevel, m_WeaponsDefinitions
+RuneStats: SpellLevels, ManaCostScByLevel, ManaCostByLevel, CastTimeByLevel, DamageByLevel, DamageType, SpellTargetType, SpellManaUsage
+SaveDataPayload: m_QuickSave, m_AutoSave, m_SlotName, m_ProfileId, m_PlayerSaveName, m_IsPlayerSaveNameCustom, m_CompressedBitmap, m_difficultyPreset, m_customCombatSettings, m_customResourcesSettings, m_customProgressionSettings, m_PermaDeath, m_PermaDeathGameOver, m_SurvivalMode, m_FakeSloppyCombos, m_ForceSave
+SavedGamesPageWidget: TileView_Saves, m_ProfileInfo, m_ArraySlotInfo, m_SelectedSlot, MenuState, m_CurrentInputType, m_NumManualSaveSlots, m_NumAutoSaveSlots, m_NumQuickSaveSlots, m_IsPlatformPC, m_IsModePermadeath
+SavedSlotInfo: SlotName, m_IsPlayerSaveNameCustom, TimePlayed, ProfileDate, Chapter, IsQuicksave, IsAutosave, ScreenshotFilePath, CompressedBitmap, SizeX, SizeY
+SaveGamePublicData: m_SlotName, m_PlayerSaveName, m_IsPlayerSaveNameCustom, m_CompressedBitmap, m_ChapterID, m_difficultyPreset, m_customCombatSettings, m_customResourcesSettings, m_customProgressionSettings, m_MapName, m_Date, m_TimePlayed, m_TimeLoaded, m_QuickSave, m_AutoSave, m_ProfileId
+SayVoicelineRegionTrait: VoicelineTag
+ScalarMaterialPropertyModifier: PropertyName, PropertyValue, GothicMaterialsComponent
+ScalarMaterialPropertyProvider: PropertyName, PropertyValue
+ScarsVisualSettings: HasScars, IsDarkSkin, SelectedMasks, SelectedTextures, ScarNormalIntensity
+ScoredCombatTarget: Score, SuspendUpdatesUntilWorldTime, Character, EntryDescriptions
+ScoredItemAction: Score, ItemActionHandler, EntryDescriptions
+ScreenshotData: Data
+ScriptableHLODBuildContext: World, SourceComponents, AssetsOuter, AssetsBaseName, WorldPosition, MinVisibleDistance
+ScriptGameplayAttributeRef: AttributeSetClass, Name
+ScrollComponent: m_ScrollVisual, m_AnimMontage
+SelectedItemStats: StatTag, StatValue
+SensedAgentInfo: TimeUpdated, TimeFirstSensed, position, NavPosition, Tags, FromPosition, FromNavPosition, Awareness, bHasFullAwareness
+SensorConfigDefinition: m_NonActionOutline, m_NonSightOutline, m_PerceptionIgnore, m_PerceptionExtraCheck
+SentryContextCallstack: Callstack
+SentryContextEditor: OpenAssets
+SentryContextGame: OwnedGameplayTags, ActiveAbilities, NearbyCharacters, NearbyInteractionSpots
+SentryContexts: AngelscriptCallstack, GameMisc
+SentryContextStack: UObjects
+SentryContextStringStack: Context
+SentryReportData: Release, Environment, Tags, User, Contexts
+SentryUser: UserName
+SettingDescription: m_Title, m_Image, m_Text
+SettingObject: m_DisplayName, m_Description, m_PlatformExclusivityMask, m_InputAvailabilityMask
+SettingObject_Bool: m_DefaultValue
+SettingObject_Bool_PermanentDeath: m_IsShown, m_SettingValue
+SettingObject_Bool_SurvivalSettings: m_IsShown
+SettingObject_Enum: m_WidgetType, m_DefaultValue, m_LastConfirmedValue, m_ValueNames, m_ShouldValueWrapAround
+SettingObject_Enum_UpscalingQuality: m_UpscalingNone, m_SharpeningDLSS, m_SharpeningFSR, m_SharpeningXeSS, m_SharpeningTSR
+SettingObject_Float: m_DefaultValue, m_MinValue, m_MaxValue, m_StepSize, m_AlwaysShowSign
+SettingObject_Int: m_DefaultValue, m_MinValue, m_MaxValue
+SettingObject_KeyMapping: m_InputMappingContext, m_InputAction, m_AdditionalInputActions, m_UserSettings, m_KeySettings, m_AdditionalKeySettings
+SettingObjectWidget: m_OnAvailabilityChangedBP, m_AutoApplyChanges, m_GenericSetting
+SettingObjectWidget_Bool: m_OnValueChangedBP, m_Setting
+SettingObjectWidget_Enum: m_OnValueChangedBP, m_Setting
+SettingObjectWidget_Float: m_OnValueChangedBP, m_Setting
+SettingObjectWidget_Int: m_OnValueChangedBP, m_Setting
+SettingObjectWidget_KeyMapping: m_OnValueChangedBP, m_Setting, m_Values
+SettingsCollapsingBorder: m_VisibleType, m_HiddenType
+SettingsMainWidget: SettingsMessageWidget, m_Context, m_PageButtons
+SettingsPageButtonWidget: m_IsActive
+SettingsPageWidget: m_OnRowSelectionChangedBP, m_DisplayName, m_SettingsRowWidgets, m_SettingsDetailWidget
+SettingsPageWidget_DifficultySettings: m_WidgetDefaultPreset
+SettingsPageWidget_InputMapping: m_InputMappingContexts
+SettingsRowWidget: m_OnValueChangedBP, m_OnSelectionChangedBP, m_Setting, m_AutoApplyChanges, m_SettingWidget
+SimpleInventoryItemConfiguration: m_TabName, m_TabType
+SimpleInventoryWidget: m_OnTabAddedEventBP, m_OnItemClickedBP, m_OnClosedClickedBP, m_WidgetTabSelector, m_WidgetTabs, Button_Action, Button_Close, m_TabConfigurations, m_IsShown, m_ShowCloseButton, m_ShowActionButton, m_ActionButtonDataHandle, m_CloseButtonDataHandle, m_CurrentInputType, m_OnActionClicked, m_FilterVisibility
+SingleLightModifier: MinThreshold, MaxThreshold
+SingleQuestSaveGameData: CurrentState, StateReachedAtTime, TimeLastViewedByPlayer
+SingleStorySaveGameData: StoryPropertyValues, StoryDataLayers, QuestDataByClass
+SixthSenseShape: SenseShapeModifier, VerticalOffset, HalfLength, HalfWidth, BlindSpotHalfAngle
+SkeletalTracker: TrackerActor, Character
+SkillAnimConfig: ItemType, AnimConfigs
+SkillAnimMontage: m_ItemType, m_AnimConfigs
+SleepUIMidsectionWidget: m_GivesMaxHealth, m_GivesMaxMana, m_CurrentHealthGain, m_CurrentManaGain
+SleepUIWidget: m_MaxHoursToSleep, m_SleepTime, m_SelectedHoursToSleep, m_AbilitySystemComponent, Button_Close, Button_Confirm
+SlimeAsset: m_Montage, m_SkeletalMeshInstantiated, m_SlimeMaterials
+SlotInfo: m_SlotVisual, m_SlotInvType, m_SlotInvSlot, m_SlotDef, m_SlotMagnitude, m_ExtraData
+SmalltalkTopic: TransitionFrom, Weight
+SomeQuestStateChangedDelegate__DelegateSignature: Quest
+SpawnAIAgentDefinition: AIAgentConfigClass, AIAgentCharacterClass
+SpawnCharacterCanTransformIntoDefinition: m_Config, m_Character, m_UnTransformMontage, m_WaitingTimeCrouchUntilTransform, m_CameraTravellingInitialDelay, m_CameraTravellingDuration, m_WaitingTimeCrouchUntilUnTransform, m_ShouldStartFlying, m_CanSwim, m_UnTransformMontageInternal
+SpawningManager: m_SpawningRequests
+SpawningManagerConfig: m_NoSpawnAreaRadius, m_NoSpawnVisibleAreaRadius, m_NoSpawnVisibleAreaOffset, m_SpawnAreaRadius, m_UnpawnAreaRadius, m_ExcludedCharacterTypes, m_IncludedCharacterTypes, m_CharacterUniqueNameRestrictions, m_AIBudget
+SpawningRequest_AIAgent: m_SpawningDefinition
+SpawningRequest_Item: m_ItemDefinition
+SpawnItemEvent: m_Event, m_Items
+SpawnItemList: m_NumElements, m_Item
+SpawnLocation: m_Location, m_Normal, m_StepIndex
+SpawnLocationArray: SpawnLocations
+SpawnLocationQueryParams: m_MaxRange, m_InitialRangeOffset, m_RangeStep, m_MaxAngleStep, m_MinAngleStep, m_AngleStepOffset, m_MaxSlope
+SpawnMeshes_AIAgent: m_AgentType, m_meshes
+SpawnpointConfig: m_Name, m_Transform
+SpawnpointManager: AISpawnpointConfigs, AIAmbientSpawnpointConfigs, ItemSpawnpointConfigs
+SpawnpointManagerConfig: m_AISpawnpointConfigs, m_AIAmbientSpawnpointConfigs, m_ItemSpawnpointConfigs
+SpawnSlot: SpawnItem, ActiveItem, RelativeTransform, RefillTimerHandle, RefillTimerSeconds
+SpawnTestCharacterAction: spawnDef, DailyRoutineClass, Transform, OnCharacterVisualsSpawned
+SpeakingQueueEntry: SoundTag, TargetData, SayVoiceline
+SpeedConfig: m_VelocityDirection, m_LookingDirection, m_Aiming
+SpellActionKeywords: m_CastAbility
+SpellAnimationBaseDirector: m_MontageTask, m_CurrentAnimation, m_AnimData, m_OwningAbility, m_OriginalLocomotionData, m_CurrentCharacter
+SpellConfig: m_SpellItemAnimConfig, m_SpellTargetType, m_SpellManaUsage, m_SpellLevels, m_TimePercentageFromWhichCantCancelSpell, m_AreaRange, m_AreaAngle, m_CameraBehaviour, m_SpawnLocationSocket, m_SpellCategoryTag
+SpellConfigurationContainer: m_SetStateLockMovementOnCast, m_SetStateLockMovementOnSpell, m_OnLaunchSpellCastFinishByAnimNotify, m_SuperArmorEffect, m_SuperArmorResistanceMultiplier, m_ShouldRestoreCameraBehaviour, m_CastStateLockMovementGameplayEffectClass, m_SpellStateLockMovementGameplayEffectClass, m_SpellConfigClass, m_SpellTag, m_SpellCancelTag, m_AnimatorDirectorClass
+SpellContainer: m_SpellConfig
+SpellContext: Targets, m_TargetAdquiredByDatamodule, m_SpellConfigurationContainer, m_OwningAbility, m_AnimationDirector, m_CurrentCharacter, m_CastMontageTaskRemainingTime, m_CurrentSpellLevel, m_IsRechargableSpellCancellableAfterFirstCharge
+SpellExecutionValidator: m_ExecutionValidatorData
+SpellItemAnimConfig: m_CastMontage, m_CastEndMontage, m_CastFailMontage, m_LaunchMontage, m_LaunchEndMontage, m_LaunchFailMontage, m_CustomLaunchMontage, m_CastMontageInternal, m_CastEndMontageInternal, m_CastFailMontageInternal, m_LaunchMontageInternal, m_LaunchEndMontageInternal, m_LaunchMovingEndMontageInternal, m_LaunchFailMontageInternal, m_CustomLaunchMontageInternal
+SpellItemVisual: m_MagicVFXColor, m_MagicVFXIntensity
+SpellLevelRange: CastTime, CastManaCost, ManaCostSc, m_SpellClass, m_SpellConfigLevelData
+SpellProjectileDefinition: m_DefaultTargetDistance, m_Speed, m_Gravity, m_SteeringFactor, m_LifeTime, m_ExplosionPath, m_DamageMagicCircleProgression
+SpellsManaCost: ActivationCostPerLevel, ContinousCost
+SpellVisualSaveable: m_ItemDefinition, m_ComesFromLoadingData, m_PreSaveListenerHandle, m_PostSaveListenerHandle
+SpikePuzzle: m_Characters, m_DamageTimeInterval, m_DisabledTimer, m_FirstStageName, m_FirstButtonName, m_SecondButtonName, m_FinalLeverName, m_FinalBlueprint, m_ButtonResetName, m_Listeners, m_DamageEventDelay
+SplineNavAreaModifierComponent: StepSize, SimplifyIfAngleDifferenceIsLessThan, SimplifyIfScaleDifferenceIsLessThan, Width, Height, NavArea
+StanceMapMontage: m_StanceMap
+StartConversationRegionTrait: TopicsToTry, bForceSelfConversation, bReTryEachTick
+StartTurnDirections: Pivot180L, Pivot180R, Pivot135L, Pivot135R, Pivot90L, Pivot90R
+StatEntryWidget: m_ShowIcon, m_Icon, m_StatType, m_IsSurvivalModeExclusive, m_Attribute, m_MaxAttribute, m_HideWhenIsEqualToAny, m_GameplayTag, m_SkillType, m_MasteryLevelAsBinarySkill, m_MasteryLevelToShow, m_HideWhenUntrained, m_HideWhenMissing, m_MasteryIcons, m_UseFixedWidth, m_FixedWidth, m_CanBeConsideredFirst, m_ChangeTextForSelectedValues, m_IsSelected, m_DisplayName, m_Description, m_MasteryDisplayName, m_MasteryDescription, m_IsSkillLearned, m_MasteryLevel, m_AttributeValue, m_IsAttributeMaxValueOverridden, m_AttributeMaxValue, m_SkillMasteryTag
+StaticRelationshipEvaluation: MyGuild, OthersGuild, MySpecies, OthersSpecies, MyLocation, OthersLocation
+StaticRelationshipModifier: ForGuild, ForSpecies, FriendlinessTowardsGuild, HostilityTowardsGuild, RankOfGuild, FriendlinessTowardsSpecies, HostilityTowardsSpecies, RankOfSpecies, PursuedCrimes, IgnoredCrimes, Weight
+StatMainWidget: m_Orientation, m_InitialRepeatDelay, m_RepeatDelay, m_EntryWidgets, m_SelectedEntryWidget
+StatsCalculatorConfiguration: m_GenericStats
+StatsEngineSubsystemBase: m_Stats, m_StatsCalculators, m_RegisteredItemStats
+StatsTooltipDialogueWidget: m_PlayerLP, m_PlayerOre
+Sticker: m_Texture
+StormOfFireVisual: m_SphereComponent, m_CollisionComp, m_Velocity
+StoryActionRegionTrait: QuestRequirements, CharacterRequirements, RequiredClockTime, RequirementsMustBe, HandleCharactersEnteringWith, IgnoreCharactersEnteringWith, HandleCharacterUniqueNames, bEnableTriggerLimit, NumTimesToTrigger
+StoryKnowledgeSubsystem: StoryKnowledge
+StoryQuestRequirements: QuestClass, bAllowWhenAvailable, bAllowWhenRunning, bAllowWhenSucceeded, bAllowWhenFailed
+StoryRegionTraitSaveGameData: NumTimesToTrigger
+StorySaveGameData: SaveDataByStoryClass, CharacterKnowledgeByUniqueName, RegionTraits
+StoryValueRequirements: StoryClass, PropertyPath, ComparisonOp, CompareAgainst
+StrongRayHandler: MinRayDistance
+StructBoneOverride: m_BoneName, m_Density, m_TestRadius
+SubCapsuleManagerComponent: m_SubCapsuleComponents, m_MainCapsuleComponent
+SummonAIData: Character, RequestID
+SuperArmorParams: m_ImmunityAfterHitStandardSc, m_StartRegenerateSc, m_HpRegenerateTick
+SwampsharkAnimInstance: m_bodyOscillationTimelineCurve, m_bodyTurningTimelineCurve, m_smoothTurningTimelineCurve, m_groundedBodyOscillationTLPlayRate, m_standingBodyOscillationTLPlayRate, m_currentBodyOscillation, m_currentBodyTurning, m_currentSmoothTurning, m_prevControllerYaw, m_prevDeltaYaw
+SwampsharkSlimeComponent: m_SlimeAssets, m_SlimeEffectCurve, m_SlimeFadeOutCurve, SlimeAgressive, SlimeAttack, SlimeDeath, SlimeHit, SlimeLower, SlimeRaised, SlimeStunned
+SwimConfig: m_SwimToDiveHeight, m_DiveToSwimHeight, m_WalkToSwimHeight, m_SwimToWalkHeight, m_CrouchableWaterHeight, m_CapsuleSwimmingHalfHeight, m_WaterWalkingHeight, m_MaxPotentialDiveDepth, m_WaterWalkingEffect, m_SwimmingEffect, m_DivingEffect, m_bEnableWaterEntryForce, m_WaterEntryVelocityThreshold, m_WaterEntryImpactDuration, m_WaterImpactFrictionMultiplier, m_WaterImpactDragMultiplier, m_WaterGlideFrictionReduction, m_WaterEntryGlideDuration
+TabSelectorWidget: TabChangedEventBP, Slots, TabList, InputHint_NextTab, InputHint_PreviousTab, m_SelectedTabIndex, m_StartWithInputEnabled
+TagClaimRequirements: MustHaveAnyOf, MustNotHaveAnyOf
+TagMontage: MetaData, Montage
+TagMontageArray: MetaData, Montages
+TargetActor_SphereTrace: TraceSphereRadius
+TargetActor_Trace: MaxRange, TraceProfile, bTraceAffectsAimPitch, MaxHitResultsPerTrace, bIgnoreBlockingHits, bTraceFromPlayerViewPoint, bUsePersistentHitResults
+TargetConfigBase: m_TargetFilterClass, m_DetectionRadiusPlayer, m_DetectionRadiusAI, m_TargetCheckVisibilityRate, m_TargetLostTimeout, m_ShouldFindTargetOnVisualLost, m_ShouldFindTargetOnTargetDefeated, m_ShouldFindTargetOnTargetDie, m_ShouldFindTargetOnTargetCantBeTargeted, m_ShouldAimToTargetHeadOrChest, m_ShouldFilterTargetByRelationship
+TattooVisualSettings: HasTattoo, HeadTattooMap, TattooColorHead, TorsoTattooMap, TattooColorTorso, LegsTattooMap, TattooColorLegs, TattooColorIntensity, TattooNormalIntensity, TattooSubsurfaceOpacityMultiplier
+TauntAnimationContainer: Animations
+TauntData: m_TauntMontages
+TeleportActionRegionTrait: TeleportCharacterUniqueName, DailyRoutineAfterTeleport, TargetSpot, bKeepDefeatedStateAfterTeleport
+TeleportAppearingActor: m_CharactersTeleported
+TeleportCompositeExtraData: m_Teleports
+TeleportExtraData: m_TeleportMapFreepointName, m_RequiredData, m_SetOnFinishData, m_SetOnStartData, m_MontageName, m_Id, m_UnEquipBefore, m_TagsToAdd, m_TagsToRemove, m_MustSave, m_MustDisable
+TeleportGameplayCue: m_TeleportVFXClass, m_VFXActor
+TeleportVanishingActor: m_CollisionComp, mIsDebugEnabled, m_CurrentCharactersAroundTeleportOrigin
+TerritoryConfig: AssociatedAreaTag, AdditionalAreaTags, ExcludedAreaTags, ConflictRadiusOverride, AnyOneToBeValidTags, AllToBeValidTags, AnyOneToBeForbiddenTags, AllToBeForbiddenTags
+TerritorySubsystem: FarEnoughSpotDistance, CharacterBoundingBoxExtent, MaxHeightDifferenceToSpot, AreaTagToAreaTraitMap, SpotCloserToAttackerRelevanceFactor
+TerritorySubsystemWorldConfig: bDebugAlwaysReturnBeingInTerritory, bDebugNeverHaveCharacterInCombatRadius, bDebugAlwaysHaveCharacterInCombatRadius
+TextureMaterialPropertyModifier: PropertyName, PropertyValue, GothicMaterialsComponent
+TextureMaterialPropertyProvider: PropertyName, PropertyValue
+ThrowableVisual: m_MeshComp, m_RotatingMovementComp
+TimeRange: bAllTime, HourStart, MinuteStart, HourEnd, MinuteEnd
+TimeRangeRequirements: AvailableInRange
+TimeSinceLastUseRequirements: TimeRequiredToPass
+TooltipInfoParameters: Actor, Item, CompareItem, ItemHotkey, bCanBeEquipped, bIsEquipped, bCanBePurchased, bCanAfford, OpenedState, SlotId
+TooltipInfoRecipe: m_PlayerHasRequiredTagsToLearn, SpellLevels, ManaCostScByLevel, ManaCostByLevel, CastTimeByLevel, DamageByLevel, DamageType, SpellTargetType, SpellManaUsage
+TopicKeyboardSelectionDelegate__DelegateSignature: Key
+TopicRules: RequiredKnowledge, KnowledgeThatHides, DynamicRequirements
+TopicSelectedDelegate__DelegateSignature: Topic
+TrackedActorSet: TrackedActorBounds, TrackedComponentBounds
+TradeListSellItemNew: m_ItemIndexInItemList, m_Price, m_Num, m_ItemDef
+TraderConfig: m_TotalSeconds, m_UniqueName, m_Region, m_Type, m_Items, m_DefaultItems, m_LastDefaultItems, m_ItemsByDifficulty, m_GeneratedEvents, m_Liquidity
+TraderData: m_TradersUniqueName, m_Items, m_DefaultItems, m_GeneratedEvents, m_ItemsByDifficulty, m_TotalSeconds
+TraderDefinitionMap: m_PricesModifiers
+TraderInventoryMap: m_Items
+TraderItem: m_ItemDefinition, m_ItemCount, m_Chapter
+TraderManager: m_LastTraderConfig, m_PayloadMods, m_WorldDefinition, m_InstancedTraders, m_RegionItemAmountForTrading, m_GlobalItemAmountForTrading, m_RegionLiquidity, m_RegionTraders
+TradersTypeDefinition: m_TraderCategory
+TradingBalance: W_Trading_BalanceSection_Buy, W_Trading_BalanceSection_Sell, NPCInventoryOwner
+TradingBalanceInventory: m_OnItemTooltipChanged, TileView_Items, PreviousFilterInputActionData, NextFilterInputActionData, m_InventoryBaseTrading, m_LinkedInventoryMain, m_InventoryOwner, m_GothicTraderPayload, m_InventoryOpenedState
+TradingMain: W_Trading_Balance, W_TradingInventory_Buy, W_TradingInventory_Sell, m_SectionShiftRightHandle, m_SectionShiftLeftHandle, m_CurrentInputType
+TransitionConfig: m_DynTransitionBlendTime, m_DynTransitionPlayRate, m_DynTransitionStartTime, m_DynTransitionReTriggerDelay
+TransitionWidget: m_OnFinishedFadeInDelegate, m_OnFinishedFadeOutDelegate
+TravellingData: m_DestinationTravellingCameraConf, m_PossessedCharacter
+TraversalInfo: m_FirstHitPoint, m_FirstTargetPoint, m_LastHitPoint, m_HasLastHitPoint, m_ObstacleHeight, m_ObstacleWidth, m_MovementState, m_ClimbType, m_IsStuck, m_TargetObject, m_Speed, m_Input
+TriggerConsumeByAbility: AbilityTag
+TriggeredActorDefinition: m_ConnectedTrigger
+TriggerExtraData: m_StateName, m_NumSteps, m_DefaultStep, m_BackToStart, m_SendTrigger, m_Loop, m_SaveData, m_DisableOnEvent, m_InverseInput, m_CallFunctionStart, m_CallFunctionEnd
+TriggerForcedConversationsRegionTrait: ForCharacters
+TriggerInputBufferByTags: m_BufferTimeThreshold, m_TagsToListen
+TriggerModifierKey: ModifierKey
+TriggerSphereDebug: m_DebugColor
+TriggerWorldpointEventRegionTrait: WorldPointEventName
+Turn_Info: m_RotationAmount
+TurnDirections: Pivot180L, Pivot180R, Pivot135L, Pivot135R, Pivot90L, Pivot90R
+TurnOnSpotAssetConfig: m_Animation, m_AnimatedAngle, m_SlotName, m_PlayRate, m_BlendIn, m_BlendOut, m_ScaleTurnAngle
+TurnOnSpotConfig: m_TurnCheckMinAngle, m_ExplicitTurnInPlaceAngleTolerance, m_Turn180Threshold, m_AimYawRateLimit, m_MinAngleDelay, m_MaxAngleDelay, m_TIPL30, m_TIPR30, m_TIPL90, m_TIPR90, m_TIPL180, m_TIPR180, m_TIPCL30, m_TIPCR30, m_TIPCL90, m_TIPCR90, m_TIPCL180, m_TIPCR180, m_RotateMinThreshold, m_RotateMaxThreshold, m_AimYawRateMinRange, m_AimYawRateMaxRange, m_MinPlayRate, m_MaxPlayRate
+TurnOnSpotConfig_Melee: m_TIPL90_IA, m_TIPR90_IA, m_TIPL180_IA, m_TIPR180_IA, m_TIPL90_IB, m_TIPR90_IB, m_TIPL180_IB, m_TIPR180_IB
+TurnsData: m_Pivot180, m_StartMoving90R, m_StartMoving90L, m_StartMoving180R, m_StartMoving180L, m_Pivots, m_Starts, m_QuickStops, m_PivotsCrouch, m_StartsCrouch, m_QuickStopsCrouch, m_CounterChance, m_TurnOnSpotConfig
+TutorialIconHandlerSubsystem: m_Data, m_CompoundData
+TutorialIconHandlerSubsystem_Data: InputAction, InputMappingContexts, Brush
+UDeflectedFX: NiagaraSystem, EffectTag
+UIGameplayAbilityPick: StandardNotificationList, StandardNotificationBPClass, PickedItemName, PickedItemAmount, PickedItemCategory
+UIMapConfigDefinition: MapTag, UICustomSize, MapTexture, MapOverlayedTexture, MapOffsetTexture, NeededItemsClasses, MapVersion, IsPlayerInMap, ColorArrayOffset
+UIMapLayerDefinition: m_Name, m_MapTags, m_ShowLayerQuestClass, m_ShowLayerQuestStates, m_HideLayerQuestClass, m_HideLayerQuestStates
+UIMapSaveData: m_MapsMarkersData
+UITimer: GameTimeSubsystem, WeatherSubsystem
+UltraDynamicPostProcessSettings: GlobalContrast, SkyLightLeaking, SunVolumetricScattering
+UltraDynamicSkySettings: SunAngle, OverallIntensity, Contrast, Saturation, DirectionalBalance, NightBrightness, SkyLightIntensity, SkyLightTemperature, SkyLightColorMultiplierDay, SkyLightColorMultiplierDawn, SkyLightColorMultiplierNight
+UltraDynamicWindSettings: WindRotationSpeed, MaxWindStrength, MaxWindSpeed
+UniqueNameRequirements: MustHaveAnyOfTheseUniqueNames
+UpdateHitsDataContainer: m_OverlapComponent, m_HitResult
+VectorMaterialPropertyModifier: PropertyName, PropertyValue, GothicMaterialsComponent
+VectorMaterialPropertyProvider: PropertyName, PropertyValue
+VelocityBlendS: F, B, L, R
+VFXCue: m_removeTarget, m_Instigator
+ViewItemWidget: m_OnClickedBP, m_OnLongClickedBP, m_OnLongClickAbortedBP, m_OnLongClickProgressChangedBP
+ViewItemWidget_MouseSettings: m_ButtonsWithLongClick, m_ButtonPressTime, m_ButtonHoldTime
+VisualHitData: m_HitRadiusProperty, m_HitLocationProperty, m_AmountProperty, m_WaterVerticalMask, m_WaterVerticalWetness, m_ActiveEffect
+VisualTimeFreezeRegionTrait: FrozenTime
+VoicelineAssignment: Tag, Text, Weight
+VoicelineData: TalkingCharacterName, Text, Duration
+VoiceTypeDefinition: VoiceTypeTag, Texts
+VoiceTypeSubset: VoiceType, Subset, Layer
+VoiceTypeSubsystem: GenericVoicelinesByTag, VoiceTypesByTag
+WaitAbilityEndDelegate__DelegateSignature: EndAbility
+WaitForAllPlayersToConfirmSleepDelegate__DelegateSignature: MaxSelectedHoursToSleep
+WaitTargetDataUsingActorDelegate__DelegateSignature: Data
+WalkSpeedModifierComponent: SpeedModifiers, m_SelectedClass, m_SelectedWalkSpeed
+WallWalkableFound__DelegateSignature: HitResult, Jump
+WallWalkingConfig: m_JumpMontageAsset, m_CustomGravityAttraction, m_DistanceFactor, m_RotationInterpSpeed, m_WallContactLostRotInterpSpeed, m_SensorRange, m_MinimumNormalDistToImpulse, m_RotInWallsDegreesPerSecond, m_RotImpulseHelper
+WaterConfig: m_Buoyancy, m_RagdollUnderWaterHeight, m_SurfaceWaterMinHeight, m_MidWaterMinHeight, m_DeepWaterMinHeight, m_IsWaterVelocityInfluencingWalkingSpeed, m_WaterVelocityInfluencesWalkingSpeedMinWaterDepth, m_WaterVelocityInfluencesWalkingSpeedMinWaterSpeed, m_SurfaceWaterEffect, m_MidWaterEffect, m_DeepWaterEffect, m_WaterMovementTag
+WaterLevelChangedDelegate__DelegateSignature: WaterLevel
+Waynet: WaynetNodesByID, EdgesByHash, bHasBeenBuilt, IslandGroups, ProjectionFailedNodes, GND
+WaynetEdge: SourceNodeId, DestinationNodeId, Path, NavLinkAllowedSpecies, bBelongsToConnectiveActor
+WeakRayHandler: MaxHeight
+WeaponArcheryDefinition: m_ArrowGravityModifier, m_AimingAccuracyParams, m_QuickAccuracyParams, m_ArrowDefinition, m_AnimInstanceClass, m_MaxRange, m_FeedbackData, m_QuiverMaterial
+WeaponDefinition: m_DamageBase, m_SuperArmorDamageBase, m_HitEffect, m_CriticalWeakSpotsTags, m_CriticalMultiplier, m_DeathEffect, m_HitCueDataByDamageType
+WeaponItemAnimConfig: m_Attacks, m_BlockMontage, m_RootMotionIncreaseRate, m_RotateSpeedMagnetPlayer, m_RotateSpeedMagnetAI, m_IntialRotateMagnetMaxAngle, m_RotateSpeedCharge, m_AttackRotateSpeedManualReorient, m_RotateSpeedReorient, m_TauntData, m_ExecutionData
+WeaponMeleeDefinition: m_FeedbackData, m_DamageReduction, m_StartRegenerateSc, m_HpRegenerateTick, m_BlockSuperArmorMultiplier
+WeaponMeleeItemAnimConfig: m_ParriesData
+WeaponRangedDefinition: m_ArrowGravityModifier, m_ProjectileSpeedMin, m_ProjectileSpeedMax, m_RangedDefinition
+WeaponSkillsConfig: m_WeaponSkillsMaster, m_WeaponSkillsTrained
+WeatherChangedDelegate__DelegateSignature: PreviousWeather, NewWeather
+WeatherCondition: bAllWeather, Weathers
+WeatherLightingMagnet: SpriteComponent
+WeatherLightingMagnetController: MinSpawnTime, MaxSpawnTime, ThunderBias, LightingMagnets
+WeatherModifierTrait: bChangeWeatherInstant, bHasDuration, Duration, Weather, BlockedWeathers
+WeatherPersistentDataSubsystem: WeatherGameState
+WeatherProbability: Probabilities
+WeatherRequirements: RequireWeatherCondition
+WeatherSaveGame: CurrentWeather, DailyWeathers, WeatherModifiers
+WeatherSubsystem: OnWeatherChanged, OnWeatherTransition, WeatherController, WeatherConfig, LightingMagnetsController
+WeatherSubsystemConfig: MaterialParameterCollection, WindForce, WindForceVariability, WindForceChangeProbability, MaxCharacterWetnessWhenSunny, MaxCharacterWetnessWhenRain, WetnessIncreaseFactor, WetnessDecreaseFactor, MinLightingSpawnTime, MaxLightingSpawnTime, InitialThunderBias, StaticSkyTime
+WeatherTransitionDelegate__DelegateSignature: PreviousWeather, NewWeather, Time
+WorldCreatureDefinition: m_DailyRoutineTemplate
+WorldDefinition: m_DefaultOre, m_Regions, m_TradersType, m_DefaultTraderRegion, m_DefaultTraderType, m_CharactersDefaultInteraction, m_CharactersLootInteraction, m_CharactersExecutionInteraction, m_CharactersRideInteraction, m_MaxRegionalMultiplier, m_RegionalMultiplierMax, m_RegionalMultiplierMin, m_RegionalMultiplierDivide, m_MainRegions, m_MaxLiquidityMultiplier, m_LiquidityMultiplierMax, m_LiquidityMultiplierMin, m_DefaultCamera, m_DefaultPhotoModeConfig, m_SpawnDistance, m_UnSpawnDistance, m_PhysicsDefinition, m_SpawnAllAiFromStart, m_MiningDefinition, m_InteractCameraDefinition, m_AIAgentsNameDistance, m_AIAgentsNameImportantConversationsDistance, m_AIAgentsImportantConversationTags, m_ShowAllNamesAndHealthBars, m_ItemDetectionRadius, m_GothicGameViewportClientDisableGamepad, m_ShowHealthBarTimer, m_ShowGameOverTimer, m_SensorConfigDefinition, m_StatsCalculatorConfiguration, m_ShowNPCNames, m_ReviveCounter, m_ItemVisualWorldGroup, m_ItemVisualWorldArrows, m_ItemVisualWorldBolts, m_AnimDebugPostProcess, m_DropForce, m_ValidTagsControlledByPlayer, m_ValidTagsTransformed, m_ValidTagsRunning, m_CampAreasForBody, m_MaxTorches, m_ExperienceByStation
+WorldItemSpawnConfig: m_ItemSpawnConfigs
+WorldPointConfig: m_Name, m_Scene, m_Transform, m_WorldPointScript, m_WorldPointScriptInstance, m_WorldPointScriptName, m_ItemSpawnConfig, m_ItemSpawnPositions, m_IsActive, m_OptionalObject, m_Radius, m_ActorTransform
+WorldPointEditorIcon: m_IconMap
+WorldPointElement: m_Id, m_Type
+WorldPointManager: m_WorldPointManagerConfigInstance, m_WorldPointConfigs, m_WorldPointsMustInit, m_OldActiveWorldPoints, m_ActiveDestroyPoints, m_SpawnDistance, m_UnSpawnDistance, m_ActiveEvents, m_DropItemsArray
+WorldPointManagerConfig: m_WorldPointConfigs
+WorldPointSaveGameData: m_CurrentSeconds, m_RegenItems, m_PointUniqueName, m_EmptyCoordItem, m_EventsToCall, m_Items
+WorldPointScript: m_CreaturesToSpawn, m_CreaturesSpawned, m_ItemsToSpawn, m_ItemsSpawned, m_LinkedActorDefinition, m_SpawnedLinkedActor, m_PointCreaturesArray, m_PointItemsArray, m_ItemsToDeInstantiate, m_Items, m_EmptyPositions, m_ListOfRemovedItems, m_EmptyItems, m_EventsToCall, m_EventsAlreadyCalled, m_AmbientLifeMap
+WorldPointsPersistentDataSubsystem: m_WorldPointsSavedData
+WorldPointsSaveGameData: m_ActiveEvents, m_WorldPoint, m_SavedDropItemsArray, m_NumDropItems
+WorldStreamingTeleportComponent: m_TeleportLocationActor, m_WorldPartitionStreamingComponent
+WritingDefinition: m_WritingDocument, m_BookCoverConfiguration
+WritingUIWidget: m_CurrentDocument, m_BackgroundTexture, m_WritingContent, m_OnWritingInitialized

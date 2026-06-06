@@ -1,0 +1,1509 @@
+﻿Loaded. Auto-dump after world load, F7 to re-dump, minigame dumps pieces.
+======== dump (world loaded) ========
+== RandomLockSubsystem ==
+  RandomLockSubsystem /Game/Maps/Multiplayer/MenuMap.MenuMap:RandomLockSubsystem_2147445865
+  bRandomLocksEnabled = false
+  m_LockPoolEntries:
+    [1] Tier=1 LockName=BC_Chest_01_Lock
+    [2] Tier=1 LockName=BC_Chest_07_Lock
+    [3] Tier=1 LockName=BC_Chest_10_Lock
+    [4] Tier=1 LockName=BC_Chest_11_Lock
+    [5] Tier=1 LockName=FME_Chest_EmptyHut_05_Lock
+    [6] Tier=1 LockName=FME_Chest_Mercenary13_765_01_Lock
+    [7] Tier=1 LockName=FME_Chest_Mercenary13_765_02_Lock
+    [8] Tier=1 LockName=NC_Chest_Mercenary03_705_Lock
+    [9] Tier=1 LockName=NC_Chest_Rogue11_821_Lock
+    [10] Tier=1 LockName=OC_Chest_Dexter_Lock
+    [11] Tier=1 LockName=OC_Chest_Digger502_Lock
+    [12] Tier=1 LockName=OC_Chest_Digger514_Lock
+    [13] Tier=1 LockName=OC_Chest_Digger529_Lock
+    [14] Tier=1 LockName=OC_Chest_Digger557_Lock
+    [15] Tier=1 LockName=OC_Chest_Digger578_Lock
+    [16] Tier=1 LockName=OC_Chest_Mud_Lock
+    [17] Tier=1 LockName=OC_Chest_Shadow310_Lock
+    [18] Tier=1 LockName=OC_Chest_Snaf_01_Lock
+    [19] Tier=1 LockName=OC_Chest_Throne_01_Lock
+    [20] Tier=1 LockName=OC_Chest_Whistler_Lock
+    [21] Tier=1 LockName=OM_Chest_Alberto_04_Lock
+    [22] Tier=1 LockName=OM_Chest_Alberto_05_Lock
+    [23] Tier=1 LockName=SC_Chest_CorKalom_01_Lock
+    [24] Tier=1 LockName=SW_Chest_07_Lock
+    [25] Tier=1 LockName=OC_Chest_Herek_Lock
+    [26] Tier=1 LockName=TST_Chest_Forge_01_Lock
+    [27] Tier=1 LockName=TST_Chest_Lava_Stronghold_01_Lock
+    [28] Tier=1 LockName=TST_Chest_Lava_Stronghold_02_Lock
+    [29] Tier=1 LockName=TST_Chest_Slave_01_Lock
+    [30] Tier=1 LockName=TST_Chest_Sleeper_01_Lock
+    [31] Tier=1 LockName=TST_Chest_Sleeper_02_Lock
+    [32] Tier=1 LockName=TST_Chest_WinchRoom_02_Lock
+    [33] Tier=1 LockName=TST_Chest_WinchRoom_03_Lock
+    [34] Tier=2 LockName=BC_Chest_02_Lock
+    [35] Tier=2 LockName=BC_Chest_03_Lock
+    [36] Tier=2 LockName=BC_Chest_04_Lock
+    [37] Tier=2 LockName=BC_Chest_05_Lock
+    [38] Tier=2 LockName=BC_Chest_09_Lock
+    [39] Tier=2 LockName=BC_Chest_12_Lock
+    [40] Tier=2 LockName=BC_Chest_13_Lock
+    [41] Tier=2 LockName=BC_Chest_14_Lock
+    [42] Tier=2 LockName=BC_Chest_23_Lock
+    [43] Tier=2 LockName=FME_Chest_ControlAccess_Lock
+    [44] Tier=2 LockName=FME_Chest_EmptyHut_02_Lock
+    [45] Tier=2 LockName=FME_Chest_EmptyHut_04_Lock
+    [46] Tier=2 LockName=NC_Chest_GateInterior_02_Lock
+    [47] Tier=2 LockName=NC_Chest_Jeremiah_Lock
+    [48] Tier=2 LockName=NC_Chest_Lefty_01_Lock
+    [49] Tier=2 LockName=NC_Chest_Lefty_02_Lock
+    [50] Tier=2 LockName=NC_Chest_Rogue01_800_Lock
+    [51] Tier=2 LockName=NC_Chest_Rogue07_815_Lock
+    [52] Tier=2 LockName=NC_Chest_Rogue13_823_Lock
+    [53] Tier=2 LockName=OC_Chest_Bullit_Lock
+    [54] Tier=2 LockName=OC_Chest_Digger504_Lock
+    [55] Tier=2 LockName=OC_Chest_Digger506_Lock
+    [56] Tier=2 LockName=OC_Chest_Digger516_Lock
+    [57] Tier=2 LockName=OC_Chest_Digger523_Lock
+    [58] Tier=2 LockName=OC_Chest_Digger526_Lock
+    [59] Tier=2 LockName=OC_Chest_Digger527_Lock
+    [60] Tier=2 LockName=OC_Chest_Digger528_Lock
+    [61] Tier=2 LockName=OC_Chest_Digger533_Lock
+    [62] Tier=2 LockName=OC_Chest_Digger535_Lock
+    [63] Tier=2 LockName=OC_Chest_Digger553_Lock
+    [64] Tier=2 LockName=OC_Chest_Digger554_Lock
+    [65] Tier=2 LockName=OC_Chest_Digger556_Lock
+    [66] Tier=2 LockName=OC_Chest_Digger560_Lock
+    [67] Tier=2 LockName=OC_Chest_Digger565_Lock
+    [68] Tier=2 LockName=OC_Chest_Digger575_Lock
+    [69] Tier=2 LockName=OC_Chest_Dusty_Lock
+    [70] Tier=2 LockName=OC_Chest_Fletcher_Lock
+    [71] Tier=2 LockName=OC_Chest_Guard206_Lock
+    [72] Tier=2 LockName=OC_Chest_Guard209_Lock
+    [73] Tier=2 LockName=OC_Chest_Guard220_Lock
+    [74] Tier=2 LockName=OC_Chest_Guard226_Lock
+    [75] Tier=2 LockName=OC_Chest_Guard229_Lock
+    [76] Tier=2 LockName=OC_Chest_Guard232_Lock
+    [77] Tier=2 LockName=OC_Chest_Guard253_Lock
+    [78] Tier=2 LockName=OC_Chest_Jesse_Lock
+    [79] Tier=2 LockName=OC_Chest_Kharim_Lock
+    [80] Tier=2 LockName=OC_Chest_Omid_Lock
+    [81] Tier=2 LockName=OM_Chest_Santino_02_Lock
+    [82] Tier=2 LockName=OM_Chest_Santino_03_Lock
+    [83] Tier=2 LockName=OC_Chest_02_Lock
+    [84] Tier=3 LockName=BC_Chest_08_Lock
+    [85] Tier=3 LockName=BC_Chest_15_Lock
+    [86] Tier=3 LockName=CV_Chest_07_Lock
+    [87] Tier=3 LockName=FME_Chest_Swiney_Lock
+    [88] Tier=3 LockName=IWML_Chest_01_Lock
+    [89] Tier=3 LockName=IWML_Chest_04_Lock
+    [90] Tier=3 LockName=NC_Chest_Blade_Lock
+    [91] Tier=3 LockName=NC_Chest_Bruce_Lock
+    [92] Tier=3 LockName=NC_Chest_Buster_Lock
+    [93] Tier=3 LockName=NC_Chest_Butch_Lock
+    [94] Tier=3 LockName=NC_Chest_Cellar_Lock
+    [95] Tier=3 LockName=NC_Chest_Gorn_Lock
+    [96] Tier=3 LockName=NC_Chest_Homer_Lock
+    [97] Tier=3 LockName=NC_Chest_Mercenary02_703_Lock
+    [98] Tier=3 LockName=NC_Chest_Mercenary04_706_Lock
+    [99] Tier=3 LockName=NC_Chest_Mercenary06_708_Lock
+    [100] Tier=3 LockName=NC_Chest_Mercenary17_735_Lock
+    [101] Tier=3 LockName=NC_Chest_Orik_Lock
+    [102] Tier=3 LockName=NC_Chest_Rogue05_810_Lock
+    [103] Tier=3 LockName=NC_Chest_Rogue06_811_Lock
+    [104] Tier=3 LockName=NC_Chest_Rogue08_816_Lock
+    [105] Tier=3 LockName=NC_Chest_Rogue09_817_Lock
+    [106] Tier=3 LockName=NC_Chest_Rogue10_820_Lock
+    [107] Tier=3 LockName=NC_Chest_Rogue22_837_Lock
+    [108] Tier=3 LockName=NC_Chest_Silas_Lock
+    [109] Tier=3 LockName=NC_Chest_Torlof_Lock
+    [110] Tier=3 LockName=NC_Chest_Wolf_Lock
+    [111] Tier=3 LockName=OA_Chest_01_Lock
+    [112] Tier=3 LockName=OC_Chest_BaalParvez_Lock
+    [113] Tier=3 LockName=OC_Chest_Digger501_Lock
+    [114] Tier=3 LockName=OC_Chest_Digger503_Lock
+    [115] Tier=3 LockName=OC_Chest_Digger505_Lock
+    [116] Tier=3 LockName=OC_Chest_Digger508_Lock
+    [117] Tier=3 LockName=OC_Chest_Digger509_Lock
+    [118] Tier=3 LockName=OC_Chest_Digger510_Lock
+    [119] Tier=3 LockName=OC_Chest_Digger512_Lock
+    [120] Tier=3 LockName=OC_Chest_Digger517_Lock
+    [121] Tier=3 LockName=OC_Chest_Digger519_Lock
+    [122] Tier=3 LockName=OC_Chest_Digger521_Lock
+    [123] Tier=3 LockName=OC_Chest_Digger522_Lock
+    [124] Tier=3 LockName=OC_Chest_Digger531_Lock
+    [125] Tier=3 LockName=OC_Chest_Digger532_Lock
+    [126] Tier=3 LockName=OC_Chest_Digger555_Lock
+    [127] Tier=3 LockName=OC_Chest_Digger561_Lock
+    [128] Tier=3 LockName=OC_Chest_Digger576_Lock
+    [129] Tier=3 LockName=OC_Chest_Digger577_Lock
+    [130] Tier=3 LockName=OC_Chest_Gravo_Lock
+    [131] Tier=3 LockName=OC_Chest_Grim_Lock
+    [132] Tier=3 LockName=OC_Chest_Cutter_Lock
+    [133] Tier=3 LockName=OC_Chest_Guard221_Lock
+    [134] Tier=3 LockName=OC_Chest_Guard228_Lock
+    [135] Tier=3 LockName=OC_Chest_Guard239_Lock
+    [136] Tier=3 LockName=OC_Chest_Guard240_Lock
+    [137] Tier=3 LockName=OC_Chest_Guard242_Lock
+    [138] Tier=3 LockName=OC_Chest_Jackal_Lock
+    [139] Tier=3 LockName=OC_Chest_Kyle_Lock
+    [140] Tier=3 LockName=OC_Chest_Ruins_02_Lock
+    [141] Tier=3 LockName=OC_Chest_Scatty_Lock
+    [142] Tier=3 LockName=OC_Chest_Scorpio_Lock
+    [143] Tier=3 LockName=OC_Chest_Shadow306_Lock
+    [144] Tier=3 LockName=OC_Chest_Shadow314_Lock
+    [145] Tier=3 LockName=OC_Chest_Shadow322_Lock
+    [146] Tier=3 LockName=OC_Chest_Shadow328_Lock
+    [147] Tier=3 LockName=OC_Chest_Shadow330_Lock
+    [148] Tier=3 LockName=OC_Chest_Stone_Lock
+    [149] Tier=3 LockName=OC_Chest_Tower_03_Lock
+    [150] Tier=3 LockName=OC_Chest_Tower_05_Lock
+    [151] Tier=3 LockName=OC_Chest_01_Lock
+    [152] Tier=4 LockName=AM_Chest_04_Lock
+    [153] Tier=4 LockName=AM_Chest_05_Lock
+    [154] Tier=4 LockName=AMR_Chest_04_Lock
+    [155] Tier=4 LockName=BC_Chest_20_Lock
+    [156] Tier=4 LockName=BC_Chest_22_Lock
+    [157] Tier=4 LockName=BT_Chest_01_Lock
+    [158] Tier=4 LockName=CV_Chest_01_Lock
+    [159] Tier=4 LockName=CV_Chest_02_Lock
+    [160] Tier=4 LockName=CV_Chest_10_Lock
+    [161] Tier=4 LockName=FM_Chest_Furnace_01_Lock
+    [162] Tier=4 LockName=FM_Chest_Furnace_02_Lock
+    [163] Tier=4 LockName=IWML_Chest_02_Lock
+    [164] Tier=4 LockName=IWML_Chest_03_Lock
+    [165] Tier=4 LockName=IWML_Chest_05_Lock
+    [166] Tier=4 LockName=MF_Chest_08_Lock
+    [167] Tier=4 LockName=NC_Chest_Cipher_Lock
+    [168] Tier=4 LockName=NC_Chest_Distillery_Lock
+    [169] Tier=4 LockName=NC_Chest_GateInterior_01_Lock
+    [170] Tier=4 LockName=NC_Chest_Mercenary07_710_Lock
+    [171] Tier=4 LockName=NC_Chest_Ricelord_Lock
+    [172] Tier=4 LockName=NC_Chest_Rogue03_806_Lock
+    [173] Tier=4 LockName=NC_Chest_Rogue23_838_Lock
+    [174] Tier=4 LockName=NC_Chest_Sharky_Lock
+    [175] Tier=4 LockName=NC_Chest_Sunken_01_Lock
+    [176] Tier=4 LockName=NC_Chest_Sunken_02_Lock
+    [177] Tier=4 LockName=OA_Chest_03_Lock
+    [178] Tier=4 LockName=OC_Chest_Balam_Lock
+    [179] Tier=4 LockName=OC_Chest_Bartholo_Lock
+    [180] Tier=4 LockName=OC_Chest_Bettingowner_Lock
+    [181] Tier=4 LockName=OC_Chest_Bloodwyn_Lock
+    [182] Tier=4 LockName=OC_Chest_Corristo_Lock
+    [183] Tier=4 LockName=OC_Chest_Digger507_Lock
+    [184] Tier=4 LockName=OC_Chest_Digger513_Lock
+    [185] Tier=4 LockName=OC_Chest_Digger515_Lock
+    [186] Tier=4 LockName=OC_Chest_Drago_Lock
+    [187] Tier=4 LockName=OC_Chest_Fisk_02_Lock
+    [188] Tier=4 LockName=OC_Chest_Fisk_04_Lock
+    [189] Tier=4 LockName=OC_Chest_Fisk_06_Lock
+    [190] Tier=4 LockName=OC_Chest_Fisk_07_Lock
+    [191] Tier=4 LockName=OC_Chest_Fisk_08_Lock
+    [192] Tier=4 LockName=OC_Chest_Forge_01_Lock
+    [193] Tier=4 LockName=OC_Chest_GorHanis_Lock
+    [194] Tier=4 LockName=OC_Chest_Guard230_Lock
+    [195] Tier=4 LockName=OC_Chest_Guard241_Lock
+    [196] Tier=4 LockName=OC_Chest_Guard252_Lock
+    [197] Tier=4 LockName=OC_Chest_Huno_Lock
+    [198] Tier=4 LockName=OC_Chest_Kirgo_Lock
+    [199] Tier=4 LockName=OC_Chest_Kitchen_Lock
+    [200] Tier=4 LockName=OC_Chest_Mordrag_Lock
+    [201] Tier=4 LockName=OC_Chest_Rodriguez_Lock
+    [202] Tier=4 LockName=OC_Chest_Ruins_01_Lock
+    [203] Tier=4 LockName=OC_Chest_Shadow304_Lock
+    [204] Tier=4 LockName=OC_Chest_Shadow313_Lock
+    [205] Tier=4 LockName=OC_Chest_Shadow316_Lock
+    [206] Tier=4 LockName=OC_Chest_Shadow318_Lock
+    [207] Tier=4 LockName=OC_Chest_Shadow319_Lock
+    [208] Tier=4 LockName=OC_Chest_Skip_Lock
+    [209] Tier=4 LockName=OC_Chest_Snaf_02_Lock
+    [210] Tier=4 LockName=OC_Chest_Tower_07_Lock
+    [211] Tier=4 LockName=OM_Chest_Alberto_01_Lock
+    [212] Tier=4 LockName=OM_Chest_Alberto_03_Lock
+    [213] Tier=4 LockName=OM_Chest_Santino_01_Lock
+    [214] Tier=4 LockName=OTT_Chest_05_Lock
+    [215] Tier=4 LockName=SC_Chest_BaalNamib_Lock
+    [216] Tier=4 LockName=SC_Chest_BaalOrun_Lock
+    [217] Tier=4 LockName=SC_Chest_BaalTondral_Lock
+    [218] Tier=4 LockName=SC_Chest_Chani_Lock
+    [219] Tier=4 LockName=SC_Chest_CorAngar_Lock
+    [220] Tier=4 LockName=SC_Chest_Nyras_Lock
+    [221] Tier=4 LockName=SC_Chest_Viran_Lock
+    [222] Tier=4 LockName=XT_Chest_02_Lock
+    [223] Tier=5 LockName=BC_Chest_17_Lock
+    [224] Tier=5 LockName=BC_Chest_18_Lock
+    [225] Tier=5 LockName=CV_Chest_09_Lock
+    [226] Tier=5 LockName=FME_Chest_Gate_Lock
+    [227] Tier=5 LockName=MF_Chest_07_Lock
+    [228] Tier=5 LockName=NC_Chest_Cord_Lock
+    [229] Tier=5 LockName=NC_Chest_Cronos_Lock
+    [230] Tier=5 LockName=NC_Chest_Lares_Lock
+    [231] Tier=5 LockName=NC_Chest_Lee_Lock
+    [232] Tier=5 LockName=NC_Chest_Merdarion_Lock
+    [233] Tier=5 LockName=NC_Chest_Myxir_Lock
+    [234] Tier=5 LockName=NC_Chest_Nefarius_Lock
+    [235] Tier=5 LockName=NC_Chest_Riordian_Lock
+    [236] Tier=5 LockName=NC_Chest_Saturas_Lock
+    [237] Tier=5 LockName=NC_Chest_Wedge_Lock
+    [238] Tier=5 LockName=OA_Chest_04_Lock
+    [239] Tier=5 LockName=OC_Chest_Damarok_Lock
+    [240] Tier=5 LockName=OC_Chest_Diego_Lock
+    [241] Tier=5 LockName=OC_Chest_Fingers_Lock
+    [242] Tier=5 LockName=OC_Chest_Fisk_01_Lock
+    [243] Tier=5 LockName=OC_Chest_Fisk_03_Lock
+    [244] Tier=5 LockName=OC_Chest_Guy_Lock
+    [245] Tier=5 LockName=OC_Chest_Milten_Lock
+    [246] Tier=5 LockName=OC_Chest_Sly_Lock
+    [247] Tier=5 LockName=OC_Chest_Thorus_Lock
+    [248] Tier=5 LockName=OC_Chest_Torrez_Lock
+    [249] Tier=5 LockName=OC_Chest_Tower_02_Lock
+    [250] Tier=5 LockName=OC_Chest_Tower_06_Lock
+    [251] Tier=5 LockName=OC_Chest_Tower_09_Lock
+    [252] Tier=5 LockName=OG_Chest_01_Lock
+    [253] Tier=5 LockName=Otown_Chest_01_Lock
+    [254] Tier=5 LockName=OTT_Chest_06_Lock
+    [255] Tier=5 LockName=OTT_Chest_09_Lock
+    [256] Tier=5 LockName=SC_Chest_BaalCadar_Lock
+    [257] Tier=5 LockName=SC_Chest_Natalia_Lock
+    [258] Tier=5 LockName=SNT_Chest_09_Lock
+    [259] Tier=5 LockName=SW_Chest_03_Lock
+    [260] Tier=5 LockName=TST_Chest_WinchRoom_01_Lock
+    [261] Tier=6 LockName=OM_Chest_Ulbert_02_Lock
+    [262] Tier=6 LockName=BC_Chest_16_Lock
+    [263] Tier=6 LockName=CR_Chest_01_Lock
+    [264] Tier=6 LockName=CR_Chest_02_Lock
+    [265] Tier=6 LockName=EF_Chest_03_Lock
+    [266] Tier=6 LockName=MF_Chest_01_Lock
+    [267] Tier=6 LockName=MF_Chest_12_Lock
+    [268] Tier=6 LockName=OA_Chest_02_Lock
+    [269] Tier=6 LockName=OC_Chest_Fisk_05_Lock
+    [270] Tier=6 LockName=OC_Chest_Forge_04_Lock
+    [271] Tier=6 LockName=OC_Chest_Graham_Lock
+    [272] Tier=6 LockName=OC_Chest_Raven_Lock
+    [273] Tier=6 LockName=OC_Chest_Tower_01_Lock
+    [274] Tier=6 LockName=OC_Chest_Tower_04_Lock
+    [275] Tier=6 LockName=OC_Chest_Tower_08_Lock
+    [276] Tier=6 LockName=Otown_Chest_02_Lock
+    [277] Tier=6 LockName=Otown_Chest_03_Lock
+    [278] Tier=6 LockName=Otown_Chest_04_Lock
+    [279] Tier=6 LockName=SC_Chest_Blacksmith_Lock
+    [280] Tier=6 LockName=SC_Chest_Fortuno_Lock
+    [281] Tier=6 LockName=SC_Chest_Yberion_Lock
+    [282] Tier=6 LockName=SW_Chest_02_Lock
+    [283] Tier=6 LockName=XT_Chest_01_Lock
+    [284] Tier=6 LockName=XT_Chest_03_Lock
+    [285] Tier=6 LockName=XT_Chest_04_Lock
+    [286] Tier=7 LockName=OC_Chest_Armory_01_Lock
+    [287] Tier=7 LockName=OC_Chest_Armory_02_Lock
+    [288] Tier=7 LockName=OC_Chest_Armory_03_Lock
+    [289] Tier=7 LockName=OC_Chest_Armory_04_Lock
+    [290] Tier=7 LockName=OC_Chest_Gomez_01_Lock
+    [291] Tier=7 LockName=OM_Chest_Aaron_Lock
+    [292] Tier=7 LockName=OM_Chest_Ulbert_01_Lock
+    [293] Tier=7 LockName=BC_Chest_19_Lock
+    [294] Tier=7 LockName=BT_Chest_02_Lock
+    [295] Tier=7 LockName=EF_Chest_05_Lock
+    [296] Tier=7 LockName=FM_Chest_Gallery_01_Lock
+    [297] Tier=7 LockName=MF_Chest_04_Lock
+    [298] Tier=7 LockName=OC_Chest_Arto_Lock
+    [299] Tier=7 LockName=OC_Chest_Forge_02_Lock
+    [300] Tier=7 LockName=OC_Chest_Scar_Lock
+    [301] Tier=7 LockName=OCS_Chest_04_Lock
+    [302] Tier=7 LockName=SC_Chest_CorKalom_03_Lock
+    [303] Tier=7 LockName=SW_Chest_01_Lock
+    [304] Tier=7 LockName=XT_Chest_05_Lock
+    [305] Tier=7 LockName=XT_Chest_06_Lock
+    [306] Tier=7 LockName=SNT_Chest_04_Lock
+    [307] Tier=7 LockName=SNT_Chest_06_Lock
+  m_RegisteredChests count = 293
+== IoChestDefault instances ==
+  live chests: 0
+  m_bNoRandomLock=true on 0 chests
+== GothicLockConfig instances ==
+  live configs: 0
+== LockPickSubsystem ==
+  LockPickSubsystem /Game/Maps/Multiplayer/MenuMap.MenuMap:LockPickSubsystem_2147445935
+  m_InstancedLocks:
+  m_PendingLockPieces count = 0, m_UnlockedActors count = 0
+== G1RGameState.m_LockMapClasses ==
+  no game state found
+======== dump end ========
+======== dump (world loaded) ========
+== RandomLockSubsystem ==
+  RandomLockSubsystem /Game/Maps/MainMap/MainMap.MainMap:RandomLockSubsystem_2147443909
+  bRandomLocksEnabled = false
+  m_LockPoolEntries:
+    [1] Tier=1 LockName=BC_Chest_01_Lock
+    [2] Tier=1 LockName=BC_Chest_07_Lock
+    [3] Tier=1 LockName=BC_Chest_10_Lock
+    [4] Tier=1 LockName=BC_Chest_11_Lock
+    [5] Tier=1 LockName=FME_Chest_EmptyHut_05_Lock
+    [6] Tier=1 LockName=FME_Chest_Mercenary13_765_01_Lock
+    [7] Tier=1 LockName=FME_Chest_Mercenary13_765_02_Lock
+    [8] Tier=1 LockName=NC_Chest_Mercenary03_705_Lock
+    [9] Tier=1 LockName=NC_Chest_Rogue11_821_Lock
+    [10] Tier=1 LockName=OC_Chest_Dexter_Lock
+    [11] Tier=1 LockName=OC_Chest_Digger502_Lock
+    [12] Tier=1 LockName=OC_Chest_Digger514_Lock
+    [13] Tier=1 LockName=OC_Chest_Digger529_Lock
+    [14] Tier=1 LockName=OC_Chest_Digger557_Lock
+    [15] Tier=1 LockName=OC_Chest_Digger578_Lock
+    [16] Tier=1 LockName=OC_Chest_Mud_Lock
+    [17] Tier=1 LockName=OC_Chest_Shadow310_Lock
+    [18] Tier=1 LockName=OC_Chest_Snaf_01_Lock
+    [19] Tier=1 LockName=OC_Chest_Throne_01_Lock
+    [20] Tier=1 LockName=OC_Chest_Whistler_Lock
+    [21] Tier=1 LockName=OM_Chest_Alberto_04_Lock
+    [22] Tier=1 LockName=OM_Chest_Alberto_05_Lock
+    [23] Tier=1 LockName=SC_Chest_CorKalom_01_Lock
+    [24] Tier=1 LockName=SW_Chest_07_Lock
+    [25] Tier=1 LockName=OC_Chest_Herek_Lock
+    [26] Tier=1 LockName=TST_Chest_Forge_01_Lock
+    [27] Tier=1 LockName=TST_Chest_Lava_Stronghold_01_Lock
+    [28] Tier=1 LockName=TST_Chest_Lava_Stronghold_02_Lock
+    [29] Tier=1 LockName=TST_Chest_Slave_01_Lock
+    [30] Tier=1 LockName=TST_Chest_Sleeper_01_Lock
+    [31] Tier=1 LockName=TST_Chest_Sleeper_02_Lock
+    [32] Tier=1 LockName=TST_Chest_WinchRoom_02_Lock
+    [33] Tier=1 LockName=TST_Chest_WinchRoom_03_Lock
+    [34] Tier=2 LockName=BC_Chest_02_Lock
+    [35] Tier=2 LockName=BC_Chest_03_Lock
+    [36] Tier=2 LockName=BC_Chest_04_Lock
+    [37] Tier=2 LockName=BC_Chest_05_Lock
+    [38] Tier=2 LockName=BC_Chest_09_Lock
+    [39] Tier=2 LockName=BC_Chest_12_Lock
+    [40] Tier=2 LockName=BC_Chest_13_Lock
+    [41] Tier=2 LockName=BC_Chest_14_Lock
+    [42] Tier=2 LockName=BC_Chest_23_Lock
+    [43] Tier=2 LockName=FME_Chest_ControlAccess_Lock
+    [44] Tier=2 LockName=FME_Chest_EmptyHut_02_Lock
+    [45] Tier=2 LockName=FME_Chest_EmptyHut_04_Lock
+    [46] Tier=2 LockName=NC_Chest_GateInterior_02_Lock
+    [47] Tier=2 LockName=NC_Chest_Jeremiah_Lock
+    [48] Tier=2 LockName=NC_Chest_Lefty_01_Lock
+    [49] Tier=2 LockName=NC_Chest_Lefty_02_Lock
+    [50] Tier=2 LockName=NC_Chest_Rogue01_800_Lock
+    [51] Tier=2 LockName=NC_Chest_Rogue07_815_Lock
+    [52] Tier=2 LockName=NC_Chest_Rogue13_823_Lock
+    [53] Tier=2 LockName=OC_Chest_Bullit_Lock
+    [54] Tier=2 LockName=OC_Chest_Digger504_Lock
+    [55] Tier=2 LockName=OC_Chest_Digger506_Lock
+    [56] Tier=2 LockName=OC_Chest_Digger516_Lock
+    [57] Tier=2 LockName=OC_Chest_Digger523_Lock
+    [58] Tier=2 LockName=OC_Chest_Digger526_Lock
+    [59] Tier=2 LockName=OC_Chest_Digger527_Lock
+    [60] Tier=2 LockName=OC_Chest_Digger528_Lock
+    [61] Tier=2 LockName=OC_Chest_Digger533_Lock
+    [62] Tier=2 LockName=OC_Chest_Digger535_Lock
+    [63] Tier=2 LockName=OC_Chest_Digger553_Lock
+    [64] Tier=2 LockName=OC_Chest_Digger554_Lock
+    [65] Tier=2 LockName=OC_Chest_Digger556_Lock
+    [66] Tier=2 LockName=OC_Chest_Digger560_Lock
+    [67] Tier=2 LockName=OC_Chest_Digger565_Lock
+    [68] Tier=2 LockName=OC_Chest_Digger575_Lock
+    [69] Tier=2 LockName=OC_Chest_Dusty_Lock
+    [70] Tier=2 LockName=OC_Chest_Fletcher_Lock
+    [71] Tier=2 LockName=OC_Chest_Guard206_Lock
+    [72] Tier=2 LockName=OC_Chest_Guard209_Lock
+    [73] Tier=2 LockName=OC_Chest_Guard220_Lock
+    [74] Tier=2 LockName=OC_Chest_Guard226_Lock
+    [75] Tier=2 LockName=OC_Chest_Guard229_Lock
+    [76] Tier=2 LockName=OC_Chest_Guard232_Lock
+    [77] Tier=2 LockName=OC_Chest_Guard253_Lock
+    [78] Tier=2 LockName=OC_Chest_Jesse_Lock
+    [79] Tier=2 LockName=OC_Chest_Kharim_Lock
+    [80] Tier=2 LockName=OC_Chest_Omid_Lock
+    [81] Tier=2 LockName=OM_Chest_Santino_02_Lock
+    [82] Tier=2 LockName=OM_Chest_Santino_03_Lock
+    [83] Tier=2 LockName=OC_Chest_02_Lock
+    [84] Tier=3 LockName=BC_Chest_08_Lock
+    [85] Tier=3 LockName=BC_Chest_15_Lock
+    [86] Tier=3 LockName=CV_Chest_07_Lock
+    [87] Tier=3 LockName=FME_Chest_Swiney_Lock
+    [88] Tier=3 LockName=IWML_Chest_01_Lock
+    [89] Tier=3 LockName=IWML_Chest_04_Lock
+    [90] Tier=3 LockName=NC_Chest_Blade_Lock
+    [91] Tier=3 LockName=NC_Chest_Bruce_Lock
+    [92] Tier=3 LockName=NC_Chest_Buster_Lock
+    [93] Tier=3 LockName=NC_Chest_Butch_Lock
+    [94] Tier=3 LockName=NC_Chest_Cellar_Lock
+    [95] Tier=3 LockName=NC_Chest_Gorn_Lock
+    [96] Tier=3 LockName=NC_Chest_Homer_Lock
+    [97] Tier=3 LockName=NC_Chest_Mercenary02_703_Lock
+    [98] Tier=3 LockName=NC_Chest_Mercenary04_706_Lock
+    [99] Tier=3 LockName=NC_Chest_Mercenary06_708_Lock
+    [100] Tier=3 LockName=NC_Chest_Mercenary17_735_Lock
+    [101] Tier=3 LockName=NC_Chest_Orik_Lock
+    [102] Tier=3 LockName=NC_Chest_Rogue05_810_Lock
+    [103] Tier=3 LockName=NC_Chest_Rogue06_811_Lock
+    [104] Tier=3 LockName=NC_Chest_Rogue08_816_Lock
+    [105] Tier=3 LockName=NC_Chest_Rogue09_817_Lock
+    [106] Tier=3 LockName=NC_Chest_Rogue10_820_Lock
+    [107] Tier=3 LockName=NC_Chest_Rogue22_837_Lock
+    [108] Tier=3 LockName=NC_Chest_Silas_Lock
+    [109] Tier=3 LockName=NC_Chest_Torlof_Lock
+    [110] Tier=3 LockName=NC_Chest_Wolf_Lock
+    [111] Tier=3 LockName=OA_Chest_01_Lock
+    [112] Tier=3 LockName=OC_Chest_BaalParvez_Lock
+    [113] Tier=3 LockName=OC_Chest_Digger501_Lock
+    [114] Tier=3 LockName=OC_Chest_Digger503_Lock
+    [115] Tier=3 LockName=OC_Chest_Digger505_Lock
+    [116] Tier=3 LockName=OC_Chest_Digger508_Lock
+    [117] Tier=3 LockName=OC_Chest_Digger509_Lock
+    [118] Tier=3 LockName=OC_Chest_Digger510_Lock
+    [119] Tier=3 LockName=OC_Chest_Digger512_Lock
+    [120] Tier=3 LockName=OC_Chest_Digger517_Lock
+    [121] Tier=3 LockName=OC_Chest_Digger519_Lock
+    [122] Tier=3 LockName=OC_Chest_Digger521_Lock
+    [123] Tier=3 LockName=OC_Chest_Digger522_Lock
+    [124] Tier=3 LockName=OC_Chest_Digger531_Lock
+    [125] Tier=3 LockName=OC_Chest_Digger532_Lock
+    [126] Tier=3 LockName=OC_Chest_Digger555_Lock
+    [127] Tier=3 LockName=OC_Chest_Digger561_Lock
+    [128] Tier=3 LockName=OC_Chest_Digger576_Lock
+    [129] Tier=3 LockName=OC_Chest_Digger577_Lock
+    [130] Tier=3 LockName=OC_Chest_Gravo_Lock
+    [131] Tier=3 LockName=OC_Chest_Grim_Lock
+    [132] Tier=3 LockName=OC_Chest_Cutter_Lock
+    [133] Tier=3 LockName=OC_Chest_Guard221_Lock
+    [134] Tier=3 LockName=OC_Chest_Guard228_Lock
+    [135] Tier=3 LockName=OC_Chest_Guard239_Lock
+    [136] Tier=3 LockName=OC_Chest_Guard240_Lock
+    [137] Tier=3 LockName=OC_Chest_Guard242_Lock
+    [138] Tier=3 LockName=OC_Chest_Jackal_Lock
+    [139] Tier=3 LockName=OC_Chest_Kyle_Lock
+    [140] Tier=3 LockName=OC_Chest_Ruins_02_Lock
+    [141] Tier=3 LockName=OC_Chest_Scatty_Lock
+    [142] Tier=3 LockName=OC_Chest_Scorpio_Lock
+    [143] Tier=3 LockName=OC_Chest_Shadow306_Lock
+    [144] Tier=3 LockName=OC_Chest_Shadow314_Lock
+    [145] Tier=3 LockName=OC_Chest_Shadow322_Lock
+    [146] Tier=3 LockName=OC_Chest_Shadow328_Lock
+    [147] Tier=3 LockName=OC_Chest_Shadow330_Lock
+    [148] Tier=3 LockName=OC_Chest_Stone_Lock
+    [149] Tier=3 LockName=OC_Chest_Tower_03_Lock
+    [150] Tier=3 LockName=OC_Chest_Tower_05_Lock
+    [151] Tier=3 LockName=OC_Chest_01_Lock
+    [152] Tier=4 LockName=AM_Chest_04_Lock
+    [153] Tier=4 LockName=AM_Chest_05_Lock
+    [154] Tier=4 LockName=AMR_Chest_04_Lock
+    [155] Tier=4 LockName=BC_Chest_20_Lock
+    [156] Tier=4 LockName=BC_Chest_22_Lock
+    [157] Tier=4 LockName=BT_Chest_01_Lock
+    [158] Tier=4 LockName=CV_Chest_01_Lock
+    [159] Tier=4 LockName=CV_Chest_02_Lock
+    [160] Tier=4 LockName=CV_Chest_10_Lock
+    [161] Tier=4 LockName=FM_Chest_Furnace_01_Lock
+    [162] Tier=4 LockName=FM_Chest_Furnace_02_Lock
+    [163] Tier=4 LockName=IWML_Chest_02_Lock
+    [164] Tier=4 LockName=IWML_Chest_03_Lock
+    [165] Tier=4 LockName=IWML_Chest_05_Lock
+    [166] Tier=4 LockName=MF_Chest_08_Lock
+    [167] Tier=4 LockName=NC_Chest_Cipher_Lock
+    [168] Tier=4 LockName=NC_Chest_Distillery_Lock
+    [169] Tier=4 LockName=NC_Chest_GateInterior_01_Lock
+    [170] Tier=4 LockName=NC_Chest_Mercenary07_710_Lock
+    [171] Tier=4 LockName=NC_Chest_Ricelord_Lock
+    [172] Tier=4 LockName=NC_Chest_Rogue03_806_Lock
+    [173] Tier=4 LockName=NC_Chest_Rogue23_838_Lock
+    [174] Tier=4 LockName=NC_Chest_Sharky_Lock
+    [175] Tier=4 LockName=NC_Chest_Sunken_01_Lock
+    [176] Tier=4 LockName=NC_Chest_Sunken_02_Lock
+    [177] Tier=4 LockName=OA_Chest_03_Lock
+    [178] Tier=4 LockName=OC_Chest_Balam_Lock
+    [179] Tier=4 LockName=OC_Chest_Bartholo_Lock
+    [180] Tier=4 LockName=OC_Chest_Bettingowner_Lock
+    [181] Tier=4 LockName=OC_Chest_Bloodwyn_Lock
+    [182] Tier=4 LockName=OC_Chest_Corristo_Lock
+    [183] Tier=4 LockName=OC_Chest_Digger507_Lock
+    [184] Tier=4 LockName=OC_Chest_Digger513_Lock
+    [185] Tier=4 LockName=OC_Chest_Digger515_Lock
+    [186] Tier=4 LockName=OC_Chest_Drago_Lock
+    [187] Tier=4 LockName=OC_Chest_Fisk_02_Lock
+    [188] Tier=4 LockName=OC_Chest_Fisk_04_Lock
+    [189] Tier=4 LockName=OC_Chest_Fisk_06_Lock
+    [190] Tier=4 LockName=OC_Chest_Fisk_07_Lock
+    [191] Tier=4 LockName=OC_Chest_Fisk_08_Lock
+    [192] Tier=4 LockName=OC_Chest_Forge_01_Lock
+    [193] Tier=4 LockName=OC_Chest_GorHanis_Lock
+    [194] Tier=4 LockName=OC_Chest_Guard230_Lock
+    [195] Tier=4 LockName=OC_Chest_Guard241_Lock
+    [196] Tier=4 LockName=OC_Chest_Guard252_Lock
+    [197] Tier=4 LockName=OC_Chest_Huno_Lock
+    [198] Tier=4 LockName=OC_Chest_Kirgo_Lock
+    [199] Tier=4 LockName=OC_Chest_Kitchen_Lock
+    [200] Tier=4 LockName=OC_Chest_Mordrag_Lock
+    [201] Tier=4 LockName=OC_Chest_Rodriguez_Lock
+    [202] Tier=4 LockName=OC_Chest_Ruins_01_Lock
+    [203] Tier=4 LockName=OC_Chest_Shadow304_Lock
+    [204] Tier=4 LockName=OC_Chest_Shadow313_Lock
+    [205] Tier=4 LockName=OC_Chest_Shadow316_Lock
+    [206] Tier=4 LockName=OC_Chest_Shadow318_Lock
+    [207] Tier=4 LockName=OC_Chest_Shadow319_Lock
+    [208] Tier=4 LockName=OC_Chest_Skip_Lock
+    [209] Tier=4 LockName=OC_Chest_Snaf_02_Lock
+    [210] Tier=4 LockName=OC_Chest_Tower_07_Lock
+    [211] Tier=4 LockName=OM_Chest_Alberto_01_Lock
+    [212] Tier=4 LockName=OM_Chest_Alberto_03_Lock
+    [213] Tier=4 LockName=OM_Chest_Santino_01_Lock
+    [214] Tier=4 LockName=OTT_Chest_05_Lock
+    [215] Tier=4 LockName=SC_Chest_BaalNamib_Lock
+    [216] Tier=4 LockName=SC_Chest_BaalOrun_Lock
+    [217] Tier=4 LockName=SC_Chest_BaalTondral_Lock
+    [218] Tier=4 LockName=SC_Chest_Chani_Lock
+    [219] Tier=4 LockName=SC_Chest_CorAngar_Lock
+    [220] Tier=4 LockName=SC_Chest_Nyras_Lock
+    [221] Tier=4 LockName=SC_Chest_Viran_Lock
+    [222] Tier=4 LockName=XT_Chest_02_Lock
+    [223] Tier=5 LockName=BC_Chest_17_Lock
+    [224] Tier=5 LockName=BC_Chest_18_Lock
+    [225] Tier=5 LockName=CV_Chest_09_Lock
+    [226] Tier=5 LockName=FME_Chest_Gate_Lock
+    [227] Tier=5 LockName=MF_Chest_07_Lock
+    [228] Tier=5 LockName=NC_Chest_Cord_Lock
+    [229] Tier=5 LockName=NC_Chest_Cronos_Lock
+    [230] Tier=5 LockName=NC_Chest_Lares_Lock
+    [231] Tier=5 LockName=NC_Chest_Lee_Lock
+    [232] Tier=5 LockName=NC_Chest_Merdarion_Lock
+    [233] Tier=5 LockName=NC_Chest_Myxir_Lock
+    [234] Tier=5 LockName=NC_Chest_Nefarius_Lock
+    [235] Tier=5 LockName=NC_Chest_Riordian_Lock
+    [236] Tier=5 LockName=NC_Chest_Saturas_Lock
+    [237] Tier=5 LockName=NC_Chest_Wedge_Lock
+    [238] Tier=5 LockName=OA_Chest_04_Lock
+    [239] Tier=5 LockName=OC_Chest_Damarok_Lock
+    [240] Tier=5 LockName=OC_Chest_Diego_Lock
+    [241] Tier=5 LockName=OC_Chest_Fingers_Lock
+    [242] Tier=5 LockName=OC_Chest_Fisk_01_Lock
+    [243] Tier=5 LockName=OC_Chest_Fisk_03_Lock
+    [244] Tier=5 LockName=OC_Chest_Guy_Lock
+    [245] Tier=5 LockName=OC_Chest_Milten_Lock
+    [246] Tier=5 LockName=OC_Chest_Sly_Lock
+    [247] Tier=5 LockName=OC_Chest_Thorus_Lock
+    [248] Tier=5 LockName=OC_Chest_Torrez_Lock
+    [249] Tier=5 LockName=OC_Chest_Tower_02_Lock
+    [250] Tier=5 LockName=OC_Chest_Tower_06_Lock
+    [251] Tier=5 LockName=OC_Chest_Tower_09_Lock
+    [252] Tier=5 LockName=OG_Chest_01_Lock
+    [253] Tier=5 LockName=Otown_Chest_01_Lock
+    [254] Tier=5 LockName=OTT_Chest_06_Lock
+    [255] Tier=5 LockName=OTT_Chest_09_Lock
+    [256] Tier=5 LockName=SC_Chest_BaalCadar_Lock
+    [257] Tier=5 LockName=SC_Chest_Natalia_Lock
+    [258] Tier=5 LockName=SNT_Chest_09_Lock
+    [259] Tier=5 LockName=SW_Chest_03_Lock
+    [260] Tier=5 LockName=TST_Chest_WinchRoom_01_Lock
+    [261] Tier=6 LockName=OM_Chest_Ulbert_02_Lock
+    [262] Tier=6 LockName=BC_Chest_16_Lock
+    [263] Tier=6 LockName=CR_Chest_01_Lock
+    [264] Tier=6 LockName=CR_Chest_02_Lock
+    [265] Tier=6 LockName=EF_Chest_03_Lock
+    [266] Tier=6 LockName=MF_Chest_01_Lock
+    [267] Tier=6 LockName=MF_Chest_12_Lock
+    [268] Tier=6 LockName=OA_Chest_02_Lock
+    [269] Tier=6 LockName=OC_Chest_Fisk_05_Lock
+    [270] Tier=6 LockName=OC_Chest_Forge_04_Lock
+    [271] Tier=6 LockName=OC_Chest_Graham_Lock
+    [272] Tier=6 LockName=OC_Chest_Raven_Lock
+    [273] Tier=6 LockName=OC_Chest_Tower_01_Lock
+    [274] Tier=6 LockName=OC_Chest_Tower_04_Lock
+    [275] Tier=6 LockName=OC_Chest_Tower_08_Lock
+    [276] Tier=6 LockName=Otown_Chest_02_Lock
+    [277] Tier=6 LockName=Otown_Chest_03_Lock
+    [278] Tier=6 LockName=Otown_Chest_04_Lock
+    [279] Tier=6 LockName=SC_Chest_Blacksmith_Lock
+    [280] Tier=6 LockName=SC_Chest_Fortuno_Lock
+    [281] Tier=6 LockName=SC_Chest_Yberion_Lock
+    [282] Tier=6 LockName=SW_Chest_02_Lock
+    [283] Tier=6 LockName=XT_Chest_01_Lock
+    [284] Tier=6 LockName=XT_Chest_03_Lock
+    [285] Tier=6 LockName=XT_Chest_04_Lock
+    [286] Tier=7 LockName=OC_Chest_Armory_01_Lock
+    [287] Tier=7 LockName=OC_Chest_Armory_02_Lock
+    [288] Tier=7 LockName=OC_Chest_Armory_03_Lock
+    [289] Tier=7 LockName=OC_Chest_Armory_04_Lock
+    [290] Tier=7 LockName=OC_Chest_Gomez_01_Lock
+    [291] Tier=7 LockName=OM_Chest_Aaron_Lock
+    [292] Tier=7 LockName=OM_Chest_Ulbert_01_Lock
+    [293] Tier=7 LockName=BC_Chest_19_Lock
+    [294] Tier=7 LockName=BT_Chest_02_Lock
+    [295] Tier=7 LockName=EF_Chest_05_Lock
+    [296] Tier=7 LockName=FM_Chest_Gallery_01_Lock
+    [297] Tier=7 LockName=MF_Chest_04_Lock
+    [298] Tier=7 LockName=OC_Chest_Arto_Lock
+    [299] Tier=7 LockName=OC_Chest_Forge_02_Lock
+    [300] Tier=7 LockName=OC_Chest_Scar_Lock
+    [301] Tier=7 LockName=OCS_Chest_04_Lock
+    [302] Tier=7 LockName=SC_Chest_CorKalom_03_Lock
+    [303] Tier=7 LockName=SW_Chest_01_Lock
+    [304] Tier=7 LockName=XT_Chest_05_Lock
+    [305] Tier=7 LockName=XT_Chest_06_Lock
+    [306] Tier=7 LockName=SNT_Chest_04_Lock
+    [307] Tier=7 LockName=SNT_Chest_06_Lock
+  m_RegisteredChests count = 293
+== IoChestDefault instances ==
+  live chests: 0
+  m_bNoRandomLock=true on 0 chests
+== GothicLockConfig instances ==
+  live configs: 0
+== LockPickSubsystem ==
+  LockPickSubsystem /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979
+  m_InstancedLocks:
+  m_PendingLockPieces count = 0, m_UnlockedActors count = 9
+== G1RGameState.m_LockMapClasses ==
+  Test_Lock_Difficulty_1_01 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_01
+  Test_Lock_Difficulty_1_02 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_02
+  Test_Lock_Difficulty_1_03 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_03
+  Test_Lock_Difficulty_1_04 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_04
+  Test_Lock_Difficulty_1_05 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_05
+  Test_Lock_Difficulty_1_06 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_06
+  Test_Lock_Difficulty_1_07 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_07
+  Test_Lock_Difficulty_1_08 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_08
+  Test_Lock_Difficulty_1_09 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_09
+  Test_Lock_Difficulty_1_10 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_1_10
+  Test_Lock_Difficulty_2_01 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_01
+  Test_Lock_Difficulty_2_02 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_02
+  Test_Lock_Difficulty_2_03 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_03
+  Test_Lock_Difficulty_2_04 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_04
+  Test_Lock_Difficulty_2_05 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_05
+  Test_Lock_Difficulty_2_06 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_06
+  Test_Lock_Difficulty_2_07 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_07
+  Test_Lock_Difficulty_2_08 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_08
+  Test_Lock_Difficulty_2_09 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_09
+  Test_Lock_Difficulty_2_10 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_2_10
+  Test_Lock_Difficulty_3_01 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_01
+  Test_Lock_Difficulty_3_02 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_02
+  Test_Lock_Difficulty_3_03 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_03
+  Test_Lock_Difficulty_3_04 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_04
+  Test_Lock_Difficulty_3_05 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_05
+  Test_Lock_Difficulty_3_06 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_06
+  Test_Lock_Difficulty_3_07 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_07
+  Test_Lock_Difficulty_3_08 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_08
+  Test_Lock_Difficulty_3_09 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_09
+  Test_Lock_Difficulty_3_10 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_3_10
+  Test_Lock_Difficulty_4_01 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_01
+  Test_Lock_Difficulty_4_02 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_02
+  Test_Lock_Difficulty_4_03 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_03
+  Test_Lock_Difficulty_4_04 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_04
+  Test_Lock_Difficulty_4_05 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_05
+  Test_Lock_Difficulty_4_06 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_06
+  Test_Lock_Difficulty_4_07 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_07
+  Test_Lock_Difficulty_4_08 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_08
+  Test_Lock_Difficulty_4_09 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_09
+  Test_Lock_Difficulty_4_10 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_4_10
+  Test_Lock_Difficulty_5_01 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_01
+  Test_Lock_Difficulty_5_02 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_02
+  Test_Lock_Difficulty_5_03 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_03
+  Test_Lock_Difficulty_5_04 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_04
+  Test_Lock_Difficulty_5_05 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_05
+  Test_Lock_Difficulty_5_06 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_06
+  Test_Lock_Difficulty_5_07 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_07
+  Test_Lock_Difficulty_5_08 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_08
+  Test_Lock_Difficulty_5_09 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_09
+  Test_Lock_Difficulty_5_10 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_5_10
+  Test_Lock_Difficulty_6_01 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_01
+  Test_Lock_Difficulty_6_02 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_02
+  Test_Lock_Difficulty_6_03 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_03
+  Test_Lock_Difficulty_6_04 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_04
+  Test_Lock_Difficulty_6_05 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_05
+  Test_Lock_Difficulty_6_06 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_06
+  Test_Lock_Difficulty_6_07 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_07
+  Test_Lock_Difficulty_6_08 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_08
+  Test_Lock_Difficulty_6_09 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_09
+  Test_Lock_Difficulty_6_10 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_6_10
+  Test_Lock_Difficulty_7_01 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_01
+  Test_Lock_Difficulty_7_02 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_02
+  Test_Lock_Difficulty_7_03 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_03
+  Test_Lock_Difficulty_7_04 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_04
+  Test_Lock_Difficulty_7_05 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_05
+  Test_Lock_Difficulty_7_06 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_06
+  Test_Lock_Difficulty_7_07 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_07
+  Test_Lock_Difficulty_7_08 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_08
+  Test_Lock_Difficulty_7_09 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_09
+  Test_Lock_Difficulty_7_10 -> ASClass /Script/Angelscript.Test_Lock_Difficulty_7_10
+  AM_Chest_04_Lock -> ASClass /Script/Angelscript.AM_Chest_04_Lock
+  AM_Chest_05_Lock -> ASClass /Script/Angelscript.AM_Chest_05_Lock
+  AMR_Storage_Room_Lock -> ASClass /Script/Angelscript.AMR_Storage_Room_Lock
+  AMR_Chest_04_Lock -> ASClass /Script/Angelscript.AMR_Chest_04_Lock
+  BC_LootCave_Door_Lock -> ASClass /Script/Angelscript.BC_LootCave_Door_Lock
+  BC_LootCave_Door_Lock_02 -> ASClass /Script/Angelscript.BC_LootCave_Door_Lock_02
+  BC_Chest_01_Lock -> ASClass /Script/Angelscript.BC_Chest_01_Lock
+  BC_Chest_02_Lock -> ASClass /Script/Angelscript.BC_Chest_02_Lock
+  BC_Chest_03_Lock -> ASClass /Script/Angelscript.BC_Chest_03_Lock
+  BC_Chest_04_Lock -> ASClass /Script/Angelscript.BC_Chest_04_Lock
+  BC_Chest_05_Lock -> ASClass /Script/Angelscript.BC_Chest_05_Lock
+  BC_Chest_07_Lock -> ASClass /Script/Angelscript.BC_Chest_07_Lock
+  BC_Chest_08_Lock -> ASClass /Script/Angelscript.BC_Chest_08_Lock
+  BC_Chest_09_Lock -> ASClass /Script/Angelscript.BC_Chest_09_Lock
+  BC_Chest_10_Lock -> ASClass /Script/Angelscript.BC_Chest_10_Lock
+  BC_Chest_11_Lock -> ASClass /Script/Angelscript.BC_Chest_11_Lock
+  BC_Chest_12_Lock -> ASClass /Script/Angelscript.BC_Chest_12_Lock
+  BC_Chest_13_Lock -> ASClass /Script/Angelscript.BC_Chest_13_Lock
+  BC_Chest_14_Lock -> ASClass /Script/Angelscript.BC_Chest_14_Lock
+  BC_Chest_15_Lock -> ASClass /Script/Angelscript.BC_Chest_15_Lock
+  BC_Chest_16_Lock -> ASClass /Script/Angelscript.BC_Chest_16_Lock
+  BC_Chest_17_Lock -> ASClass /Script/Angelscript.BC_Chest_17_Lock
+  BC_Chest_18_Lock -> ASClass /Script/Angelscript.BC_Chest_18_Lock
+  BC_Chest_19_Lock -> ASClass /Script/Angelscript.BC_Chest_19_Lock
+  BC_Chest_20_Lock -> ASClass /Script/Angelscript.BC_Chest_20_Lock
+  BC_Chest_22_Lock -> ASClass /Script/Angelscript.BC_Chest_22_Lock
+  BC_Chest_23_Lock -> ASClass /Script/Angelscript.BC_Chest_23_Lock
+  BT_Tower_Door_Lock -> ASClass /Script/Angelscript.BT_Tower_Door_Lock
+  BT_Chest_01_Lock -> ASClass /Script/Angelscript.BT_Chest_01_Lock
+  BT_Chest_02_Lock -> ASClass /Script/Angelscript.BT_Chest_02_Lock
+  CR_Chest_01_Lock -> ASClass /Script/Angelscript.CR_Chest_01_Lock
+  CR_Chest_02_Lock -> ASClass /Script/Angelscript.CR_Chest_02_Lock
+  CV_Stash_Door_Lock -> ASClass /Script/Angelscript.CV_Stash_Door_Lock
+  CV_Chest_01_Lock -> ASClass /Script/Angelscript.CV_Chest_01_Lock
+  CV_Chest_02_Lock -> ASClass /Script/Angelscript.CV_Chest_02_Lock
+  CV_Chest_07_Lock -> ASClass /Script/Angelscript.CV_Chest_07_Lock
+  CV_Chest_09_Lock -> ASClass /Script/Angelscript.CV_Chest_09_Lock
+  CV_Chest_10_Lock -> ASClass /Script/Angelscript.CV_Chest_10_Lock
+  EF_Chest_03_Lock -> ASClass /Script/Angelscript.EF_Chest_03_Lock
+  EF_Chest_05_Lock -> ASClass /Script/Angelscript.EF_Chest_05_Lock
+  EZ_LootCage_Door_Lock -> ASClass /Script/Angelscript.EZ_LootCage_Door_Lock
+  FM_AbandonedGallery_Door_Lock -> ASClass /Script/Angelscript.FM_AbandonedGallery_Door_Lock
+  FM_Chest_Furnace_01_Lock -> ASClass /Script/Angelscript.FM_Chest_Furnace_01_Lock
+  FM_Chest_Furnace_02_Lock -> ASClass /Script/Angelscript.FM_Chest_Furnace_02_Lock
+  FM_Chest_Gallery_01_Lock -> ASClass /Script/Angelscript.FM_Chest_Gallery_01_Lock
+  FME_Chest_Gate_Lock -> ASClass /Script/Angelscript.FME_Chest_Gate_Lock
+  FME_Chest_Mercenary13_765_01_Lock -> ASClass /Script/Angelscript.FME_Chest_Mercenary13_765_01_Lock
+  FME_Chest_Mercenary13_765_02_Lock -> ASClass /Script/Angelscript.FME_Chest_Mercenary13_765_02_Lock
+  FME_Chest_EmptyHut_02_Lock -> ASClass /Script/Angelscript.FME_Chest_EmptyHut_02_Lock
+  FME_Chest_Swiney_Lock -> ASClass /Script/Angelscript.FME_Chest_Swiney_Lock
+  FME_Chest_EmptyHut_04_Lock -> ASClass /Script/Angelscript.FME_Chest_EmptyHut_04_Lock
+  FME_Chest_EmptyHut_05_Lock -> ASClass /Script/Angelscript.FME_Chest_EmptyHut_05_Lock
+  FME_Chest_ControlAccess_Lock -> ASClass /Script/Angelscript.FME_Chest_ControlAccess_Lock
+  IWML_Chest_01_Lock -> ASClass /Script/Angelscript.IWML_Chest_01_Lock
+  IWML_Chest_02_Lock -> ASClass /Script/Angelscript.IWML_Chest_02_Lock
+  IWML_Chest_03_Lock -> ASClass /Script/Angelscript.IWML_Chest_03_Lock
+  IWML_Chest_04_Lock -> ASClass /Script/Angelscript.IWML_Chest_04_Lock
+  IWML_Chest_05_Lock -> ASClass /Script/Angelscript.IWML_Chest_05_Lock
+  MF_CellarCages_Lock -> ASClass /Script/Angelscript.MF_CellarCages_Lock
+  MF_CellarCages_Lock_02 -> ASClass /Script/Angelscript.MF_CellarCages_Lock_02
+  MF_Chest_01_Lock -> ASClass /Script/Angelscript.MF_Chest_01_Lock
+  MF_Chest_04_Lock -> ASClass /Script/Angelscript.MF_Chest_04_Lock
+  MF_Chest_07_Lock -> ASClass /Script/Angelscript.MF_Chest_07_Lock
+  MF_Chest_08_Lock -> ASClass /Script/Angelscript.MF_Chest_08_Lock
+  MF_Chest_12_Lock -> ASClass /Script/Angelscript.MF_Chest_12_Lock
+  NC_RiceLord_Room_Lock_01 -> ASClass /Script/Angelscript.NC_RiceLord_Room_Lock_01
+  NC_RiceLord_Room_Lock_02 -> ASClass /Script/Angelscript.NC_RiceLord_Room_Lock_02
+  NC_LeeCave_Door_Lock -> ASClass /Script/Angelscript.NC_LeeCave_Door_Lock
+  NC_Cave_Tavern_Door_Lock -> ASClass /Script/Angelscript.NC_Cave_Tavern_Door_Lock
+  NC_Cave_Tavern_Door_Lock_02 -> ASClass /Script/Angelscript.NC_Cave_Tavern_Door_Lock_02
+  NC_Chest_Ricelord_Lock -> ASClass /Script/Angelscript.NC_Chest_Ricelord_Lock
+  NC_Chest_GateInterior_01_Lock -> ASClass /Script/Angelscript.NC_Chest_GateInterior_01_Lock
+  NC_Chest_GateInterior_02_Lock -> ASClass /Script/Angelscript.NC_Chest_GateInterior_02_Lock
+  NC_Chest_Distillery_Lock -> ASClass /Script/Angelscript.NC_Chest_Distillery_Lock
+  NC_Chest_Jeremiah_Lock -> ASClass /Script/Angelscript.NC_Chest_Jeremiah_Lock
+  NC_Chest_Silas_Lock -> ASClass /Script/Angelscript.NC_Chest_Silas_Lock
+  NC_Chest_Lares_Lock -> ASClass /Script/Angelscript.NC_Chest_Lares_Lock
+  NC_Chest_Rogue01_800_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue01_800_Lock
+  NC_Chest_Wolf_Lock -> ASClass /Script/Angelscript.NC_Chest_Wolf_Lock
+  NC_Chest_Bruce_Lock -> ASClass /Script/Angelscript.NC_Chest_Bruce_Lock
+  NC_Chest_Wedge_Lock -> ASClass /Script/Angelscript.NC_Chest_Wedge_Lock
+  NC_Chest_Cipher_Lock -> ASClass /Script/Angelscript.NC_Chest_Cipher_Lock
+  NC_Chest_Rogue10_820_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue10_820_Lock
+  NC_Chest_Sharky_Lock -> ASClass /Script/Angelscript.NC_Chest_Sharky_Lock
+  NC_Chest_Rogue08_816_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue08_816_Lock
+  NC_Chest_Rogue23_838_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue23_838_Lock
+  NC_Chest_Rogue11_821_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue11_821_Lock
+  NC_Chest_Rogue03_806_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue03_806_Lock
+  NC_Chest_Rogue06_811_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue06_811_Lock
+  NC_Chest_Butch_Lock -> ASClass /Script/Angelscript.NC_Chest_Butch_Lock
+  NC_Chest_Homer_Lock -> ASClass /Script/Angelscript.NC_Chest_Homer_Lock
+  NC_Chest_Mercenary07_710_Lock -> ASClass /Script/Angelscript.NC_Chest_Mercenary07_710_Lock
+  NC_Chest_Gorn_Lock -> ASClass /Script/Angelscript.NC_Chest_Gorn_Lock
+  NC_Chest_Blade_Lock -> ASClass /Script/Angelscript.NC_Chest_Blade_Lock
+  NC_Chest_Mercenary06_708_Lock -> ASClass /Script/Angelscript.NC_Chest_Mercenary06_708_Lock
+  NC_Chest_Mercenary02_703_Lock -> ASClass /Script/Angelscript.NC_Chest_Mercenary02_703_Lock
+  NC_Chest_Mercenary03_705_Lock -> ASClass /Script/Angelscript.NC_Chest_Mercenary03_705_Lock
+  NC_Chest_Mercenary04_706_Lock -> ASClass /Script/Angelscript.NC_Chest_Mercenary04_706_Lock
+  NC_Chest_Mercenary17_735_Lock -> ASClass /Script/Angelscript.NC_Chest_Mercenary17_735_Lock
+  NC_Chest_Cord_Lock -> ASClass /Script/Angelscript.NC_Chest_Cord_Lock
+  NC_Chest_Orik_Lock -> ASClass /Script/Angelscript.NC_Chest_Orik_Lock
+  NC_Chest_Lee_Lock -> ASClass /Script/Angelscript.NC_Chest_Lee_Lock
+  NC_Chest_Saturas_Lock -> ASClass /Script/Angelscript.NC_Chest_Saturas_Lock
+  NC_Chest_Nefarius_Lock -> ASClass /Script/Angelscript.NC_Chest_Nefarius_Lock
+  NC_Chest_Riordian_Lock -> ASClass /Script/Angelscript.NC_Chest_Riordian_Lock
+  NC_Chest_Merdarion_Lock -> ASClass /Script/Angelscript.NC_Chest_Merdarion_Lock
+  NC_Chest_Cronos_Lock -> ASClass /Script/Angelscript.NC_Chest_Cronos_Lock
+  NC_Chest_Myxir_Lock -> ASClass /Script/Angelscript.NC_Chest_Myxir_Lock
+  NC_Chest_Buster_Lock -> ASClass /Script/Angelscript.NC_Chest_Buster_Lock
+  NC_Chest_Cellar_Lock -> ASClass /Script/Angelscript.NC_Chest_Cellar_Lock
+  NC_Chest_Lefty_01_Lock -> ASClass /Script/Angelscript.NC_Chest_Lefty_01_Lock
+  NC_Chest_Lefty_02_Lock -> ASClass /Script/Angelscript.NC_Chest_Lefty_02_Lock
+  NC_Chest_Rogue05_810_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue05_810_Lock
+  NC_Chest_Rogue07_815_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue07_815_Lock
+  NC_Chest_Rogue09_817_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue09_817_Lock
+  NC_Chest_Rogue13_823_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue13_823_Lock
+  NC_Chest_Rogue22_837_Lock -> ASClass /Script/Angelscript.NC_Chest_Rogue22_837_Lock
+  NC_Chest_Sunken_01_Lock -> ASClass /Script/Angelscript.NC_Chest_Sunken_01_Lock
+  NC_Chest_Sunken_02_Lock -> ASClass /Script/Angelscript.NC_Chest_Sunken_02_Lock
+  NC_Chest_Torlof_Lock -> ASClass /Script/Angelscript.NC_Chest_Torlof_Lock
+  OA_Chest_01_Lock -> ASClass /Script/Angelscript.OA_Chest_01_Lock
+  OA_Chest_02_Lock -> ASClass /Script/Angelscript.OA_Chest_02_Lock
+  OA_Chest_03_Lock -> ASClass /Script/Angelscript.OA_Chest_03_Lock
+  OA_Chest_04_Lock -> ASClass /Script/Angelscript.OA_Chest_04_Lock
+  OC_Gomez_Room_Lock -> ASClass /Script/Angelscript.OC_Gomez_Room_Lock
+  OC_Orebaron_Room_01_Lock -> ASClass /Script/Angelscript.OC_Orebaron_Room_01_Lock
+  OC_Orebaron_Room_02_Lock -> ASClass /Script/Angelscript.OC_Orebaron_Room_02_Lock
+  OC_Raven_Room_01_Lock -> ASClass /Script/Angelscript.OC_Raven_Room_01_Lock
+  OC_Raven_Room_02_Lock -> ASClass /Script/Angelscript.OC_Raven_Room_02_Lock
+  OC_Mages_Room_01_Lock -> ASClass /Script/Angelscript.OC_Mages_Room_01_Lock
+  OC_Mages_Room_02_Lock -> ASClass /Script/Angelscript.OC_Mages_Room_02_Lock
+  OC_Mages_Room_03_Lock -> ASClass /Script/Angelscript.OC_Mages_Room_03_Lock
+  OC_Guards_Cell_01_Lock -> ASClass /Script/Angelscript.OC_Guards_Cell_01_Lock
+  OC_Guards_Cell_02_Lock -> ASClass /Script/Angelscript.OC_Guards_Cell_02_Lock
+  OC_Forge_Loot_Room_Lock -> ASClass /Script/Angelscript.OC_Forge_Loot_Room_Lock
+  OC_Cellar_Door_Lock -> ASClass /Script/Angelscript.OC_Cellar_Door_Lock
+  OC_Cellar_Lock_02 -> ASClass /Script/Angelscript.OC_Cellar_Lock_02
+  OC_Prison_Dungeons_Moat_Lock -> ASClass /Script/Angelscript.OC_Prison_Dungeons_Moat_Lock
+  OC_Prison_Dungeons_06_Lock -> ASClass /Script/Angelscript.OC_Prison_Dungeons_06_Lock
+  OC_Prison_Dungeons_23_Lock -> ASClass /Script/Angelscript.OC_Prison_Dungeons_23_Lock
+  OC_Prison_Dungeons_09_Lock -> ASClass /Script/Angelscript.OC_Prison_Dungeons_09_Lock
+  OC_Armory_Door_Lock -> ASClass /Script/Angelscript.OC_Armory_Door_Lock
+  OC_Santino_Lock -> ASClass /Script/Angelscript.OC_Santino_Lock
+  OC_Fisk_Hut_Door_Lock -> ASClass /Script/Angelscript.OC_Fisk_Hut_Door_Lock
+  OC_Fisk_Storage_Door_Lock -> ASClass /Script/Angelscript.OC_Fisk_Storage_Door_Lock
+  OC_Cell12_Bandit_Door_Lock -> ASClass /Script/Angelscript.OC_Cell12_Bandit_Door_Lock
+  OC_Chest_Armory_01_Lock -> ASClass /Script/Angelscript.OC_Chest_Armory_01_Lock
+  OC_Chest_Armory_02_Lock -> ASClass /Script/Angelscript.OC_Chest_Armory_02_Lock
+  OC_Chest_Armory_03_Lock -> ASClass /Script/Angelscript.OC_Chest_Armory_03_Lock
+  OC_Chest_Armory_04_Lock -> ASClass /Script/Angelscript.OC_Chest_Armory_04_Lock
+  OC_Chest_Arto_Lock -> ASClass /Script/Angelscript.OC_Chest_Arto_Lock
+  OC_Chest_Balam_Lock -> ASClass /Script/Angelscript.OC_Chest_Balam_Lock
+  OC_Chest_Bloodwyn_Lock -> ASClass /Script/Angelscript.OC_Chest_Bloodwyn_Lock
+  OC_Chest_Bullit_Lock -> ASClass /Script/Angelscript.OC_Chest_Bullit_Lock
+  OC_Chest_Corristo_Lock -> ASClass /Script/Angelscript.OC_Chest_Corristo_Lock
+  OC_Chest_Damarok_Lock -> ASClass /Script/Angelscript.OC_Chest_Damarok_Lock
+  OC_Chest_Drago_Lock -> ASClass /Script/Angelscript.OC_Chest_Drago_Lock
+  OC_Chest_Fletcher_Lock -> ASClass /Script/Angelscript.OC_Chest_Fletcher_Lock
+  OC_Chest_Forge_01_Lock -> ASClass /Script/Angelscript.OC_Chest_Forge_01_Lock
+  OC_Chest_Forge_02_Lock -> ASClass /Script/Angelscript.OC_Chest_Forge_02_Lock
+  OC_Chest_Forge_04_Lock -> ASClass /Script/Angelscript.OC_Chest_Forge_04_Lock
+  OC_Chest_Gomez_01_Lock -> ASClass /Script/Angelscript.OC_Chest_Gomez_01_Lock
+  OC_Chest_Cutter_Lock -> ASClass /Script/Angelscript.OC_Chest_Cutter_Lock
+  OC_Chest_Guard226_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard226_Lock
+  OC_Chest_Guard228_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard228_Lock
+  OC_Chest_Guard229_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard229_Lock
+  OC_Chest_Guard232_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard232_Lock
+  OC_Chest_Guard240_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard240_Lock
+  OC_Chest_Guard242_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard242_Lock
+  OC_Chest_Jackal_Lock -> ASClass /Script/Angelscript.OC_Chest_Jackal_Lock
+  OC_Chest_Kitchen_Lock -> ASClass /Script/Angelscript.OC_Chest_Kitchen_Lock
+  OC_Chest_Omid_Lock -> ASClass /Script/Angelscript.OC_Chest_Omid_Lock
+  OC_Chest_Ruins_01_Lock -> ASClass /Script/Angelscript.OC_Chest_Ruins_01_Lock
+  OC_Chest_Ruins_02_Lock -> ASClass /Script/Angelscript.OC_Chest_Ruins_02_Lock
+  OC_Chest_Scar_Lock -> ASClass /Script/Angelscript.OC_Chest_Scar_Lock
+  OC_Chest_Scorpio_Lock -> ASClass /Script/Angelscript.OC_Chest_Scorpio_Lock
+  OC_Chest_Stone_Lock -> ASClass /Script/Angelscript.OC_Chest_Stone_Lock
+  OC_Chest_Tower_01_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_01_Lock
+  OC_Chest_Tower_02_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_02_Lock
+  OC_Chest_Tower_03_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_03_Lock
+  OC_Chest_Tower_05_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_05_Lock
+  OC_Chest_Tower_06_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_06_Lock
+  OC_Chest_Tower_07_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_07_Lock
+  OC_Chest_Tower_08_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_08_Lock
+  OC_Chest_Tower_09_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_09_Lock
+  OC_Chest_BaalParvez_Lock -> ASClass /Script/Angelscript.OC_Chest_BaalParvez_Lock
+  OC_Chest_Diego_Lock -> ASClass /Script/Angelscript.OC_Chest_Diego_Lock
+  OC_Chest_Digger501_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger501_Lock
+  OC_Chest_Digger502_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger502_Lock
+  OC_Chest_Digger503_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger503_Lock
+  OC_Chest_Digger504_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger504_Lock
+  OC_Chest_Digger505_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger505_Lock
+  OC_Chest_Digger506_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger506_Lock
+  OC_Chest_Digger507_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger507_Lock
+  OC_Chest_Digger508_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger508_Lock
+  OC_Chest_Digger509_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger509_Lock
+  OC_Chest_Digger510_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger510_Lock
+  OC_Chest_Digger512_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger512_Lock
+  OC_Chest_Digger513_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger513_Lock
+  OC_Chest_Digger514_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger514_Lock
+  OC_Chest_Digger515_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger515_Lock
+  OC_Chest_Digger516_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger516_Lock
+  OC_Chest_Digger517_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger517_Lock
+  OC_Chest_Digger519_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger519_Lock
+  OC_Chest_Digger521_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger521_Lock
+  OC_Chest_Digger522_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger522_Lock
+  OC_Chest_Digger523_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger523_Lock
+  OC_Chest_Digger526_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger526_Lock
+  OC_Chest_Digger527_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger527_Lock
+  OC_Chest_Digger528_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger528_Lock
+  OC_Chest_Digger529_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger529_Lock
+  OC_Chest_Digger531_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger531_Lock
+  OC_Chest_Digger532_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger532_Lock
+  OC_Chest_Digger533_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger533_Lock
+  OC_Chest_Digger535_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger535_Lock
+  OC_Chest_Digger553_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger553_Lock
+  OC_Chest_Digger554_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger554_Lock
+  OC_Chest_Digger555_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger555_Lock
+  OC_Chest_Digger556_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger556_Lock
+  OC_Chest_Digger557_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger557_Lock
+  OC_Chest_Digger560_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger560_Lock
+  OC_Chest_Digger561_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger561_Lock
+  OC_Chest_Digger565_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger565_Lock
+  OC_Chest_Digger575_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger575_Lock
+  OC_Chest_Digger576_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger576_Lock
+  OC_Chest_Digger577_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger577_Lock
+  OC_Chest_Dusty_Lock -> ASClass /Script/Angelscript.OC_Chest_Dusty_Lock
+  OC_Chest_Fingers_Lock -> ASClass /Script/Angelscript.OC_Chest_Fingers_Lock
+  OC_Chest_Fisk_01_Lock -> ASClass /Script/Angelscript.OC_Chest_Fisk_01_Lock
+  OC_Chest_Fisk_02_Lock -> ASClass /Script/Angelscript.OC_Chest_Fisk_02_Lock
+  OC_Chest_Fisk_03_Lock -> ASClass /Script/Angelscript.OC_Chest_Fisk_03_Lock
+  OC_Chest_Fisk_04_Lock -> ASClass /Script/Angelscript.OC_Chest_Fisk_04_Lock
+  OC_Chest_Fisk_05_Lock -> ASClass /Script/Angelscript.OC_Chest_Fisk_05_Lock
+  OC_Chest_Fisk_06_Lock -> ASClass /Script/Angelscript.OC_Chest_Fisk_06_Lock
+  OC_Chest_Fisk_07_Lock -> ASClass /Script/Angelscript.OC_Chest_Fisk_07_Lock
+  OC_Chest_Fisk_08_Lock -> ASClass /Script/Angelscript.OC_Chest_Fisk_08_Lock
+  OC_Chest_GorHanis_Lock -> ASClass /Script/Angelscript.OC_Chest_GorHanis_Lock
+  OC_Chest_Gravo_Lock -> ASClass /Script/Angelscript.OC_Chest_Gravo_Lock
+  OC_Chest_Grim_Lock -> ASClass /Script/Angelscript.OC_Chest_Grim_Lock
+  OC_Chest_Guy_Lock -> ASClass /Script/Angelscript.OC_Chest_Guy_Lock
+  OC_Chest_Huno_Lock -> ASClass /Script/Angelscript.OC_Chest_Huno_Lock
+  OC_Chest_Jesse_Lock -> ASClass /Script/Angelscript.OC_Chest_Jesse_Lock
+  OC_Chest_Kharim_Lock -> ASClass /Script/Angelscript.OC_Chest_Kharim_Lock
+  OC_Chest_Kirgo_Lock -> ASClass /Script/Angelscript.OC_Chest_Kirgo_Lock
+  OC_Chest_Kyle_Lock -> ASClass /Script/Angelscript.OC_Chest_Kyle_Lock
+  OC_Chest_Mordrag_Lock -> ASClass /Script/Angelscript.OC_Chest_Mordrag_Lock
+  OC_Chest_Mud_Lock -> ASClass /Script/Angelscript.OC_Chest_Mud_Lock
+  OC_Chest_Scatty_Lock -> ASClass /Script/Angelscript.OC_Chest_Scatty_Lock
+  OC_Chest_Shadow304_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow304_Lock
+  OC_Chest_Shadow306_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow306_Lock
+  OC_Chest_Shadow310_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow310_Lock
+  OC_Chest_Shadow313_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow313_Lock
+  OC_Chest_Shadow314_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow314_Lock
+  OC_Chest_Shadow316_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow316_Lock
+  OC_Chest_Shadow318_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow318_Lock
+  OC_Chest_Shadow319_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow319_Lock
+  OC_Chest_Shadow322_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow322_Lock
+  OC_Chest_Shadow328_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow328_Lock
+  OC_Chest_Shadow330_Lock -> ASClass /Script/Angelscript.OC_Chest_Shadow330_Lock
+  OC_Chest_Sly_Lock -> ASClass /Script/Angelscript.OC_Chest_Sly_Lock
+  OC_Chest_Snaf_01_Lock -> ASClass /Script/Angelscript.OC_Chest_Snaf_01_Lock
+  OC_Chest_Snaf_02_Lock -> ASClass /Script/Angelscript.OC_Chest_Snaf_02_Lock
+  OC_Chest_01_Lock -> ASClass /Script/Angelscript.OC_Chest_01_Lock
+  OC_Chest_02_Lock -> ASClass /Script/Angelscript.OC_Chest_02_Lock
+  OC_Chest_Bettingowner_Lock -> ASClass /Script/Angelscript.OC_Chest_Bettingowner_Lock
+  OC_Chest_Dexter_Lock -> ASClass /Script/Angelscript.OC_Chest_Dexter_Lock
+  OC_Chest_Digger578_Lock -> ASClass /Script/Angelscript.OC_Chest_Digger578_Lock
+  OC_Chest_Graham_Lock -> ASClass /Script/Angelscript.OC_Chest_Graham_Lock
+  OC_Chest_Guard206_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard206_Lock
+  OC_Chest_Guard209_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard209_Lock
+  OC_Chest_Guard221_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard221_Lock
+  OC_Chest_Guard239_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard239_Lock
+  OC_Chest_Guard241_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard241_Lock
+  OC_Chest_Guard252_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard252_Lock
+  OC_Chest_Guard253_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard253_Lock
+  OC_Chest_Herek_Lock -> ASClass /Script/Angelscript.OC_Chest_Herek_Lock
+  OC_Chest_Milten_Lock -> ASClass /Script/Angelscript.OC_Chest_Milten_Lock
+  OC_Chest_Rodriguez_Lock -> ASClass /Script/Angelscript.OC_Chest_Rodriguez_Lock
+  OC_Chest_Skip_Lock -> ASClass /Script/Angelscript.OC_Chest_Skip_Lock
+  OC_Chest_Torrez_Lock -> ASClass /Script/Angelscript.OC_Chest_Torrez_Lock
+  OC_Chest_Whistler_Lock -> ASClass /Script/Angelscript.OC_Chest_Whistler_Lock
+  OC_Chest_Guard220_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard220_Lock
+  OM_Chest_Aaron_Lock -> ASClass /Script/Angelscript.OM_Chest_Aaron_Lock
+  OM_Chest_Alberto_01_Lock -> ASClass /Script/Angelscript.OM_Chest_Alberto_01_Lock
+  OM_Chest_Alberto_03_Lock -> ASClass /Script/Angelscript.OM_Chest_Alberto_03_Lock
+  OM_Chest_Alberto_04_Lock -> ASClass /Script/Angelscript.OM_Chest_Alberto_04_Lock
+  OM_Chest_Alberto_05_Lock -> ASClass /Script/Angelscript.OM_Chest_Alberto_05_Lock
+  OM_Chest_Santino_01_Lock -> ASClass /Script/Angelscript.OM_Chest_Santino_01_Lock
+  OM_Chest_Santino_02_Lock -> ASClass /Script/Angelscript.OM_Chest_Santino_02_Lock
+  OM_Chest_Santino_03_Lock -> ASClass /Script/Angelscript.OM_Chest_Santino_03_Lock
+  OM_Chest_Ulbert_01_Lock -> ASClass /Script/Angelscript.OM_Chest_Ulbert_01_Lock
+  OM_Chest_Ulbert_02_Lock -> ASClass /Script/Angelscript.OM_Chest_Ulbert_02_Lock
+  OC_Chest_Guard230_Lock -> ASClass /Script/Angelscript.OC_Chest_Guard230_Lock
+  OC_Chest_Tower_04_Lock -> ASClass /Script/Angelscript.OC_Chest_Tower_04_Lock
+  OC_Chest_Raven_Lock -> ASClass /Script/Angelscript.OC_Chest_Raven_Lock
+  OC_Chest_Bartholo_Lock -> ASClass /Script/Angelscript.OC_Chest_Bartholo_Lock
+  OC_Chest_Thorus_Lock -> ASClass /Script/Angelscript.OC_Chest_Thorus_Lock
+  OC_Chest_Throne_01_Lock -> ASClass /Script/Angelscript.OC_Chest_Throne_01_Lock
+  OCS_Chest_04_Lock -> ASClass /Script/Angelscript.OCS_Chest_04_Lock
+  OG_Chest_01_Lock -> ASClass /Script/Angelscript.OG_Chest_01_Lock
+  Otown_Chest_01_Lock -> ASClass /Script/Angelscript.Otown_Chest_01_Lock
+  Otown_Chest_02_Lock -> ASClass /Script/Angelscript.Otown_Chest_02_Lock
+  Otown_Chest_03_Lock -> ASClass /Script/Angelscript.Otown_Chest_03_Lock
+  Otown_Chest_04_Lock -> ASClass /Script/Angelscript.Otown_Chest_04_Lock
+  OTT_Chest_05_Lock -> ASClass /Script/Angelscript.OTT_Chest_05_Lock
+  OTT_Chest_06_Lock -> ASClass /Script/Angelscript.OTT_Chest_06_Lock
+  OTT_Chest_09_Lock -> ASClass /Script/Angelscript.OTT_Chest_09_Lock
+  SNT_LootCage_Door_Lock -> ASClass /Script/Angelscript.SNT_LootCage_Door_Lock
+  SNT_Chest_04_Lock -> ASClass /Script/Angelscript.SNT_Chest_04_Lock
+  SNT_Chest_06_Lock -> ASClass /Script/Angelscript.SNT_Chest_06_Lock
+  SNT_Chest_09_Lock -> ASClass /Script/Angelscript.SNT_Chest_09_Lock
+  SW_Captain_Ship_Door_Lock -> ASClass /Script/Angelscript.SW_Captain_Ship_Door_Lock
+  SW_Chest_01_Lock -> ASClass /Script/Angelscript.SW_Chest_01_Lock
+  SW_Chest_02_Lock -> ASClass /Script/Angelscript.SW_Chest_02_Lock
+  SW_Chest_03_Lock -> ASClass /Script/Angelscript.SW_Chest_03_Lock
+  SW_Chest_07_Lock -> ASClass /Script/Angelscript.SW_Chest_07_Lock
+  TST_Chest_Forge_01_Lock -> ASClass /Script/Angelscript.TST_Chest_Forge_01_Lock
+  TST_Chest_Lava_Stronghold_01_Lock -> ASClass /Script/Angelscript.TST_Chest_Lava_Stronghold_01_Lock
+  TST_Chest_Slave_01_Lock -> ASClass /Script/Angelscript.TST_Chest_Slave_01_Lock
+  TST_Chest_WinchRoom_01_Lock -> ASClass /Script/Angelscript.TST_Chest_WinchRoom_01_Lock
+  TST_Chest_WinchRoom_02_Lock -> ASClass /Script/Angelscript.TST_Chest_WinchRoom_02_Lock
+  TST_Chest_WinchRoom_03_Lock -> ASClass /Script/Angelscript.TST_Chest_WinchRoom_03_Lock
+  TST_Chest_Sleeper_01_Lock -> ASClass /Script/Angelscript.TST_Chest_Sleeper_01_Lock
+  TST_Chest_Sleeper_02_Lock -> ASClass /Script/Angelscript.TST_Chest_Sleeper_02_Lock
+  TST_Chest_Lava_Stronghold_02_Lock -> ASClass /Script/Angelscript.TST_Chest_Lava_Stronghold_02_Lock
+  SC_Chest_CorKalom_01_Lock -> ASClass /Script/Angelscript.SC_Chest_CorKalom_01_Lock
+  SC_Chest_Natalia_Lock -> ASClass /Script/Angelscript.SC_Chest_Natalia_Lock
+  SC_Chest_Yberion_Lock -> ASClass /Script/Angelscript.SC_Chest_Yberion_Lock
+  SC_Chest_Chani_Lock -> ASClass /Script/Angelscript.SC_Chest_Chani_Lock
+  SC_Chest_Blacksmith_Lock -> ASClass /Script/Angelscript.SC_Chest_Blacksmith_Lock
+  SC_Chest_BaalCadar_Lock -> ASClass /Script/Angelscript.SC_Chest_BaalCadar_Lock
+  SC_Chest_BaalNamib_Lock -> ASClass /Script/Angelscript.SC_Chest_BaalNamib_Lock
+  SC_Chest_BaalOrun_Lock -> ASClass /Script/Angelscript.SC_Chest_BaalOrun_Lock
+  SC_Chest_BaalTondral_Lock -> ASClass /Script/Angelscript.SC_Chest_BaalTondral_Lock
+  SC_Chest_CorAngar_Lock -> ASClass /Script/Angelscript.SC_Chest_CorAngar_Lock
+  SC_Chest_CorKalom_03_Lock -> ASClass /Script/Angelscript.SC_Chest_CorKalom_03_Lock
+  SC_Chest_Fortuno_Lock -> ASClass /Script/Angelscript.SC_Chest_Fortuno_Lock
+  SC_Chest_Nyras_Lock -> ASClass /Script/Angelscript.SC_Chest_Nyras_Lock
+  SC_Chest_Viran_Lock -> ASClass /Script/Angelscript.SC_Chest_Viran_Lock
+  XT_ExperimentalChamber_Door_Lock -> ASClass /Script/Angelscript.XT_ExperimentalChamber_Door_Lock
+  XT_Chest_01_Lock -> ASClass /Script/Angelscript.XT_Chest_01_Lock
+  XT_Chest_02_Lock -> ASClass /Script/Angelscript.XT_Chest_02_Lock
+  XT_Chest_03_Lock -> ASClass /Script/Angelscript.XT_Chest_03_Lock
+  XT_Chest_04_Lock -> ASClass /Script/Angelscript.XT_Chest_04_Lock
+  XT_Chest_05_Lock -> ASClass /Script/Angelscript.XT_Chest_05_Lock
+  XT_Chest_06_Lock -> ASClass /Script/Angelscript.XT_Chest_06_Lock
+======== dump end ========
+== GothicLockPieceActor (minigame) ==
+  live pieces: 21
+  PieceId=4 Type=2
+  PieceId=5 Type=2
+  PieceId=0 Type=2
+  PieceId=6 Type=2
+  PieceId=1 Type=2
+  PieceId=2 Type=2
+  PieceId=3 Type=2
+  PieceId=4 Type=3
+  PieceId=0 Type=3
+  PieceId=1 Type=3
+  PieceId=2 Type=3
+  PieceId=3 Type=3
+  PieceId=5 Type=3
+  PieceId=6 Type=3
+  PieceId=4 Type=1
+  PieceId=0 Type=1
+  PieceId=1 Type=1
+  PieceId=2 Type=1
+  PieceId=3 Type=1
+  PieceId=5 Type=1
+  PieceId=6 Type=1
+== LockPickSubsystem ==
+  LockPickSubsystem /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979
+  m_InstancedLocks:
+    Test_Lock_Difficulty_1_01 -> Test_Lock_Difficulty_1_01 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_01_2147343604
+    Test_Lock_Difficulty_1_02 -> Test_Lock_Difficulty_1_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_02_2147343603
+    Test_Lock_Difficulty_1_03 -> Test_Lock_Difficulty_1_03 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_03_2147343602
+    Test_Lock_Difficulty_1_04 -> Test_Lock_Difficulty_1_04 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_04_2147343601
+    Test_Lock_Difficulty_1_05 -> Test_Lock_Difficulty_1_05 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_05_2147343600
+    Test_Lock_Difficulty_1_06 -> Test_Lock_Difficulty_1_06 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_06_2147343599
+    Test_Lock_Difficulty_1_07 -> Test_Lock_Difficulty_1_07 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_07_2147343598
+    Test_Lock_Difficulty_1_08 -> Test_Lock_Difficulty_1_08 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_08_2147343597
+    Test_Lock_Difficulty_1_09 -> Test_Lock_Difficulty_1_09 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_09_2147343596
+    Test_Lock_Difficulty_1_10 -> Test_Lock_Difficulty_1_10 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_1_2147343595
+    Test_Lock_Difficulty_2_01 -> Test_Lock_Difficulty_2_01 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_01_2147343594
+    Test_Lock_Difficulty_2_02 -> Test_Lock_Difficulty_2_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_02_2147343593
+    Test_Lock_Difficulty_2_03 -> Test_Lock_Difficulty_2_03 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_03_2147343592
+    Test_Lock_Difficulty_2_04 -> Test_Lock_Difficulty_2_04 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_04_2147343591
+    Test_Lock_Difficulty_2_05 -> Test_Lock_Difficulty_2_05 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_05_2147343590
+    Test_Lock_Difficulty_2_06 -> Test_Lock_Difficulty_2_06 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_06_2147343589
+    Test_Lock_Difficulty_2_07 -> Test_Lock_Difficulty_2_07 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_07_2147343588
+    Test_Lock_Difficulty_2_08 -> Test_Lock_Difficulty_2_08 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_08_2147343587
+    Test_Lock_Difficulty_2_09 -> Test_Lock_Difficulty_2_09 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_09_2147343586
+    Test_Lock_Difficulty_2_10 -> Test_Lock_Difficulty_2_10 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_2_2147343585
+    Test_Lock_Difficulty_3_01 -> Test_Lock_Difficulty_3_01 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_01_2147343584
+    Test_Lock_Difficulty_3_02 -> Test_Lock_Difficulty_3_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_02_2147343583
+    Test_Lock_Difficulty_3_03 -> Test_Lock_Difficulty_3_03 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_03_2147343582
+    Test_Lock_Difficulty_3_04 -> Test_Lock_Difficulty_3_04 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_04_2147343581
+    Test_Lock_Difficulty_3_05 -> Test_Lock_Difficulty_3_05 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_05_2147343580
+    Test_Lock_Difficulty_3_06 -> Test_Lock_Difficulty_3_06 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_06_2147343579
+    Test_Lock_Difficulty_3_07 -> Test_Lock_Difficulty_3_07 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_07_2147343578
+    Test_Lock_Difficulty_3_08 -> Test_Lock_Difficulty_3_08 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_08_2147343577
+    Test_Lock_Difficulty_3_09 -> Test_Lock_Difficulty_3_09 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_09_2147343576
+    Test_Lock_Difficulty_3_10 -> Test_Lock_Difficulty_3_10 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_3_2147343575
+    Test_Lock_Difficulty_4_01 -> Test_Lock_Difficulty_4_01 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_01_2147343574
+    Test_Lock_Difficulty_4_02 -> Test_Lock_Difficulty_4_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_02_2147343573
+    Test_Lock_Difficulty_4_03 -> Test_Lock_Difficulty_4_03 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_03_2147343572
+    Test_Lock_Difficulty_4_04 -> Test_Lock_Difficulty_4_04 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_04_2147343571
+    Test_Lock_Difficulty_4_05 -> Test_Lock_Difficulty_4_05 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_05_2147343570
+    Test_Lock_Difficulty_4_06 -> Test_Lock_Difficulty_4_06 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_06_2147343569
+    Test_Lock_Difficulty_4_07 -> Test_Lock_Difficulty_4_07 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_07_2147343568
+    Test_Lock_Difficulty_4_08 -> Test_Lock_Difficulty_4_08 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_08_2147343567
+    Test_Lock_Difficulty_4_09 -> Test_Lock_Difficulty_4_09 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_09_2147343566
+    Test_Lock_Difficulty_4_10 -> Test_Lock_Difficulty_4_10 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_4_2147343565
+    Test_Lock_Difficulty_5_01 -> Test_Lock_Difficulty_5_01 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_01_2147343564
+    Test_Lock_Difficulty_5_02 -> Test_Lock_Difficulty_5_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_02_2147343563
+    Test_Lock_Difficulty_5_03 -> Test_Lock_Difficulty_5_03 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_03_2147343562
+    Test_Lock_Difficulty_5_04 -> Test_Lock_Difficulty_5_04 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_04_2147343561
+    Test_Lock_Difficulty_5_05 -> Test_Lock_Difficulty_5_05 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_05_2147343560
+    Test_Lock_Difficulty_5_06 -> Test_Lock_Difficulty_5_06 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_06_2147343559
+    Test_Lock_Difficulty_5_07 -> Test_Lock_Difficulty_5_07 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_07_2147343558
+    Test_Lock_Difficulty_5_08 -> Test_Lock_Difficulty_5_08 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_08_2147343557
+    Test_Lock_Difficulty_5_09 -> Test_Lock_Difficulty_5_09 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_09_2147343556
+    Test_Lock_Difficulty_5_10 -> Test_Lock_Difficulty_5_10 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_5_2147343555
+    Test_Lock_Difficulty_6_01 -> Test_Lock_Difficulty_6_01 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_01_2147343554
+    Test_Lock_Difficulty_6_02 -> Test_Lock_Difficulty_6_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_02_2147343553
+    Test_Lock_Difficulty_6_03 -> Test_Lock_Difficulty_6_03 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_03_2147343552
+    Test_Lock_Difficulty_6_04 -> Test_Lock_Difficulty_6_04 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_04_2147343551
+    Test_Lock_Difficulty_6_05 -> Test_Lock_Difficulty_6_05 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_05_2147343550
+    Test_Lock_Difficulty_6_06 -> Test_Lock_Difficulty_6_06 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_06_2147343549
+    Test_Lock_Difficulty_6_07 -> Test_Lock_Difficulty_6_07 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_07_2147343548
+    Test_Lock_Difficulty_6_08 -> Test_Lock_Difficulty_6_08 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_08_2147343547
+    Test_Lock_Difficulty_6_09 -> Test_Lock_Difficulty_6_09 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_09_2147343546
+    Test_Lock_Difficulty_6_10 -> Test_Lock_Difficulty_6_10 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_6_2147343545
+    Test_Lock_Difficulty_7_01 -> Test_Lock_Difficulty_7_01 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_01_2147343544
+    Test_Lock_Difficulty_7_02 -> Test_Lock_Difficulty_7_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_02_2147343543
+    Test_Lock_Difficulty_7_03 -> Test_Lock_Difficulty_7_03 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_03_2147343542
+    Test_Lock_Difficulty_7_04 -> Test_Lock_Difficulty_7_04 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_04_2147343541
+    Test_Lock_Difficulty_7_05 -> Test_Lock_Difficulty_7_05 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_05_2147343540
+    Test_Lock_Difficulty_7_06 -> Test_Lock_Difficulty_7_06 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_06_2147343539
+    Test_Lock_Difficulty_7_07 -> Test_Lock_Difficulty_7_07 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_07_2147343538
+    Test_Lock_Difficulty_7_08 -> Test_Lock_Difficulty_7_08 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_08_2147343537
+    Test_Lock_Difficulty_7_09 -> Test_Lock_Difficulty_7_09 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_09_2147343536
+    Test_Lock_Difficulty_7_10 -> Test_Lock_Difficulty_7_10 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Test_Lock_Difficulty_7_2147343535
+    AM_Chest_04_Lock -> AM_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.AM_Chest_04_Lock_2147343534
+    AM_Chest_05_Lock -> AM_Chest_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.AM_Chest_05_Lock_2147343533
+    AMR_Storage_Room_Lock -> AMR_Storage_Room_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.AMR_Storage_Room_Lock_2147343532
+    AMR_Chest_04_Lock -> AMR_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.AMR_Chest_04_Lock_2147343531
+    BC_LootCave_Door_Lock -> BC_LootCave_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_LootCave_Door_Lock_2147343530
+    BC_LootCave_Door_Lock_02 -> BC_LootCave_Door_Lock_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_LootCave_Door_Lock_02_2147343529
+    BC_Chest_01_Lock -> BC_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_01_Lock_2147343528
+    BC_Chest_02_Lock -> BC_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_02_Lock_2147343527
+    BC_Chest_03_Lock -> BC_Chest_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_03_Lock_2147343526
+    BC_Chest_04_Lock -> BC_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_04_Lock_2147343525
+    BC_Chest_05_Lock -> BC_Chest_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_05_Lock_2147343524
+    BC_Chest_07_Lock -> BC_Chest_07_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_07_Lock_2147343523
+    BC_Chest_08_Lock -> BC_Chest_08_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_08_Lock_2147343522
+    BC_Chest_09_Lock -> BC_Chest_09_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_09_Lock_2147343521
+    BC_Chest_10_Lock -> BC_Chest_10_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_10_Lock_2147343520
+    BC_Chest_11_Lock -> BC_Chest_11_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_11_Lock_2147343519
+    BC_Chest_12_Lock -> BC_Chest_12_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_12_Lock_2147343518
+    BC_Chest_13_Lock -> BC_Chest_13_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_13_Lock_2147343517
+    BC_Chest_14_Lock -> BC_Chest_14_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_14_Lock_2147343516
+    BC_Chest_15_Lock -> BC_Chest_15_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_15_Lock_2147343515
+    BC_Chest_16_Lock -> BC_Chest_16_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_16_Lock_2147343514
+    BC_Chest_17_Lock -> BC_Chest_17_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_17_Lock_2147343513
+    BC_Chest_18_Lock -> BC_Chest_18_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_18_Lock_2147343512
+    BC_Chest_19_Lock -> BC_Chest_19_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_19_Lock_2147343511
+    BC_Chest_20_Lock -> BC_Chest_20_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_20_Lock_2147343510
+    BC_Chest_22_Lock -> BC_Chest_22_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_22_Lock_2147343509
+    BC_Chest_23_Lock -> BC_Chest_23_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BC_Chest_23_Lock_2147343508
+    BT_Tower_Door_Lock -> BT_Tower_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BT_Tower_Door_Lock_2147343507
+    BT_Chest_01_Lock -> BT_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BT_Chest_01_Lock_2147343506
+    BT_Chest_02_Lock -> BT_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.BT_Chest_02_Lock_2147343505
+    CR_Chest_01_Lock -> CR_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.CR_Chest_01_Lock_2147343504
+    CR_Chest_02_Lock -> CR_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.CR_Chest_02_Lock_2147343503
+    CV_Stash_Door_Lock -> CV_Stash_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.CV_Stash_Door_Lock_2147343502
+    CV_Chest_01_Lock -> CV_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.CV_Chest_01_Lock_2147343501
+    CV_Chest_02_Lock -> CV_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.CV_Chest_02_Lock_2147343500
+    CV_Chest_07_Lock -> CV_Chest_07_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.CV_Chest_07_Lock_2147343499
+    CV_Chest_09_Lock -> CV_Chest_09_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.CV_Chest_09_Lock_2147343498
+    CV_Chest_10_Lock -> CV_Chest_10_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.CV_Chest_10_Lock_2147343497
+    EF_Chest_03_Lock -> EF_Chest_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.EF_Chest_03_Lock_2147343496
+    EF_Chest_05_Lock -> EF_Chest_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.EF_Chest_05_Lock_2147343495
+    EZ_LootCage_Door_Lock -> EZ_LootCage_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.EZ_LootCage_Door_Lock_2147343494
+    FM_AbandonedGallery_Door_Lock -> FM_AbandonedGallery_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FM_AbandonedGallery_Door_Lock_2147343493
+    FM_Chest_Furnace_01_Lock -> FM_Chest_Furnace_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FM_Chest_Furnace_01_Lock_2147343492
+    FM_Chest_Furnace_02_Lock -> FM_Chest_Furnace_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FM_Chest_Furnace_02_Lock_2147343491
+    FM_Chest_Gallery_01_Lock -> FM_Chest_Gallery_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FM_Chest_Gallery_01_Lock_2147343490
+    FME_Chest_Gate_Lock -> FME_Chest_Gate_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FME_Chest_Gate_Lock_2147343489
+    FME_Chest_Mercenary13_765_01_Lock -> FME_Chest_Mercenary13_765_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FME_Chest_Mercenary13_765_01_Lock_2147343488
+    FME_Chest_Mercenary13_765_02_Lock -> FME_Chest_Mercenary13_765_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FME_Chest_Mercenary13_765_02_Lock_2147343487
+    FME_Chest_EmptyHut_02_Lock -> FME_Chest_EmptyHut_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FME_Chest_EmptyHut_02_Lock_2147343486
+    FME_Chest_Swiney_Lock -> FME_Chest_Swiney_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FME_Chest_Swiney_Lock_2147343485
+    FME_Chest_EmptyHut_04_Lock -> FME_Chest_EmptyHut_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FME_Chest_EmptyHut_04_Lock_2147343484
+    FME_Chest_EmptyHut_05_Lock -> FME_Chest_EmptyHut_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FME_Chest_EmptyHut_05_Lock_2147343483
+    FME_Chest_ControlAccess_Lock -> FME_Chest_ControlAccess_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.FME_Chest_ControlAccess_Lock_2147343482
+    IWML_Chest_01_Lock -> IWML_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.IWML_Chest_01_Lock_2147343481
+    IWML_Chest_02_Lock -> IWML_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.IWML_Chest_02_Lock_2147343480
+    IWML_Chest_03_Lock -> IWML_Chest_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.IWML_Chest_03_Lock_2147343479
+    IWML_Chest_04_Lock -> IWML_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.IWML_Chest_04_Lock_2147343478
+    IWML_Chest_05_Lock -> IWML_Chest_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.IWML_Chest_05_Lock_2147343477
+    MF_CellarCages_Lock -> MF_CellarCages_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.MF_CellarCages_Lock_2147343476
+    MF_CellarCages_Lock_02 -> MF_CellarCages_Lock_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.MF_CellarCages_Lock_02_2147343475
+    MF_Chest_01_Lock -> MF_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.MF_Chest_01_Lock_2147343474
+    MF_Chest_04_Lock -> MF_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.MF_Chest_04_Lock_2147343473
+    MF_Chest_07_Lock -> MF_Chest_07_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.MF_Chest_07_Lock_2147343472
+    MF_Chest_08_Lock -> MF_Chest_08_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.MF_Chest_08_Lock_2147343471
+    MF_Chest_12_Lock -> MF_Chest_12_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.MF_Chest_12_Lock_2147343470
+    NC_RiceLord_Room_Lock_01 -> NC_RiceLord_Room_Lock_01 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_RiceLord_Room_Lock_01_2147343469
+    NC_RiceLord_Room_Lock_02 -> NC_RiceLord_Room_Lock_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_RiceLord_Room_Lock_02_2147343468
+    NC_LeeCave_Door_Lock -> NC_LeeCave_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_LeeCave_Door_Lock_2147343467
+    NC_Cave_Tavern_Door_Lock -> NC_Cave_Tavern_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Cave_Tavern_Door_Lock_2147343466
+    NC_Cave_Tavern_Door_Lock_02 -> NC_Cave_Tavern_Door_Lock_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Cave_Tavern_Door_Lock_02_2147343465
+    NC_Chest_Ricelord_Lock -> NC_Chest_Ricelord_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Ricelord_Lock_2147343464
+    NC_Chest_GateInterior_01_Lock -> NC_Chest_GateInterior_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_GateInterior_01_Lock_2147343463
+    NC_Chest_GateInterior_02_Lock -> NC_Chest_GateInterior_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_GateInterior_02_Lock_2147343462
+    NC_Chest_Distillery_Lock -> NC_Chest_Distillery_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Distillery_Lock_2147343461
+    NC_Chest_Jeremiah_Lock -> NC_Chest_Jeremiah_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Jeremiah_Lock_2147343460
+    NC_Chest_Silas_Lock -> NC_Chest_Silas_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Silas_Lock_2147343459
+    NC_Chest_Lares_Lock -> NC_Chest_Lares_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Lares_Lock_2147343458
+    NC_Chest_Rogue01_800_Lock -> NC_Chest_Rogue01_800_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue01_800_Lock_2147343457
+    NC_Chest_Wolf_Lock -> NC_Chest_Wolf_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Wolf_Lock_2147343456
+    NC_Chest_Bruce_Lock -> NC_Chest_Bruce_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Bruce_Lock_2147343455
+    NC_Chest_Wedge_Lock -> NC_Chest_Wedge_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Wedge_Lock_2147343454
+    NC_Chest_Cipher_Lock -> NC_Chest_Cipher_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Cipher_Lock_2147343453
+    NC_Chest_Rogue10_820_Lock -> NC_Chest_Rogue10_820_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue10_820_Lock_2147343452
+    NC_Chest_Sharky_Lock -> NC_Chest_Sharky_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Sharky_Lock_2147343451
+    NC_Chest_Rogue08_816_Lock -> NC_Chest_Rogue08_816_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue08_816_Lock_2147343450
+    NC_Chest_Rogue23_838_Lock -> NC_Chest_Rogue23_838_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue23_838_Lock_2147343449
+    NC_Chest_Rogue11_821_Lock -> NC_Chest_Rogue11_821_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue11_821_Lock_2147343448
+    NC_Chest_Rogue03_806_Lock -> NC_Chest_Rogue03_806_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue03_806_Lock_2147343447
+    NC_Chest_Rogue06_811_Lock -> NC_Chest_Rogue06_811_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue06_811_Lock_2147343446
+    NC_Chest_Butch_Lock -> NC_Chest_Butch_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Butch_Lock_2147343445
+    NC_Chest_Homer_Lock -> NC_Chest_Homer_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Homer_Lock_2147343444
+    NC_Chest_Mercenary07_710_Lock -> NC_Chest_Mercenary07_710_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Mercenary07_710_Lock_2147343443
+    NC_Chest_Gorn_Lock -> NC_Chest_Gorn_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Gorn_Lock_2147343442
+    NC_Chest_Blade_Lock -> NC_Chest_Blade_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Blade_Lock_2147343441
+    NC_Chest_Mercenary06_708_Lock -> NC_Chest_Mercenary06_708_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Mercenary06_708_Lock_2147343440
+    NC_Chest_Mercenary02_703_Lock -> NC_Chest_Mercenary02_703_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Mercenary02_703_Lock_2147343439
+    NC_Chest_Mercenary03_705_Lock -> NC_Chest_Mercenary03_705_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Mercenary03_705_Lock_2147343438
+    NC_Chest_Mercenary04_706_Lock -> NC_Chest_Mercenary04_706_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Mercenary04_706_Lock_2147343437
+    NC_Chest_Mercenary17_735_Lock -> NC_Chest_Mercenary17_735_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Mercenary17_735_Lock_2147343436
+    NC_Chest_Cord_Lock -> NC_Chest_Cord_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Cord_Lock_2147343435
+    NC_Chest_Orik_Lock -> NC_Chest_Orik_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Orik_Lock_2147343434
+    NC_Chest_Lee_Lock -> NC_Chest_Lee_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Lee_Lock_2147343433
+    NC_Chest_Saturas_Lock -> NC_Chest_Saturas_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Saturas_Lock_2147343432
+    NC_Chest_Nefarius_Lock -> NC_Chest_Nefarius_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Nefarius_Lock_2147343431
+    NC_Chest_Riordian_Lock -> NC_Chest_Riordian_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Riordian_Lock_2147343430
+    NC_Chest_Merdarion_Lock -> NC_Chest_Merdarion_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Merdarion_Lock_2147343429
+    NC_Chest_Cronos_Lock -> NC_Chest_Cronos_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Cronos_Lock_2147343428
+    NC_Chest_Myxir_Lock -> NC_Chest_Myxir_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Myxir_Lock_2147343427
+    NC_Chest_Buster_Lock -> NC_Chest_Buster_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Buster_Lock_2147343426
+    NC_Chest_Cellar_Lock -> NC_Chest_Cellar_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Cellar_Lock_2147343425
+    NC_Chest_Lefty_01_Lock -> NC_Chest_Lefty_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Lefty_01_Lock_2147343424
+    NC_Chest_Lefty_02_Lock -> NC_Chest_Lefty_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Lefty_02_Lock_2147343423
+    NC_Chest_Rogue05_810_Lock -> NC_Chest_Rogue05_810_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue05_810_Lock_2147343422
+    NC_Chest_Rogue07_815_Lock -> NC_Chest_Rogue07_815_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue07_815_Lock_2147343421
+    NC_Chest_Rogue09_817_Lock -> NC_Chest_Rogue09_817_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue09_817_Lock_2147343420
+    NC_Chest_Rogue13_823_Lock -> NC_Chest_Rogue13_823_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue13_823_Lock_2147343419
+    NC_Chest_Rogue22_837_Lock -> NC_Chest_Rogue22_837_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Rogue22_837_Lock_2147343418
+    NC_Chest_Sunken_01_Lock -> NC_Chest_Sunken_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Sunken_01_Lock_2147343417
+    NC_Chest_Sunken_02_Lock -> NC_Chest_Sunken_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Sunken_02_Lock_2147343416
+    NC_Chest_Torlof_Lock -> NC_Chest_Torlof_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.NC_Chest_Torlof_Lock_2147343415
+    OA_Chest_01_Lock -> OA_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OA_Chest_01_Lock_2147343414
+    OA_Chest_02_Lock -> OA_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OA_Chest_02_Lock_2147343413
+    OA_Chest_03_Lock -> OA_Chest_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OA_Chest_03_Lock_2147343412
+    OA_Chest_04_Lock -> OA_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OA_Chest_04_Lock_2147343411
+    OC_Gomez_Room_Lock -> OC_Gomez_Room_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Gomez_Room_Lock_2147343410
+    OC_Orebaron_Room_01_Lock -> OC_Orebaron_Room_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Orebaron_Room_01_Lock_2147343409
+    OC_Orebaron_Room_02_Lock -> OC_Orebaron_Room_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Orebaron_Room_02_Lock_2147343408
+    OC_Raven_Room_01_Lock -> OC_Raven_Room_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Raven_Room_01_Lock_2147343407
+    OC_Raven_Room_02_Lock -> OC_Raven_Room_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Raven_Room_02_Lock_2147343406
+    Test_Lock_85_07 -> OC_Mages_Room_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Mages_Room_01_Lock_2147343405
+    OC_Mages_Room_02_Lock -> OC_Mages_Room_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Mages_Room_02_Lock_2147343404
+    OC_Mages_Room_03_Lock -> OC_Mages_Room_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Mages_Room_03_Lock_2147343403
+    OC_Guards_Cell_01_Lock -> OC_Guards_Cell_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Guards_Cell_01_Lock_2147343402
+    OC_Guards_Cell_02_Lock -> OC_Guards_Cell_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Guards_Cell_02_Lock_2147343401
+    OC_Forge_Loot_Room_Lock -> OC_Forge_Loot_Room_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Forge_Loot_Room_Lock_2147343400
+    OC_Cellar_Door_Lock -> OC_Cellar_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Cellar_Door_Lock_2147343399
+    OC_Cellar_Lock_02 -> OC_Cellar_Lock_02 /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Cellar_Lock_02_2147343398
+    OC_Prison_Dungeons_Moat_Lock -> OC_Prison_Dungeons_Moat_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Prison_Dungeons_Moat_Lock_2147343397
+    OC_Prison_Dungeons_06_Lock -> OC_Prison_Dungeons_06_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Prison_Dungeons_06_Lock_2147343396
+    OC_Prison_Dungeons_23_Lock -> OC_Prison_Dungeons_23_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Prison_Dungeons_23_Lock_2147343395
+    OC_Prison_Dungeons_09_Lock -> OC_Prison_Dungeons_09_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Prison_Dungeons_09_Lock_2147343394
+    OC_Armory_Door_Lock -> OC_Armory_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Armory_Door_Lock_2147343393
+    OC_Santino_Lock -> OC_Santino_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Santino_Lock_2147343392
+    OC_Fisk_Hut_Door_Lock -> OC_Fisk_Hut_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Fisk_Hut_Door_Lock_2147343391
+    OC_Fisk_Storage_Door_Lock -> OC_Fisk_Storage_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Fisk_Storage_Door_Lock_2147343390
+    OC_Cell12_Bandit_Door_Lock -> OC_Cell12_Bandit_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Cell12_Bandit_Door_Lock_2147343389
+    OC_Chest_Armory_01_Lock -> OC_Chest_Armory_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Armory_01_Lock_2147343388
+    OC_Chest_Armory_02_Lock -> OC_Chest_Armory_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Armory_02_Lock_2147343387
+    OC_Chest_Armory_03_Lock -> OC_Chest_Armory_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Armory_03_Lock_2147343386
+    OC_Chest_Armory_04_Lock -> OC_Chest_Armory_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Armory_04_Lock_2147343385
+    OC_Chest_Arto_Lock -> OC_Chest_Arto_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Arto_Lock_2147343384
+    OC_Chest_Balam_Lock -> OC_Chest_Balam_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Balam_Lock_2147343383
+    OC_Chest_Bloodwyn_Lock -> OC_Chest_Bloodwyn_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Bloodwyn_Lock_2147343382
+    OC_Chest_Bullit_Lock -> OC_Chest_Bullit_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Bullit_Lock_2147343381
+    OC_Chest_Corristo_Lock -> OC_Chest_Corristo_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Corristo_Lock_2147343380
+    OC_Chest_Damarok_Lock -> OC_Chest_Damarok_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Damarok_Lock_2147343379
+    OC_Chest_Drago_Lock -> OC_Chest_Drago_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Drago_Lock_2147343378
+    OC_Chest_Fletcher_Lock -> OC_Chest_Fletcher_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fletcher_Lock_2147343377
+    OC_Chest_Forge_01_Lock -> OC_Chest_Forge_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Forge_01_Lock_2147343376
+    OC_Chest_Forge_02_Lock -> OC_Chest_Forge_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Forge_02_Lock_2147343375
+    OC_Chest_Forge_04_Lock -> OC_Chest_Forge_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Forge_04_Lock_2147343374
+    OC_Chest_Gomez_01_Lock -> OC_Chest_Gomez_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Gomez_01_Lock_2147343373
+    OC_Chest_Cutter_Lock -> OC_Chest_Cutter_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Cutter_Lock_2147343372
+    OC_Chest_Guard226_Lock -> OC_Chest_Guard226_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard226_Lock_2147343371
+    OC_Chest_Guard228_Lock -> OC_Chest_Guard228_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard228_Lock_2147343370
+    OC_Chest_Guard229_Lock -> OC_Chest_Guard229_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard229_Lock_2147343369
+    OC_Chest_Guard232_Lock -> OC_Chest_Guard232_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard232_Lock_2147343368
+    OC_Chest_Guard240_Lock -> OC_Chest_Guard240_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard240_Lock_2147343367
+    OC_Chest_Guard242_Lock -> OC_Chest_Guard242_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard242_Lock_2147343366
+    OC_Chest_Jackal_Lock -> OC_Chest_Jackal_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Jackal_Lock_2147343365
+    OC_Chest_Kitchen_Lock -> OC_Chest_Kitchen_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Kitchen_Lock_2147343364
+    OC_Chest_Omid_Lock -> OC_Chest_Omid_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Omid_Lock_2147343363
+    OC_Chest_Ruins_01_Lock -> OC_Chest_Ruins_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Ruins_01_Lock_2147343362
+    OC_Chest_Ruins_02_Lock -> OC_Chest_Ruins_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Ruins_02_Lock_2147343361
+    OC_Chest_Scar_Lock -> OC_Chest_Scar_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Scar_Lock_2147343360
+    OC_Chest_Scorpio_Lock -> OC_Chest_Scorpio_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Scorpio_Lock_2147343359
+    OC_Chest_Stone_Lock -> OC_Chest_Stone_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Stone_Lock_2147343358
+    OC_Chest_Tower_01_Lock -> OC_Chest_Tower_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_01_Lock_2147343357
+    OC_Chest_Tower_02_Lock -> OC_Chest_Tower_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_02_Lock_2147343356
+    OC_Chest_Tower_03_Lock -> OC_Chest_Tower_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_03_Lock_2147343355
+    OC_Chest_Tower_05_Lock -> OC_Chest_Tower_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_05_Lock_2147343354
+    OC_Chest_Tower_06_Lock -> OC_Chest_Tower_06_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_06_Lock_2147343353
+    OC_Chest_Tower_07_Lock -> OC_Chest_Tower_07_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_07_Lock_2147343352
+    OC_Chest_Tower_08_Lock -> OC_Chest_Tower_08_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_08_Lock_2147343351
+    OC_Chest_Tower_09_Lock -> OC_Chest_Tower_09_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_09_Lock_2147343350
+    OC_Chest_BaalParvez_Lock -> OC_Chest_BaalParvez_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_BaalParvez_Lock_2147343349
+    OC_Chest_Diego_Lock -> OC_Chest_Diego_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Diego_Lock_2147343348
+    OC_Chest_Digger501_Lock -> OC_Chest_Digger501_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger501_Lock_2147343347
+    OC_Chest_Digger502_Lock -> OC_Chest_Digger502_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger502_Lock_2147343346
+    OC_Chest_Digger503_Lock -> OC_Chest_Digger503_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger503_Lock_2147343345
+    OC_Chest_Digger504_Lock -> OC_Chest_Digger504_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger504_Lock_2147343344
+    OC_Chest_Digger505_Lock -> OC_Chest_Digger505_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger505_Lock_2147343343
+    OC_Chest_Digger506_Lock -> OC_Chest_Digger506_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger506_Lock_2147343342
+    OC_Chest_Digger507_Lock -> OC_Chest_Digger507_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger507_Lock_2147343341
+    OC_Chest_Digger508_Lock -> OC_Chest_Digger508_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger508_Lock_2147343340
+    OC_Chest_Digger509_Lock -> OC_Chest_Digger509_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger509_Lock_2147343339
+    OC_Chest_Digger510_Lock -> OC_Chest_Digger510_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger510_Lock_2147343338
+    OC_Chest_Digger512_Lock -> OC_Chest_Digger512_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger512_Lock_2147343337
+    OC_Chest_Digger513_Lock -> OC_Chest_Digger513_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger513_Lock_2147343336
+    OC_Chest_Digger514_Lock -> OC_Chest_Digger514_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger514_Lock_2147343335
+    OC_Chest_Digger515_Lock -> OC_Chest_Digger515_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger515_Lock_2147343334
+    OC_Chest_Digger516_Lock -> OC_Chest_Digger516_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger516_Lock_2147343333
+    OC_Chest_Digger517_Lock -> OC_Chest_Digger517_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger517_Lock_2147343332
+    OC_Chest_Digger519_Lock -> OC_Chest_Digger519_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger519_Lock_2147343331
+    OC_Chest_Digger521_Lock -> OC_Chest_Digger521_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger521_Lock_2147343330
+    OC_Chest_Digger522_Lock -> OC_Chest_Digger522_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger522_Lock_2147343329
+    OC_Chest_Digger523_Lock -> OC_Chest_Digger523_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger523_Lock_2147343328
+    OC_Chest_Digger526_Lock -> OC_Chest_Digger526_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger526_Lock_2147343327
+    OC_Chest_Digger527_Lock -> OC_Chest_Digger527_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger527_Lock_2147343326
+    OC_Chest_Digger528_Lock -> OC_Chest_Digger528_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger528_Lock_2147343325
+    OC_Chest_Digger529_Lock -> OC_Chest_Digger529_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger529_Lock_2147343324
+    OC_Chest_Digger531_Lock -> OC_Chest_Digger531_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger531_Lock_2147343323
+    OC_Chest_Digger532_Lock -> OC_Chest_Digger532_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger532_Lock_2147343322
+    OC_Chest_Digger533_Lock -> OC_Chest_Digger533_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger533_Lock_2147343321
+    OC_Chest_Digger535_Lock -> OC_Chest_Digger535_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger535_Lock_2147343320
+    OC_Chest_Digger553_Lock -> OC_Chest_Digger553_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger553_Lock_2147343319
+    OC_Chest_Digger554_Lock -> OC_Chest_Digger554_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger554_Lock_2147343318
+    OC_Chest_Digger555_Lock -> OC_Chest_Digger555_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger555_Lock_2147343317
+    OC_Chest_Digger556_Lock -> OC_Chest_Digger556_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger556_Lock_2147343316
+    OC_Chest_Digger557_Lock -> OC_Chest_Digger557_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger557_Lock_2147343315
+    OC_Chest_Digger560_Lock -> OC_Chest_Digger560_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger560_Lock_2147343314
+    OC_Chest_Digger561_Lock -> OC_Chest_Digger561_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger561_Lock_2147343313
+    OC_Chest_Digger565_Lock -> OC_Chest_Digger565_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger565_Lock_2147343312
+    OC_Chest_Digger575_Lock -> OC_Chest_Digger575_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger575_Lock_2147343311
+    OC_Chest_Digger576_Lock -> OC_Chest_Digger576_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger576_Lock_2147343310
+    OC_Chest_Digger577_Lock -> OC_Chest_Digger577_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger577_Lock_2147343309
+    OC_Chest_Dusty_Lock -> OC_Chest_Dusty_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Dusty_Lock_2147343308
+    OC_Chest_Fingers_Lock -> OC_Chest_Fingers_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fingers_Lock_2147343307
+    OC_Chest_Fisk_01_Lock -> OC_Chest_Fisk_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fisk_01_Lock_2147343306
+    OC_Chest_Fisk_02_Lock -> OC_Chest_Fisk_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fisk_02_Lock_2147343305
+    OC_Chest_Fisk_03_Lock -> OC_Chest_Fisk_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fisk_03_Lock_2147343304
+    OC_Chest_Fisk_04_Lock -> OC_Chest_Fisk_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fisk_04_Lock_2147343303
+    OC_Chest_Fisk_05_Lock -> OC_Chest_Fisk_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fisk_05_Lock_2147343302
+    OC_Chest_Fisk_06_Lock -> OC_Chest_Fisk_06_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fisk_06_Lock_2147343301
+    OC_Chest_Fisk_07_Lock -> OC_Chest_Fisk_07_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fisk_07_Lock_2147343300
+    OC_Chest_Fisk_08_Lock -> OC_Chest_Fisk_08_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Fisk_08_Lock_2147343299
+    OC_Chest_GorHanis_Lock -> OC_Chest_GorHanis_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_GorHanis_Lock_2147343298
+    OC_Chest_Gravo_Lock -> OC_Chest_Gravo_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Gravo_Lock_2147343297
+    OC_Chest_Grim_Lock -> OC_Chest_Grim_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Grim_Lock_2147343296
+    OC_Chest_Guy_Lock -> OC_Chest_Guy_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guy_Lock_2147343295
+    OC_Chest_Huno_Lock -> OC_Chest_Huno_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Huno_Lock_2147343294
+    OC_Chest_Jesse_Lock -> OC_Chest_Jesse_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Jesse_Lock_2147343293
+    OC_Chest_Kharim_Lock -> OC_Chest_Kharim_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Kharim_Lock_2147343292
+    OC_Chest_Kirgo_Lock -> OC_Chest_Kirgo_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Kirgo_Lock_2147343291
+    OC_Chest_Kyle_Lock -> OC_Chest_Kyle_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Kyle_Lock_2147343290
+    OC_Chest_Mordrag_Lock -> OC_Chest_Mordrag_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Mordrag_Lock_2147343289
+    OC_Chest_Mud_Lock -> OC_Chest_Mud_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Mud_Lock_2147343288
+    OC_Chest_Scatty_Lock -> OC_Chest_Scatty_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Scatty_Lock_2147343287
+    OC_Chest_Shadow304_Lock -> OC_Chest_Shadow304_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow304_Lock_2147343286
+    OC_Chest_Shadow306_Lock -> OC_Chest_Shadow306_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow306_Lock_2147343285
+    OC_Chest_Shadow310_Lock -> OC_Chest_Shadow310_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow310_Lock_2147343284
+    OC_Chest_Shadow313_Lock -> OC_Chest_Shadow313_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow313_Lock_2147343283
+    OC_Chest_Shadow314_Lock -> OC_Chest_Shadow314_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow314_Lock_2147343282
+    OC_Chest_Shadow316_Lock -> OC_Chest_Shadow316_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow316_Lock_2147343281
+    OC_Chest_Shadow318_Lock -> OC_Chest_Shadow318_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow318_Lock_2147343280
+    OC_Chest_Shadow319_Lock -> OC_Chest_Shadow319_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow319_Lock_2147343279
+    OC_Chest_Shadow322_Lock -> OC_Chest_Shadow322_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow322_Lock_2147343278
+    OC_Chest_Shadow328_Lock -> OC_Chest_Shadow328_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow328_Lock_2147343277
+    OC_Chest_Shadow330_Lock -> OC_Chest_Shadow330_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Shadow330_Lock_2147343276
+    OC_Chest_Sly_Lock -> OC_Chest_Sly_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Sly_Lock_2147343275
+    OC_Chest_Snaf_01_Lock -> OC_Chest_Snaf_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Snaf_01_Lock_2147343274
+    OC_Chest_Snaf_02_Lock -> OC_Chest_Snaf_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Snaf_02_Lock_2147343273
+    OC_Chest_01_Lock -> OC_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_01_Lock_2147343272
+    OC_Chest_02_Lock -> OC_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_02_Lock_2147343271
+    OC_Chest_Bettingowner_Lock -> OC_Chest_Bettingowner_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Bettingowner_Lock_2147343270
+    OC_Chest_Dexter_Lock -> OC_Chest_Dexter_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Dexter_Lock_2147343269
+    OC_Chest_Digger578_Lock -> OC_Chest_Digger578_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Digger578_Lock_2147343268
+    OC_Chest_Graham_Lock -> OC_Chest_Graham_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Graham_Lock_2147343267
+    OC_Chest_Guard206_Lock -> OC_Chest_Guard206_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard206_Lock_2147343266
+    OC_Chest_Guard209_Lock -> OC_Chest_Guard209_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard209_Lock_2147343265
+    OC_Chest_Guard221_Lock -> OC_Chest_Guard221_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard221_Lock_2147343264
+    OC_Chest_Guard239_Lock -> OC_Chest_Guard239_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard239_Lock_2147343263
+    OC_Chest_Guard241_Lock -> OC_Chest_Guard241_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard241_Lock_2147343262
+    OC_Chest_Guard252_Lock -> OC_Chest_Guard252_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard252_Lock_2147343261
+    OC_Chest_Guard253_Lock -> OC_Chest_Guard253_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard253_Lock_2147343260
+    OC_Chest_Herek_Lock -> OC_Chest_Herek_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Herek_Lock_2147343259
+    OC_Chest_Milten_Lock -> OC_Chest_Milten_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Milten_Lock_2147343258
+    OC_Chest_Rodriguez_Lock -> OC_Chest_Rodriguez_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Rodriguez_Lock_2147343257
+    OC_Chest_Skip_Lock -> OC_Chest_Skip_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Skip_Lock_2147343256
+    OC_Chest_Torrez_Lock -> OC_Chest_Torrez_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Torrez_Lock_2147343255
+    OC_Chest_Whistler_Lock -> OC_Chest_Whistler_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Whistler_Lock_2147343254
+    OC_Chest_Guard220_Lock -> OC_Chest_Guard220_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard220_Lock_2147343253
+    OM_Chest_Aaron_Lock -> OM_Chest_Aaron_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Aaron_Lock_2147343252
+    OM_Chest_Alberto_01_Lock -> OM_Chest_Alberto_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Alberto_01_Lock_2147343251
+    OM_Chest_Alberto_03_Lock -> OM_Chest_Alberto_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Alberto_03_Lock_2147343250
+    OM_Chest_Alberto_04_Lock -> OM_Chest_Alberto_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Alberto_04_Lock_2147343249
+    OM_Chest_Alberto_05_Lock -> OM_Chest_Alberto_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Alberto_05_Lock_2147343248
+    OM_Chest_Santino_01_Lock -> OM_Chest_Santino_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Santino_01_Lock_2147343247
+    OM_Chest_Santino_02_Lock -> OM_Chest_Santino_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Santino_02_Lock_2147343246
+    OM_Chest_Santino_03_Lock -> OM_Chest_Santino_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Santino_03_Lock_2147343245
+    OM_Chest_Ulbert_01_Lock -> OM_Chest_Ulbert_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Ulbert_01_Lock_2147343244
+    OM_Chest_Ulbert_02_Lock -> OM_Chest_Ulbert_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OM_Chest_Ulbert_02_Lock_2147343243
+    OC_Chest_Guard230_Lock -> OC_Chest_Guard230_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Guard230_Lock_2147343242
+    OC_Chest_Tower_04_Lock -> OC_Chest_Tower_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Tower_04_Lock_2147343241
+    OC_Chest_Raven_Lock -> OC_Chest_Raven_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Raven_Lock_2147343240
+    OC_Chest_Bartholo_Lock -> OC_Chest_Bartholo_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Bartholo_Lock_2147343239
+    OC_Chest_Thorus_Lock -> OC_Chest_Thorus_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Thorus_Lock_2147343238
+    OC_Chest_Throne_01_Lock -> OC_Chest_Throne_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OC_Chest_Throne_01_Lock_2147343237
+    OCS_Chest_04_Lock -> OCS_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OCS_Chest_04_Lock_2147343236
+    OG_Chest_01_Lock -> OG_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OG_Chest_01_Lock_2147343235
+    Otown_Chest_01_Lock -> Otown_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Otown_Chest_01_Lock_2147343234
+    Otown_Chest_02_Lock -> Otown_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Otown_Chest_02_Lock_2147343233
+    Otown_Chest_03_Lock -> Otown_Chest_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Otown_Chest_03_Lock_2147343232
+    Otown_Chest_04_Lock -> Otown_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.Otown_Chest_04_Lock_2147343231
+    OTT_Chest_05_Lock -> OTT_Chest_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OTT_Chest_05_Lock_2147343230
+    OTT_Chest_06_Lock -> OTT_Chest_06_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OTT_Chest_06_Lock_2147343229
+    OTT_Chest_09_Lock -> OTT_Chest_09_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.OTT_Chest_09_Lock_2147343228
+    SNT_LootCage_Door_Lock -> SNT_LootCage_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SNT_LootCage_Door_Lock_2147343227
+    SNT_Chest_04_Lock -> SNT_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SNT_Chest_04_Lock_2147343226
+    SNT_Chest_06_Lock -> SNT_Chest_06_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SNT_Chest_06_Lock_2147343225
+    SNT_Chest_09_Lock -> SNT_Chest_09_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SNT_Chest_09_Lock_2147343224
+    SW_Captain_Ship_Door_Lock -> SW_Captain_Ship_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SW_Captain_Ship_Door_Lock_2147343223
+    SW_Chest_01_Lock -> SW_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SW_Chest_01_Lock_2147343222
+    SW_Chest_02_Lock -> SW_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SW_Chest_02_Lock_2147343221
+    SW_Chest_03_Lock -> SW_Chest_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SW_Chest_03_Lock_2147343220
+    SW_Chest_07_Lock -> SW_Chest_07_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SW_Chest_07_Lock_2147343219
+    TST_Chest_Forge_01_Lock -> TST_Chest_Forge_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_Forge_01_Lock_2147343218
+    TST_Chest_Lava_Stronghold_01_Lock -> TST_Chest_Lava_Stronghold_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_Lava_Stronghold_01_Lock_2147343217
+    TST_Chest_Slave_01_Lock -> TST_Chest_Slave_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_Slave_01_Lock_2147343216
+    TST_Chest_WinchRoom_01_Lock -> TST_Chest_WinchRoom_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_WinchRoom_01_Lock_2147343215
+    TST_Chest_WinchRoom_02_Lock -> TST_Chest_WinchRoom_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_WinchRoom_02_Lock_2147343214
+    TST_Chest_WinchRoom_03_Lock -> TST_Chest_WinchRoom_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_WinchRoom_03_Lock_2147343213
+    TST_Chest_Sleeper_01_Lock -> TST_Chest_Sleeper_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_Sleeper_01_Lock_2147343212
+    TST_Chest_Sleeper_02_Lock -> TST_Chest_Sleeper_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_Sleeper_02_Lock_2147343211
+    TST_Chest_Lava_Stronghold_02_Lock -> TST_Chest_Lava_Stronghold_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.TST_Chest_Lava_Stronghold_02_Lock_2147343210
+    SC_Chest_CorKalom_01_Lock -> SC_Chest_CorKalom_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_CorKalom_01_Lock_2147343209
+    SC_Chest_Natalia_Lock -> SC_Chest_Natalia_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_Natalia_Lock_2147343208
+    SC_Chest_Yberion_Lock -> SC_Chest_Yberion_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_Yberion_Lock_2147343207
+    SC_Chest_Chani_Lock -> SC_Chest_Chani_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_Chani_Lock_2147343206
+    SC_Chest_Blacksmith_Lock -> SC_Chest_Blacksmith_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_Blacksmith_Lock_2147343205
+    SC_Chest_BaalCadar_Lock -> SC_Chest_BaalCadar_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_BaalCadar_Lock_2147343204
+    SC_Chest_BaalNamib_Lock -> SC_Chest_BaalNamib_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_BaalNamib_Lock_2147343203
+    SC_Chest_BaalOrun_Lock -> SC_Chest_BaalOrun_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_BaalOrun_Lock_2147343202
+    SC_Chest_BaalTondral_Lock -> SC_Chest_BaalTondral_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_BaalTondral_Lock_2147343201
+    SC_Chest_CorAngar_Lock -> SC_Chest_CorAngar_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_CorAngar_Lock_2147343200
+    SC_Chest_CorKalom_03_Lock -> SC_Chest_CorKalom_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_CorKalom_03_Lock_2147343199
+    SC_Chest_Fortuno_Lock -> SC_Chest_Fortuno_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_Fortuno_Lock_2147343198
+    SC_Chest_Nyras_Lock -> SC_Chest_Nyras_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_Nyras_Lock_2147343197
+    SC_Chest_Viran_Lock -> SC_Chest_Viran_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.SC_Chest_Viran_Lock_2147343196
+    XT_ExperimentalChamber_Door_Lock -> XT_ExperimentalChamber_Door_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.XT_ExperimentalChamber_Door_Lock_2147343195
+    XT_Chest_01_Lock -> XT_Chest_01_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.XT_Chest_01_Lock_2147343194
+    XT_Chest_02_Lock -> XT_Chest_02_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.XT_Chest_02_Lock_2147343193
+    XT_Chest_03_Lock -> XT_Chest_03_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.XT_Chest_03_Lock_2147343192
+    XT_Chest_04_Lock -> XT_Chest_04_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.XT_Chest_04_Lock_2147343191
+    XT_Chest_05_Lock -> XT_Chest_05_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.XT_Chest_05_Lock_2147343190
+    XT_Chest_06_Lock -> XT_Chest_06_Lock /Game/Maps/MainMap/MainMap.MainMap:LockPickSubsystem_2147443979.XT_Chest_06_Lock_2147343189
+  m_PendingLockPieces count = 0, m_UnlockedActors count = 9
