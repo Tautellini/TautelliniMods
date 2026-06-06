@@ -1,7 +1,6 @@
 # Gothic 1 Remake (G1R) Modding Guide
 
 Hard-won facts about this game's tech. Read before writing any mod code.
-State as of Build 8336 (CL 168089), June 2026.
 
 ## Engine
 
@@ -14,21 +13,6 @@ State as of Build 8336 (CL 168089), June 2026.
   `NPC_TALENT_PICKLOCK`, interactive object classes `Io*` (IoChestDefault, IoDoor01)
 - No anti-cheat. Single player. Exit crash with UE4SS installed is a known
   cosmetic teardown issue (access violation after everything is saved)
-
-## UE4SS setup that works here
-
-UE4SS experimental v3.0.1-953 in `G1R\Binaries\Win64` (dwmapi.dll + ue4ss\).
-**Critical settings** (UE4SS-settings.ini), or the game hard-freezes at save load:
-
-```ini
-HookProcessInternal = 0
-HookProcessLocalScriptFunction = 0
-HookUObjectProcessEvent = 0
-HookCallFunctionByNameWithArguments = 0
-HookAActorTick = 0
-GuiConsoleEnabled = 0
-bUseUObjectArrayCache = false
-```
 
 These collide with the AngelScript VM dispatch. Keep them off.
 
@@ -47,26 +31,3 @@ These collide with the AngelScript VM dispatch. Keep them off.
   infinite recursion between the UE4SS detour and the AS binding layer,
   dies ~55s into load. Assume ALL G1R natives are unhookable from Lua
 - UE4SS TMap property access returns a COPY: `:Empty()` etc. do not stick
-
-## Research workflow
-
-1. CTRL+J ingame = full object dump to `ue4ss\UE4SS_ObjectDump.txt` (~60 MB)
-2. Grep it for classes/properties; `[o: X]` = member offset, `[f: X]` = native
-   function body address (per-session base, stable image offset per build)
-3. CTRL+NUM_6 = .usmap dump for FModel asset inspection if ever needed
-4. Reflected property = reachable from Lua. Everything else needs C++
-
-## Lockpicking system map (for LockpickSettings)
-
-- `AttributeSet_Lockpicking` on the PlayerState: `LockpickDurability`
-  (failures before pick breaks; vanilla Untrained 2, Trained 4, Master 6),
-  `LockpickPrecision` (hint quality, Untrained vanilla = 1).
-  Tier GEs: GE_Skill_Picklock_Untrained/Skilled/Master
-- Minigame: `AbilityTask_LockPick` (5 levels, align red pins, connections
-  couple level movement; edge fail costs durability)
-- Locks defined by `GothicLockConfig` (pieces + connections, built eagerly
-  for all ~416 world locks at load, NEVER saved: save stores only
-  `m_UnlockedLocks`). Chests: `m_LockDifficulty` int drives which template
-  is assigned on first pick (assignment persists via `m_OriginalLock`)
-- Connection data is fully unreflected: thinning locks (fewer coupled
-  levels) requires a C++ detour on the AddConnection exec body (parked)
