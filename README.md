@@ -7,12 +7,20 @@ folders only ever receive deployed builds, never hand edits.
 
 ```
 TautelliniMods/
-├── G1R/                    Gothic 1 Remake mods
-│   ├── README.md           Game-specific modding guidance (read first!)
-│   └── LockpickSettings/   More lockpick tries (UE4SS Lua)
-│       └── Scripts/        main.lua + config.lua (the mod itself)
+├── G1R/                       Gothic 1 Remake mods
+│   ├── README.md              Game-specific modding guidance (read first!)
+│   ├── LuaModdingSurface.md   What is moddable from UE4SS Lua (verified)
+│   ├── reference/             Mined data: class props, lock graphs,
+│   │                          blob format notes, probe session dumps
+│   ├── LockpickSettings/      Lockpicking toolbox: tries boost +
+│   │   ├── Scripts/           next-move solver hint (UE4SS Lua)
+│   │   └── release/           Nexus kit: zips, headers, descriptions
+│   └── LockProbe/             Dev-only probing harness, never deployed
+│                              to players (template for engine research)
 └── tools/
-    └── deploy.ps1          Copies a mod build into the live game folder
+    ├── deploy.ps1             Copies a mod build into the live game folder
+    └── extract_locks.py       Decodes all lock layouts from the game's
+                               compiled AngelScript blob
 ```
 
 ## Workflow
@@ -29,3 +37,6 @@ TautelliniMods/
   once shipped, the mod README is the source of truth and the spec is
   retired (git history keeps it)
 - Research findings that outlive a mod go into the per-game README
+  (safety rules) and LuaModdingSurface.md (what is reachable); raw mined
+  data lands in the per-game reference/ folder with its extraction tool
+  under tools/

@@ -128,6 +128,18 @@ Verified in-game 2026-06-06 (LockProbe sessions, see
   units per step, 10 units row spacing; slot index = piece id). The
   selection indicator itself is rendered GPU-side: no reflected
   property anywhere holds the selected row (exhaustively searched)
+- Solved-state mechanics (all verified for the solver): rails span 7
+  positions (rotations -3..+3, the mined rot = start position); the
+  OPEN position is the center (rot 0) and a piece FREEZES once it
+  reaches it. Drags are direct-only (no cascading) and directed;
+  clamped/frozen partners stay put. The game removes roughly
+  LockpickPrecision connections per lock at runtime, so mined graphs
+  are upper bounds: prune edges from observed solo-moves
+- The bars visually track each piece's rotation continuously
+  (m_RotationToBarOffset); they are NOT lock-in latches and carry no
+  extra state. The slot grid is slightly nonuniform (~6.1-6.3 per
+  step): integrate steps per move EVENT instead of dividing cumulative
+  displacement, or counters drift by one
 
 ## 4. Crime, theft, reputation (AS tuning configs)
 
