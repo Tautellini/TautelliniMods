@@ -1,1 +1,1 @@
-More tries before your lockpick breaks (12/14/16 instead of vanilla 2/4/6), plus an optional next-move hint that tints the piece to move next green (F7, works with controller). Pure UE4SS Lua, no game files modified, safe to add or remove anytime.
+Your toolbox for the lockpicking minigame: more tries before picks break (12/14/16 instead of 2/4/6) and an optional next-move hint that tints the right piece green (F7, controller too). Pure UE4SS Lua, no game files modified.
