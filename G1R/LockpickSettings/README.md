@@ -34,9 +34,10 @@ From the repo root:
 powershell -File tools\deploy.ps1 -Mod LockpickSettings
 ```
 
-This copies `Scripts/` to `G1R\Binaries\Win64\ue4ss\Mods\EasyLockpicking`
-and registers the mod in `mods.txt`. Requires a working UE4SS setup, see
-the G1R modding guide (`../README.md`) for the required settings.
+This copies `Scripts/` and the `enabled.txt` activation marker to
+`G1R\Binaries\Win64\ue4ss\Mods\EasyLockpicking` (UE4SS starts any mod
+folder containing `enabled.txt`, no `mods.txt` entry needed). Requires
+a working UE4SS setup, see the G1R modding guide (`../README.md`).
 
 ## How it works
 

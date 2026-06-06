@@ -27,23 +27,13 @@ if (-not (Test-Path $ModsDir)) {
     throw "UE4SS Mods folder not found at $ModsDir. Is UE4SS installed?"
 }
 
-# Copy Scripts (the deployable payload). Docs/specs stay in the repo.
+# Copy the deployable payload: Scripts plus the enabled.txt activation
+# marker (UE4SS starts any mod folder that contains enabled.txt, so no
+# mods.txt entry is needed). Docs/specs stay in the repo.
 New-Item -ItemType Directory -Force "$TargetDir\Scripts" | Out-Null
 Copy-Item "$SourceDir\Scripts\*" "$TargetDir\Scripts\" -Force
-
-# Make sure the mod is registered in mods.txt (before the Keybinds line).
-$ModsTxt = Join-Path $ModsDir "mods.txt"
-$lines = Get-Content $ModsTxt
-if (-not ($lines -match "^\s*$DeployName\s*:")) {
-    $keybindsIdx = ($lines | Select-String "^\s*Keybinds\s*:" | Select-Object -First 1).LineNumber
-    if ($keybindsIdx) {
-        $insertAt = $keybindsIdx - 1
-        $newLines = $lines[0..($insertAt - 1)] + "$DeployName : 1" + $lines[$insertAt..($lines.Count - 1)]
-    } else {
-        $newLines = $lines + "$DeployName : 1"
-    }
-    Set-Content $ModsTxt $newLines -Encoding ascii
-    Write-Host "Registered '$DeployName : 1' in mods.txt"
+if (Test-Path "$SourceDir\enabled.txt") {
+    Copy-Item "$SourceDir\enabled.txt" "$TargetDir\" -Force
 }
 
 Write-Host "Deployed $Mod -> $TargetDir"

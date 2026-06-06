@@ -10,15 +10,15 @@ Install:
    (dwmapi.dll next to G1R-Win64-Shipping.exe).
 2. Copy the EasyLockpicking folder from this archive into
    ...\G1R\Binaries\Win64\ue4ss\Mods\
-3. Add this line to ...\ue4ss\Mods\mods.txt (above the Keybinds entry):
-   EasyLockpicking : 1
-4. Start the game. ...\ue4ss\UE4SS.log should show:
+   The included enabled.txt activates the mod automatically;
+   no mods.txt editing is needed.
+3. Start the game. ...\ue4ss\UE4SS.log should show:
    [EasyLockpicking] Loaded: untrained 2->12, trained 4->14, master 6->16
 
 Configure: edit EasyLockpicking\Scripts\config.lua (extraTries = the bonus,
 baseTries = vanilla tries per tier). Apply with a game restart or CTRL+R.
 
-Uninstall: delete the EasyLockpicking folder or set its mods.txt entry to 0.
-Lockpicking returns to vanilla behavior.
+Uninstall: delete the EasyLockpicking folder, or just its enabled.txt file
+to keep the mod around but inactive. Lockpicking returns to vanilla behavior.
 
 Source: https://github.com/Tautellini/TautelliniMods
