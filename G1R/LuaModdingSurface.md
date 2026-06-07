@@ -20,6 +20,10 @@ inventories live in `reference/` (greppable, one line per class).
   removing the old ones: handlers fire once per reload performed.
   Debounce handlers defensively, and prefer a full game restart after
   deploying mods that register keybinds or hooks
+- All UE4SS Lua mods share ONE Lua state: another mod can clobber
+  standard globals at any time (seen in the wild: ipairs replaced by a
+  table mid-session, crashing our loops). Capture every standard
+  library reference as a local at load time
 - UE4SS TMap access returns a copy; TArray and structs work normally
 - Two write targets: live instances (`FindAllOf`) and class defaults
   (`Default__X` objects, affect everything spawned afterwards)
