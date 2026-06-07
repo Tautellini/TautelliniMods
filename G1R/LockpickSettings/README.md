@@ -24,9 +24,10 @@ start, the keys only switch the highlights):
 - Next-move hint (`showNextMove`, F7): the piece you should move next
   lights up, green when the correct turn is LEFT, blue when it is
   RIGHT, recomputed after every move from the lock's live state. The
-  direction colors calibrate themselves from your first move. The
-  master perk (removing connections when a pick breaks) keeps its
-  full value
+  direction colors calibrate themselves from your first move. Routes
+  are planned greedily (frame stability over optimality), so early
+  hints can look like a detour but end at an open lock. The master
+  perk (removing connections when a pick breaks) keeps its full value
 - Connection display (`showConnections`, F8): the pieces connected to
   your currently selected piece light up, purple when they travel the
   SAME direction as the selected piece, red when they travel OPPOSITE.
