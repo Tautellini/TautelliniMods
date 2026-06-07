@@ -857,6 +857,37 @@ local function solverTick(s)
         s.slotProcessed = now
         if count > 0 then processMove(s, moved, count, prevProcessed, now) end
     end
+    -- selection ground truth: the piece currently wearing the game's
+    -- selected-look signature (excluding our own tints) IS the selected
+    -- one. Input counting desyncs when the game ignores presses
+    -- mid-animation; this read corrects it every tick.
+    if s.selectedSig and ConnActive then
+        local sig = s.selectedSig
+        local best, bestD = nil, 0.05
+        for id, e in pairs(s.pieces) do
+            if not s.tinted[id] then
+                local mid = e.mids[1]
+                if mid then
+                    local okc, c = pcall(function()
+                        return mid:K2_GetVectorParameterValue(FName("HighlightColor"))
+                    end)
+                    if okc and c then
+                        local dr, dg, db = c.R - sig.R, c.G - sig.G, c.B - sig.B
+                        local d = dr * dr + dg * dg + db * db
+                        if d < bestD then
+                            best, bestD = id, d
+                        end
+                    end
+                end
+            end
+        end
+        if best and best ~= s.selectedRow then
+            if DebugSolver then
+                log("solver: selection resynced " .. s.selectedRow .. " -> " .. best)
+            end
+            s.selectedRow = best
+        end
+    end
     -- resume an unfinished plan across ticks (one budget slice per tick)
     if NextMoveActive and not s.nextMove and s.plan and not s.plan.finished then
         s.nextMove = solverPlan(s)
@@ -919,6 +950,11 @@ local function startSession(attempt)
     -- selected look, and restoring it later would paint a phantom
     -- selection. The default is one shared material value, so take it
     -- from a piece that is NOT selected at start.
+    -- That brightened capture is also a GIFT: it is the signature of
+    -- the game's selected look, in a parameter we can READ, making the
+    -- selection observable after all (input counting alone desynced
+    -- when the game ignored presses mid-animation).
+    local selectedSig = (pieces[0] and pieces[0].default) or nil
     local commonDefault = nil
     for id, e in pairs(pieces) do
         if id ~= 0 and e.default then
@@ -928,6 +964,16 @@ local function startSession(attempt)
     end
     if commonDefault then
         for _, e in pairs(pieces) do e.default = commonDefault end
+    end
+    if selectedSig and commonDefault then
+        local dr = selectedSig.R - commonDefault.R
+        local dg = selectedSig.G - commonDefault.G
+        local db = selectedSig.B - commonDefault.B
+        if dr * dr + dg * dg + db * db < 0.02 then
+            selectedSig = nil -- not distinctive, keep counting blind
+        end
+    else
+        selectedSig = nil
     end
     local lib, mpc, scene = mpcHandles()
     if not lib then
@@ -941,6 +987,7 @@ local function startSession(attempt)
         slotStart = {}, slotNow = {}, slotProcessed = {},
         sign = 1, axis = nil, nextMove = nil, tinted = {},
         selectedRow = 0, -- the game starts on the bottom row = piece 0
+        selectedSig = selectedSig,
         wasMoving = false, stop = false,
     }
     for _, c in ipairs(graph.connections) do
