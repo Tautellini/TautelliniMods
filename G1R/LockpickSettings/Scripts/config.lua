@@ -37,6 +37,19 @@ return {
     hintColorLeft  = { 0.10, 1.00, 0.15 },
     hintColorRight = { 0.15, 0.45, 1.00 },
 
+    -- Show the pieces connected to your currently SELECTED piece in
+    -- purple: they will move along when you turn it. Selection is
+    -- tracked from the game's own input events (keyboard and
+    -- controller) and re-anchors itself on every actual move. This is
+    -- the state at game start; toggle ingame with the hotkey.
+    showConnections = false,
+
+    -- Hotkey that toggles the connection display ingame ("" disables).
+    connectionsHotkey = "F8",
+
+    -- Color of connected pieces as {red, green, blue} with 0..1 values.
+    partnerColor = { 0.55, 0.10, 1.00 },
+
     -- Log solver internals (moved sets, replans, calibration) to the
     -- UE4SS log. Leave false for normal play.
     debugSolver = false,

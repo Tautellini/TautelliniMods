@@ -35,7 +35,9 @@ end
 local BaseTries      = Config.baseTries or { untrained = 2, trained = 4, master = 6 }
 local ExtraTries     = tonumber(Config.extraTries) or 10
 local NextMoveActive = Config.showNextMove == true -- runtime state, default off
+local ConnActive     = Config.showConnections == true -- runtime state
 local HotkeyName     = Config.nextMoveHotkey
+local ConnHotkeyName = Config.connectionsHotkey
 local DebugSolver    = Config.debugSolver == true
 local NextMoveBroken = false
 
@@ -121,6 +123,8 @@ local HintColorLeft  = colorFrom(Config.hintColorLeft,
     { R = 0.10, G = 1.00, B = 0.15, A = 1.0 })
 local HintColorRight = colorFrom(Config.hintColorRight,
     { R = 0.15, G = 0.45, B = 1.00, A = 1.0 })
+local PartnerColor   = colorFrom(Config.partnerColor,
+    { R = 0.55, G = 0.10, B = 1.00, A = 1.0 })
 
 local Session = nil -- at most one live minigame session
 
@@ -198,17 +202,41 @@ local function hintColor(s)
     return pressRight and HintColorRight or HintColorLeft
 end
 
+-- unified tinting, re-asserted every tick (the game's move FX rewrites
+-- the channel). Layers: the hint (green/blue) outranks the partner
+-- purple; the currently SELECTED piece is never written (its native
+-- brightening must survive), except by the hint, which is the action
+-- cue. Restores are deferred while a piece is selected.
 local function retint(s)
-    local want = (NextMoveActive and s.nextMove) and s.nextMove.piece or nil
-    if s.greenId and s.greenId ~= want then
-        local e = s.pieces[s.greenId]
-        if e and e.default then writeColor(e, e.default) end
+    local desired = {}
+    local selId = nil
+    if ConnActive then
+        selId = s.selectedRow
+        for _, e in ipairs(s.edges[selId] or {}) do
+            desired[e.b] = PartnerColor
+        end
     end
-    s.greenId = want
-    if want then
-        local e = s.pieces[want]
-        if e then writeColor(e, hintColor(s)) end
+    local hintId = (NextMoveActive and s.nextMove) and s.nextMove.piece or nil
+    if hintId then desired[hintId] = hintColor(s) end
+    local newTinted = {}
+    for id, e in pairs(s.pieces) do
+        local want = desired[id]
+        if want then
+            if id ~= selId or id == hintId then
+                writeColor(e, want)
+                newTinted[id] = true
+            elseif s.tinted[id] then
+                newTinted[id] = true -- deferred while selected
+            end
+        elseif s.tinted[id] then
+            if id == selId then
+                newTinted[id] = true -- deferred restore while selected
+            elseif e.default then
+                writeColor(e, e.default)
+            end
+        end
     end
+    s.tinted = newTinted
 end
 
 -- BFS over rail states. Kept deliberately small: expansion budget low
@@ -229,27 +257,13 @@ local function solverReplan(s)
         for id = 0, n - 1 do p[#p + 1] = st[id] end
         return table.concat(p, ",")
     end
-    local queue, qi = { { st = start } }, 1
-    local visited = { [key(start)] = true }
-    local expansions = 0
-    while qi <= #queue do
-        local node = queue[qi]
-        queue[qi] = false -- release processed nodes to the GC
-        qi = qi + 1
-        expansions = expansions + 1
-        if expansions > 60000 then
-            -- enough for 6-7 piece locks; the abort crash once blamed on
-            -- BFS memory was actually the session lifecycle bug
-            if DebugSolver then log("solver: search budget exhausted") end
-            return nil
-        end
+    -- successor generator. Moves are ATOMIC: if the mover or any
+    -- dragged partner would leave its rail (-3..3), the game rejects
+    -- the whole move. No piece ever freezes (verified live). Moves are
+    -- invertible, which makes the search bidirectional below.
+    local function expand(st, fn)
         for x = 0, n - 1 do
             for d = -1, 1, 2 do
-                local st = node.st
-                -- moves are ATOMIC: if the mover or any dragged partner
-                -- would leave its rail (-3..3), the game rejects the
-                -- whole move. No piece ever freezes (both verified from
-                -- live session data; pieces leave the center freely).
                 local nx = st[x] + d
                 if math.abs(rotStart[x] + sign * nx) <= 3 then
                     local valid = true
@@ -264,23 +278,79 @@ local function solverReplan(s)
                         end
                         nst[e.b] = np
                     end
-                    if valid then
-                        local k = key(nst)
-                        if not visited[k] then
-                            visited[k] = true
-                            local first = node.first or { piece = x, dir = d }
-                            local done = true
-                            for id = 0, n - 1 do
-                                if nst[id] ~= target[id] then done = false break end
-                            end
-                            if done then return first end
-                            queue[#queue + 1] = { st = nst, first = first }
-                        end
-                    end
+                    if valid then fn(nst, x, d) end
                 end
             end
         end
     end
+    -- bidirectional BFS: a forward frontier from the current state
+    -- (tagged with the FIRST move) meets a backward frontier grown from
+    -- the goal (tagged with the move toward the goal, inverted). This
+    -- replaced a unidirectional search whose ~600ms game-thread stalls
+    -- on 6-piece locks caused abort crashes.
+    local fwdSeen = { [key(start)] = true } -- true = the start itself
+    local bwdSeen = { [key(target)] = true } -- true = the goal itself
+    local fq, fqi = { { st = start, first = nil } }, 1
+    local bq, bqi = { { st = target } }, 1
+    local expansions, result = 0, nil
+    local function resolveMeet(k)
+        local f = fwdSeen[k]
+        if type(f) == "table" then return f end
+        local b = bwdSeen[k]
+        if type(b) == "table" then return b end
+        return nil
+    end
+    while result == nil do
+        local fRemain, bRemain = #fq - fqi + 1, #bq - bqi + 1
+        if fRemain <= 0 and bRemain <= 0 then break end
+        expansions = expansions + 1
+        if expansions > 12000 then
+            if DebugSolver then log("solver: search budget exhausted") end
+            return nil
+        end
+        if fRemain > 0 and (bRemain <= 0 or fRemain <= bRemain) then
+            local node = fq[fqi]
+            fq[fqi] = false
+            fqi = fqi + 1
+            expand(node.st, function(nst, x, d)
+                if result then return end
+                local k = key(nst)
+                if fwdSeen[k] == nil then
+                    local first = node.first or { piece = x, dir = d }
+                    fwdSeen[k] = first
+                    if bwdSeen[k] then
+                        result = first
+                        return
+                    end
+                    fq[#fq + 1] = { st = nst, first = first }
+                end
+            end)
+        else
+            local node = bq[bqi]
+            bq[bqi] = false
+            bqi = bqi + 1
+            expand(node.st, function(nst, x, d)
+                if result then return end
+                local k = key(nst)
+                if not bwdSeen[k] then
+                    -- backward edge nst -> node.st in forward terms is
+                    -- the move (x, -d) from nst
+                    bwdSeen[k] = { piece = x, dir = -d }
+                    if fwdSeen[k] then
+                        result = resolveMeet(k)
+                        if result == nil then
+                            -- met exactly at the start: the hint is this
+                            -- backward move inverted at the start state
+                            result = { piece = x, dir = -d }
+                        end
+                        return
+                    end
+                    bq[#bq + 1] = { st = nst }
+                end
+            end)
+        end
+    end
+    if result then return result end
     if DebugSolver then log("solver: no solution under current model") end
     return nil
 end
@@ -390,6 +460,8 @@ local function processMove(s, moved, count, prev, now)
         for _, e in ipairs(s.edges[exact] or {}) do
             s.confirmed[exact .. ">" .. e.b] = true
         end
+        -- the mover IS the selected piece: ground-truth selection anchor
+        s.selectedRow = exact
     elseif exact == nil and #supers > 0 then
         local viable = {}
         for _, x in ipairs(supers) do
@@ -412,6 +484,7 @@ local function processMove(s, moved, count, prev, now)
                     table.remove(es, i)
                 end
             end
+            s.selectedRow = x -- mover = selection anchor
         end
     end
     -- absolute state measurement: steps = displacement from the session
@@ -612,7 +685,8 @@ local function startSession(attempt)
         pieces = pieces, pieceCount = #graph.pieces,
         edges = {}, rotStart = {}, steps = {},
         slotStart = {}, slotNow = {}, slotProcessed = {},
-        sign = 1, axis = nil, nextMove = nil, greenId = nil,
+        sign = 1, axis = nil, nextMove = nil, tinted = {},
+        selectedRow = 0, -- the game starts on the bottom row = piece 0
         wasMoving = false, stop = false,
     }
     for _, c in ipairs(graph.connections) do
@@ -670,32 +744,58 @@ local function startSession(attempt)
         for _, cand in ipairs(candidates) do
             local axis = cand.v
             local centerProj = loc.X * axis[1] + loc.Y * axis[2] + loc.Z * axis[3]
-            local rots, ok2, worst = {}, true, 0
+            -- the scene origin can sit OFF the rail center by a constant
+            -- (observed: residuals fine, range check failing): align on
+            -- the common fractional offset (median residual), then pick
+            -- the integer shift that keeps every rotation on the rail
+            local qs, resid = {}, {}
             for id = 0, s.pieceCount - 1 do
                 local sl = s.slotStart[id]
-                local q = (sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3]
+                qs[id] = (sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3]
                     - centerProj) / s.stepSize
+                resid[#resid + 1] = qs[id] - math.floor(qs[id] + 0.5)
+            end
+            table.sort(resid)
+            local c = resid[math.floor((#resid + 1) / 2)]
+            local rots, ok2, worst = {}, true, 0
+            local minR, maxR = 99, -99
+            for id = 0, s.pieceCount - 1 do
+                local q = qs[id] - c
                 local rr = math.floor(q + 0.5)
-                local resid = math.abs(q - rr)
-                if resid > worst then worst = resid end
-                if resid > 0.35 or math.abs(rr) > 3 then
+                local rs = math.abs(q - rr)
+                if rs > worst then worst = rs end
+                if rs > 0.25 then
                     ok2 = false
                     break
                 end
                 rots[id] = rr
+                if rr < minR then minR = rr end
+                if rr > maxR then maxR = rr end
             end
             if ok2 then
-                s.axis = axis
-                s.axisCalibrated = true
-                s.sign = 1
-                for id = 0, s.pieceCount - 1 do s.rotStart[id] = rots[id] end
-                derived = true
-                if DebugSolver then
-                    log(string.format("solver: rail axis = scene %s vector "
-                        .. "(worst residual %.2f)", cand.name, worst))
+                local bestK = nil
+                for k = -3 - minR, 3 - maxR do
+                    if bestK == nil or math.abs(k) < math.abs(bestK) then
+                        bestK = k
+                    end
                 end
-                break
-            elseif DebugSolver then
+                if bestK ~= nil then
+                    s.axis = axis
+                    s.axisCalibrated = true
+                    s.sign = 1
+                    for id = 0, s.pieceCount - 1 do
+                        s.rotStart[id] = rots[id] + bestK
+                    end
+                    derived = true
+                    if DebugSolver then
+                        log(string.format("solver: rail axis = scene %s vector "
+                            .. "(residual %.2f, frac %+.2f, shift %+d)",
+                            cand.name, worst, c, bestK))
+                    end
+                    break
+                end
+            end
+            if not derived and DebugSolver then
                 log(string.format("solver: scene %s vector rejected "
                     .. "(residual %.2f)", cand.name, worst))
             end
@@ -794,6 +894,61 @@ if type(HotkeyName) == "string" and HotkeyName ~= "" and not NextMoveBroken then
     end
 end
 
+-- selection tracking for the connection display: the minigame task's
+-- Up/Down input handlers fire via engine dispatch (keyboard AND
+-- controller, verified in-game); every actual piece move additionally
+-- re-anchors the selection via the identified mover, so the counter
+-- cannot drift for long. Starts on the bottom row, clamps at the ends
+-- (both game behavior); visual row = piece id.
+local lastSelStep = 0
+local function onSelectionStep(delta)
+    -- dedup duplicate registrations after hot reloads: those fire within
+    -- the same input dispatch, real presses are never this close
+    local now = os.clock()
+    if now - lastSelStep < 0.03 then return end
+    lastSelStep = now
+    local s = Session
+    if not s or s.stop then return end
+    s.selectedRow = math.max(0, math.min(s.pieceCount - 1, s.selectedRow + delta))
+    if ConnActive then
+        pcall(retint, s)
+    end
+end
+
+if not NextMoveBroken then
+    pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:UpPressed", function()
+        pcall(onSelectionStep, 1)
+    end)
+    pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:DownPressed", function()
+        pcall(onSelectionStep, -1)
+    end)
+end
+
+-- toggle for the connection display
+local lastConnToggle = 0
+if type(ConnHotkeyName) == "string" and ConnHotkeyName ~= ""
+    and not NextMoveBroken then
+    if Key[ConnHotkeyName] then
+        pcall(RegisterKeyBind, Key[ConnHotkeyName], function()
+            local now = os.clock()
+            if now - lastConnToggle < 0.3 then return end
+            lastConnToggle = now
+            ExecuteInGameThread(function()
+                local ok, err = pcall(function()
+                    ConnActive = not ConnActive
+                    log("Connection display " .. (ConnActive and "ON" or "OFF"))
+                    local s = Session
+                    if s and not s.stop then retint(s) end
+                end)
+                if not ok then log("Connection toggle error: " .. tostring(err)) end
+            end)
+        end)
+    else
+        log("ERROR: unknown connectionsHotkey '" .. ConnHotkeyName
+            .. "', hotkey disabled")
+    end
+end
+
 -- world-change backstop: if a save is loaded, kill any session WITHOUT
 -- touching stored object wrappers (they may dangle after the GC purge)
 pcall(RegisterInitGameStatePostHook, function()
@@ -834,5 +989,10 @@ if not NextMoveBroken then
         NextMoveActive and "on" or "off", graphCount,
         (type(HotkeyName) == "string" and HotkeyName ~= "" and Key[HotkeyName])
         and (", toggle: " .. HotkeyName) or "")
+    hintInfo = hintInfo .. string.format(", connection display %s%s",
+        ConnActive and "on" or "off",
+        (type(ConnHotkeyName) == "string" and ConnHotkeyName ~= ""
+            and Key[ConnHotkeyName])
+        and (", toggle: " .. ConnHotkeyName) or "")
 end
 log("Loaded: " .. table.concat(loaded, ", ") .. hintInfo)
