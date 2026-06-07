@@ -207,11 +207,17 @@ end
 -- rail axis projected on the camera's right vector (s.screenRight).
 local function hintColor(s)
     if not s.nextMove then return HintColorLeft end
-    -- colors name the PLAYER INPUT: turning the lock right moves its
-    -- pin LEFT (verified player knowledge), so blue (= turn right) is
-    -- shown when the pin must travel screen-left.
-    -- pin screen direction = dir * sign * screenRight
-    local pressRight = (s.nextMove.dir or 1) * s.sign * (s.screenRight or 1) < 0
+    local axisDir = (s.nextMove.dir or 1) * s.sign
+    if s.inputToAxis then
+        -- observationally calibrated: input * inputToAxis = pin axis
+        -- direction, learned from the player's own moves
+        local pressRight = axisDir * s.inputToAxis > 0
+        return pressRight and HintColorRight or HintColorLeft
+    end
+    -- uncalibrated fallback (before the first observed move): camera
+    -- projection, sign set by the one session observed under the
+    -- slot-cloud geometry (the first real move recalibrates exactly)
+    local pressRight = axisDir * (s.screenRight or 1) > 0
     return pressRight and HintColorRight or HintColorLeft
 end
 
@@ -612,6 +618,26 @@ local function processMove(s, moved, count, prev, now)
         end
         -- the mover IS the selected piece: ground-truth selection anchor
         s.selectedRow = exact
+        -- calibrate the input-to-axis mapping for the hint colors: the
+        -- last Left/Right press plus the mover's observed displacement
+        -- pin down which input direction moves pins toward +axis
+        if s.lastInput and os.clock() - s.lastInput.t < 2.0 and s.axis then
+            local a, b = prev[exact], now[exact]
+            if a and b then
+                local dproj = (b[1] - a[1]) * s.axis[1]
+                    + (b[2] - a[2]) * s.axis[2] + (b[3] - a[3]) * s.axis[3]
+                if math.abs(dproj) > 2.0 then
+                    local newMap = (dproj >= 0 and 1 or -1) * s.lastInput.dir
+                    if s.inputToAxis ~= newMap then
+                        s.inputToAxis = newMap
+                        if DebugSolver then
+                            log("solver: color mapping calibrated from input ("
+                                .. newMap .. ")")
+                        end
+                    end
+                end
+            end
+        end
     elseif exact == nil and #supers > 0 then
         local viable = {}
         for _, x in ipairs(supers) do
@@ -1123,6 +1149,25 @@ if not NextMoveBroken then
     end)
     pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:DownPressed", function()
         pcall(onSelectionStep, -1)
+    end)
+    -- Left/Right presses calibrate the input-to-axis mapping for the
+    -- hint colors: fixed assumptions about camera and pin conventions
+    -- contradicted themselves across sessions, observation does not
+    pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:LeftPressed", function()
+        pcall(function()
+            local s = Session
+            if s and not s.stop then
+                s.lastInput = { dir = -1, t = os.clock() }
+            end
+        end)
+    end)
+    pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:RightPressed", function()
+        pcall(function()
+            local s = Session
+            if s and not s.stop then
+                s.lastInput = { dir = 1, t = os.clock() }
+            end
+        end)
     end)
 end
 
