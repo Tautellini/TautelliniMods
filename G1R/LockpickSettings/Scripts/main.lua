@@ -27,6 +27,13 @@
 --      One lean poll tick (2.5x/s, cached references only, no object
 --      scans) watches for settled moves and re-asserts all tints.
 
+-- UE4SS mods share one Lua state: another mod overwriting a standard
+-- global (seen in the wild: ipairs replaced by a table, crashing our
+-- loops) must not break us. Capture everything we rely on as locals.
+local ipairs, pairs, tostring, tonumber = ipairs, pairs, tostring, tonumber
+local type, pcall, print, require = type, pcall, print, require
+local math, table, string, os = math, table, string, os
+
 local function log(msg)
     print("[LockpickSettings] " .. tostring(msg) .. "\n")
 end
