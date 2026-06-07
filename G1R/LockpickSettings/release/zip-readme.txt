@@ -7,7 +7,9 @@ LockpickSettings for Gothic 1 Remake
    your first move. Works with keyboard and controller. Off by default.
 3. Optional connection display: press F8 and the pieces connected to
    your currently selected piece light up (purple = moves the same
-   direction as the selected piece, red = moves opposite).
+   direction as the selected piece, red = moves opposite). Shows the
+   authored layout: connections the game removed at runtime (skill,
+   master perk) keep showing until one of your moves disproves them.
    Off by default.
 
 Requires UE4SS, experimental build (the game runs UE 5.4.3):

@@ -31,7 +31,11 @@ start, the keys only switch the highlights):
   your currently selected piece light up, purple when they travel the
   SAME direction as the selected piece, red when they travel OPPOSITE.
   Selection is tracked from the minigame's own input events (keyboard
-  and controller) and re-anchors on every actual move
+  and controller), re-anchors on every actual move, and resyncs each
+  tick from the game's own selected-look material signature. Caveat:
+  the display shows the authored layout; connections the game silently
+  removed at runtime keep showing until a move disproves them and the
+  mod prunes them
 
 ## Configuration
 

@@ -30,7 +30,9 @@ Press [b]F7[/b] during the lockpicking minigame and the piece you should move ne
 
 [quote][size=4][b]🔗 Connection Display[/b] [i](optional, off by default)[/i][/size]
 
-Press [b]F8[/b] during the lockpicking minigame and the pieces connected to your currently SELECTED piece light up, direction-coded: [color=#b366ff][b]purple[/b][/color] when a piece travels the [b]SAME[/b] direction as the selected one, [color=#ff5555][b]red[/b][/color] when it travels [b]OPPOSITE[/b]. Selection tracking works with keyboard and controller and re-anchors itself on every actual move. Both colors are configurable, and the next-move hint always outranks them on the hinted piece.[/quote]
+Press [b]F8[/b] during the lockpicking minigame and the pieces connected to your currently SELECTED piece light up, direction-coded: [color=#b366ff][b]purple[/b][/color] when a piece travels the [b]SAME[/b] direction as the selected one, [color=#ff5555][b]red[/b][/color] when it travels [b]OPPOSITE[/b]. Selection tracking works with keyboard and controller and re-anchors itself on every actual move. Both colors are configurable, and the next-move hint always outranks them on the hinted piece.
+
+[b]Honest caveat:[/b] the display shows the authored lock layout. The game silently deactivates some connections at runtime (depending on your skill, and the master perk removes more when a pick breaks), and the mod cannot see that directly: a deactivated connection keeps showing until one of your moves disproves it, at which point it is pruned for the rest of that attempt. So treat the colors as "may drag", not "will drag"; they become exact as you play the lock.[/quote]
 
 [size=4][b]Planned[/b][/size]
 
