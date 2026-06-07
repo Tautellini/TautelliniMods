@@ -1,1 +1,1 @@
-Your toolbox for the lockpicking minigame: more tries before picks break (12/14/16 instead of 2/4/6) and an optional next-move hint, green = turn left, blue = turn right (F7, controller too). Pure UE4SS Lua, no game files modified.
+Your toolbox for the lockpicking minigame: more tries before picks break (12/14/16 instead of 2/4/6), an optional next-move hint (green = turn left, blue = turn right, F7) and an optional connection display (F8). Keyboard and controller. Pure UE4SS Lua, no game files modified.

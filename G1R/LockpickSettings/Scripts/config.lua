@@ -16,13 +16,13 @@ return {
     -- another tier's base value.
     extraTries = 10,
 
-    -- Next-move hint: the piece you should move next is tinted green,
-    -- recomputed after every move from the lock's live state. Entirely
-    -- state-driven: needs no input tracking, works identically with
-    -- keyboard and controller. Tracking runs from the start of every
-    -- lock regardless of this setting, so toggling the highlight on
-    -- mid-pick is exact; the hotkey only switches the green paint.
-    -- This is the state at game start.
+    -- Next-move hint: the piece you should move next is tinted,
+    -- recomputed after every move from the lock's live state. Works
+    -- identically with keyboard and controller; the direction colors
+    -- calibrate themselves from your first move. Tracking runs from
+    -- the start of every lock regardless of this setting, so toggling
+    -- the highlight on mid-pick is exact; the hotkey only switches the
+    -- paint. This is the state at game start.
     showNextMove = false,
 
     -- Hotkey that toggles the next-move hint ingame (UE4SS key name,

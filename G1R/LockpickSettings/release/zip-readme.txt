@@ -3,8 +3,11 @@ LockpickSettings for Gothic 1 Remake
    2/4/6, scaling with your Picklock skill tier.
 2. Optional next-move hint: press F7 during the minigame and the piece
    to move next lights up (green = turn it left, blue = turn it right),
-   recomputed after every move. Works with keyboard and controller.
-   Off by default.
+   recomputed after every move. The colors calibrate themselves from
+   your first move. Works with keyboard and controller. Off by default.
+3. Optional connection display: press F8 and the pieces connected to
+   your currently selected piece glow purple (they move along when you
+   turn it). Off by default.
 
 Requires UE4SS, experimental build (the game runs UE 5.4.3):
 https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest
@@ -18,13 +21,16 @@ Install:
    no mods.txt editing is needed.
 3. Start the game. ...\ue4ss\UE4SS.log should show:
    [LockpickSettings] Loaded: untrained 2->12, trained 4->14,
-   master 6->16, next-move hint off (416 lock graphs, toggle: F7)
+   master 6->16, next-move hint off (416 lock graphs, toggle: F7),
+   connection display off, toggle: F8
 
 Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the
-bonus, baseTries = vanilla tries per tier, showNextMove = hint state at
-game start, nextMoveHotkey = the toggle key). Apply with a game restart
-or CTRL+R. The hint can be toggled at any time, even mid-pick: the mod
-follows every lock from its start, the key only switches the highlight.
+bonus, baseTries = vanilla tries per tier, showNextMove /
+showConnections = the assists' state at game start, nextMoveHotkey /
+connectionsHotkey = the toggle keys, hintColorLeft / hintColorRight /
+partnerColor = the colors). Apply with a game restart or CTRL+R. Both
+assists can be toggled at any time, even mid-pick: the mod follows
+every lock from its start, the keys only switch the highlights.
 
 Uninstall: delete the LockpickSettings folder, or just its enabled.txt
 file to keep the mod around but inactive. Everything returns to vanilla
