@@ -309,7 +309,9 @@ local function buildSearch(s, skipEdge)
     return {
         out = out,
         goalS = goalS,
-        seen = { [startS] = 0 }, -- 0 = sentinel for the start itself
+        originS = startS,
+        seen = { [startS] = 0 }, -- entering move per state; 0 = origin
+        parent = {}, -- predecessor state, for route reconstruction
         buckets = buckets,
         minH = h0,
         maxH = 3 * n,
@@ -355,7 +357,7 @@ local function stepSearch(s, search, budget)
             search.done = true -- give up on this phase, not on the game
             return
         end
-        local inheritFirst = seen[S]
+        local parent = search.parent
         for x = 0, n - 1 do
             local px = place[x]
             local dx = floor(S / px) % 7
@@ -381,14 +383,11 @@ local function stepSearch(s, search, budget)
                     if valid then
                         local T = S + delta
                         if seen[T] == nil then
-                            local first = inheritFirst
-                            if first == 0 then
-                                first = (x + 1) * 4 + (d > 0 and 1 or 0)
-                            end
-                            seen[T] = first
+                            seen[T] = (x + 1) * 4 + (d > 0 and 1 or 0)
+                            parent[T] = S
                             if T == goalS then
                                 search.done = true
-                                search.result = first
+                                search.result = true
                                 return
                             end
                             local nh = search.minH + h
@@ -407,17 +406,41 @@ local function stepSearch(s, search, budget)
     end
 end
 
--- the plan is keyed on the state AND the edge model it was built for;
--- any change (a move, a prune, a new hypothesis) discards it
-local function planKey(s)
-    local parts = {}
+local function encodeCur(s)
+    local S = 0
     for id = 0, s.pieceCount - 1 do
-        parts[#parts + 1] = s.rotStart[id] + s.sign * (s.steps[id] or 0)
+        S = S + (s.rotStart[id] + s.sign * (s.steps[id] or 0) + 3) * s.place[id]
     end
+    return S
+end
+
+-- identifies the edge model a plan was built for; a prune or a new
+-- hypothesis invalidates routes
+local function edgesKey(s)
     local ec = 0
     for _, lst in pairs(s.edges) do ec = ec + #lst end
-    return table.concat(parts, ",") .. "|" .. ec .. "|"
-        .. (s.deadHypo and (s.deadHypo.a .. ">" .. s.deadHypo.b) or "-")
+    return ec .. "|" .. (s.deadHypo and (s.deadHypo.a .. ">" .. s.deadHypo.b) or "-")
+end
+
+-- turn a completed search into a followable route: the move sequence
+-- plus a state -> position index for O(1) following
+local function finishRoute(plan, search)
+    local rev = {}
+    local T = search.goalS
+    while T ~= search.originS do
+        rev[#rev + 1] = { mv = search.seen[T], pre = search.parent[T] }
+        T = search.parent[T]
+    end
+    local route, pre = {}, {}
+    for i = #rev, 1, -1 do
+        local k = #route + 1
+        route[k] = rev[i].mv
+        pre[rev[i].pre] = k
+    end
+    plan.route = route
+    plan.preIndex = pre
+    plan.goalS = search.goalS
+    plan.finished = true
 end
 
 -- planning under dead-edge uncertainty: the game removes roughly
@@ -428,19 +451,37 @@ end
 -- a DEFINITIVE conclusion across as many ticks as needed.
 local function solverPlan(s)
     if s.stateUnknown then return nil end
-    local k = planKey(s)
-    if not s.plan or s.plan.key ~= k then
-        s.plan = {
-            key = k,
+    local curS = encodeCur(s)
+    local ek = edgesKey(s)
+    local plan = s.plan
+    -- ROUTE FOLLOWING: a finished plan is a full route to the goal, and
+    -- hints walk it move by move. This is what makes greedy hints
+    -- CONSISTENT: replanning from scratch after every move oscillated
+    -- (left-right-left-right on the same piece, observed); a fixed
+    -- route to the goal cannot. Replan only on deviation (a move off
+    -- the route, including drag mispredictions) or on a model change.
+    if plan and plan.finished then
+        if plan.route and plan.edgesKey == ek then
+            if curS == plan.goalS then return nil end
+            local i = plan.preIndex[curS]
+            if i then return decodeMove(plan.route[i]) end
+        end
+        s.plan, plan = nil, nil -- deviated, or the model changed
+    end
+    if plan and (plan.edgesKey ~= ek or plan.fromS ~= curS) then
+        s.plan, plan = nil, nil -- unfinished plan for a stale state
+    end
+    if not plan then
+        plan = {
+            edgesKey = ek,
+            fromS = curS,
             phase = s.deadHypo and "hypo0" or "base",
             hypoIdx = 0,
             search = nil,
             finished = false,
-            result = nil,
         }
+        s.plan = plan
     end
-    local plan = s.plan
-    if plan.finished then return plan.result end
     -- small slices: sustained 100ms+ game-thread stalls abort the game
     -- (proven twice tonight); greedy usually finishes well within one
     local budget = { left = 2500 }
@@ -485,18 +526,23 @@ local function solverPlan(s)
         stepSearch(s, plan.search, budget)
         if plan.search.done then
             if plan.search.result then
-                plan.finished = true
-                plan.result = decodeMove(plan.search.result)
                 if plan.phase == "sweep" then
                     s.deadHypo = s.hypoList[plan.hypoIdx]
-                    plan.key = planKey(s) -- keep the cached plan valid
+                    plan.edgesKey = edgesKey(s) -- keep the route valid
                     if DebugSolver then
                         log(string.format(
                             "solver: plan assumes edge %d->%d inactive",
                             s.deadHypo.a, s.deadHypo.b))
                     end
                 end
-                return plan.result
+                finishRoute(plan, plan.search)
+                plan.search = nil
+                if DebugSolver then
+                    log(string.format("solver: route planned, %d moves",
+                        #plan.route))
+                end
+                local i = plan.preIndex[curS]
+                return i and decodeMove(plan.route[i]) or nil
             end
             -- definitive no-solution for this phase: advance. The key
             -- tracks deadHypo, so keep it in sync or the plan would be
@@ -504,7 +550,7 @@ local function solverPlan(s)
             if plan.phase == "hypo0" then
                 s.deadHypo = nil
                 plan.phase = "base"
-                plan.key = planKey(s)
+                plan.edgesKey = edgesKey(s)
             elseif plan.phase == "base" then
                 plan.phase = "sweep"
             end
