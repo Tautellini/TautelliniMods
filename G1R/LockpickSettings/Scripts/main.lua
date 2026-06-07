@@ -1,4 +1,4 @@
--- LockpickSettings for Gothic 1 Remake
+﻿-- LockpickSettings for Gothic 1 Remake
 -- Two features, configured in config.lua:
 --   1. Extra tries: when the lockpicking minigame starts and
 --      LockpickDurability is at a known vanilla tier base
@@ -8,18 +8,24 @@
 --      and left alone (idempotent), unknown values are left untouched
 --      and logged. Nothing can stack across sessions, saves or reloads.
 --   2. Next-move hint (config.showNextMove): the piece to move next is
---      tinted green, recomputed after every move. Entirely state-driven:
---      no hooks, no input tracking, no knowledge of the user's selection.
---      The lock layouts (pieces + directed connections) ship in
---      lockgraphs.lua, extracted offline from the game's compiled
---      AngelScript blob (tools/extract_locks.py). Live piece positions
---      come from the game's MPC_Lockpicking material collection
---      (Slot_i = world position of piece i), the goal rotation from the
---      scene's m_RotationToBarOffset map, and a small BFS finds the
---      shortest move sequence. Connections the game removed at runtime
---      (suspected skill/precision mechanic) are pruned when a move shows
---      they are inactive. One lean poll tick (2.5x/s, cached references
---      only, no object scans) watches for moves and re-asserts the tint.
+--      tinted (green = turn left, blue = turn right), recomputed after
+--      every move. The connection graphs ship in lockgraphs.lua
+--      (extracted offline from the compiled AngelScript blob); all live
+--      state is MEASURED: piece positions from the MPC_Lockpicking
+--      material collection, rotations from scene geometry (the game
+--      re-scrambles starts per attempt), the goal is the rail center.
+--      A bidirectional BFS plans under the verified rules (atomic
+--      moves, no freezing); runtime-removed connections are pruned from
+--      observed moves and hypothesized when planning fails. The screen
+--      direction for the colors is re-read from the camera every
+--      repaint.
+--   3. Connection display (config.showConnections): the pieces the
+--      currently selected piece would drag along glow purple. Selection
+--      is counted from the minigame task's engine-dispatched Up/Down
+--      input handlers (keyboard AND controller) and re-anchored by the
+--      identified mover on every actual move.
+--      One lean poll tick (2.5x/s, cached references only, no object
+--      scans) watches for settled moves and re-asserts all tints.
 
 local function log(msg)
     print("[LockpickSettings] " .. tostring(msg) .. "\n")
@@ -202,6 +208,8 @@ local function hintColor(s)
     return pressRight and HintColorRight or HintColorLeft
 end
 
+local cameraRightProj -- defined below, needed by retint
+
 -- unified tinting, re-asserted every tick (the game's move FX rewrites
 -- the channel). Layers: the hint (green/blue) outranks the partner
 -- purple; the currently SELECTED piece is never written (its native
@@ -217,7 +225,13 @@ local function retint(s)
         end
     end
     local hintId = (NextMoveActive and s.nextMove) and s.nextMove.piece or nil
-    if hintId then desired[hintId] = hintColor(s) end
+    if hintId then
+        -- refresh the screen mapping every repaint (camera blend safety)
+        if s.axis then
+            s.screenRight = cameraRightProj(s) or s.screenRight
+        end
+        desired[hintId] = hintColor(s)
+    end
     local newTinted = {}
     for id, e in pairs(s.pieces) do
         local want = desired[id]
@@ -261,6 +275,7 @@ local function solverReplan(s)
     -- dragged partner would leave its rail (-3..3), the game rejects
     -- the whole move. No piece ever freezes (verified live). Moves are
     -- invertible, which makes the search bidirectional below.
+    local skipEdge = s.skipEdge -- dead-edge hypothesis, see solverPlan
     local function expand(st, fn)
         for x = 0, n - 1 do
             for d = -1, 1, 2 do
@@ -271,12 +286,14 @@ local function solverReplan(s)
                     for id = 0, n - 1 do nst[id] = st[id] end
                     nst[x] = nx
                     for _, e in ipairs(s.edges[x] or {}) do
-                        local np = nst[e.b] + d * e.dir
-                        if math.abs(rotStart[e.b] + sign * np) > 3 then
-                            valid = false
-                            break
+                        if not (skipEdge and x == skipEdge.a and e.b == skipEdge.b) then
+                            local np = nst[e.b] + d * e.dir
+                            if math.abs(rotStart[e.b] + sign * np) > 3 then
+                                valid = false
+                                break
+                            end
+                            nst[e.b] = np
                         end
-                        nst[e.b] = np
                     end
                     if valid then fn(nst, x, d) end
                 end
@@ -355,6 +372,42 @@ local function solverReplan(s)
     return nil
 end
 
+-- planning under dead-edge uncertainty: the game removes roughly
+-- LockpickPrecision connections per lock invisibly, and a phantom edge
+-- can make our model reject moves reality allows (e.g. a phantom
+-- partner sitting at its rail end). If the full edge set yields no
+-- plan, hypothesize each unconfirmed edge dead and keep the first
+-- hypothesis that works; actual observations prune for real later.
+local function solverPlan(s)
+    if s.deadHypo then
+        s.skipEdge = s.deadHypo
+        local r = solverReplan(s)
+        s.skipEdge = nil
+        if r then return r end
+        s.deadHypo = nil
+    end
+    local r = solverReplan(s)
+    if r then return r end
+    for a, list in pairs(s.edges) do
+        for _, e in ipairs(list) do
+            if not (s.confirmed and s.confirmed[a .. ">" .. e.b]) then
+                s.skipEdge = { a = a, b = e.b }
+                local r2 = solverReplan(s)
+                s.skipEdge = nil
+                if r2 then
+                    s.deadHypo = { a = a, b = e.b }
+                    if DebugSolver then
+                        log(string.format(
+                            "solver: plan assumes edge %d->%d inactive", a, e.b))
+                    end
+                    return r2
+                end
+            end
+        end
+    end
+    return nil
+end
+
 -- pre-move axis calibration from slot geometry: pieces sharing a start
 -- rotation reveal the row-stacking direction; subtracting it from a
 -- pair with different rotations isolates the rail axis WITH its sign
@@ -404,12 +457,17 @@ local function calibrateAxis(s)
 end
 
 -- which way is "screen right" along the rail: rail axis projected on
--- the camera's right vector (the minigame camera is static)
-local function cameraRightProj(s)
+-- the camera's right vector. Read FRESH on every repaint via a cached
+-- camera manager: a single early read could capture the still-blending
+-- minigame camera and invert the colors for the whole session.
+function cameraRightProj(s)
     local proj = nil
     pcall(function()
-        local pc = FindFirstOf("PlayerController")
-        local rot = pc.PlayerCameraManager:GetCameraRotation()
+        if not (s.camMgr and s.camMgr:IsValid()) then
+            local pc = FindFirstOf("PlayerController")
+            s.camMgr = pc.PlayerCameraManager
+        end
+        local rot = s.camMgr:GetCameraRotation()
         local lib = StaticFindObject("/Script/Engine.Default__KismetMathLibrary")
         local r = lib:GetRightVector(rot)
         proj = s.axis[1] * r.X + s.axis[2] * r.Y + s.axis[3] * r.Z
@@ -548,7 +606,7 @@ local function processMove(s, moved, count, prev, now)
     end
     -- plan only while the green is shown; tracking runs regardless
     local t0 = os.clock()
-    s.nextMove = NextMoveActive and solverReplan(s) or nil
+    s.nextMove = NextMoveActive and solverPlan(s) or nil
     if DebugSolver and NextMoveActive then
         local ms = (os.clock() - t0) * 1000
         if ms > 100 then log(string.format("solver: replan took %.0f ms", ms)) end
@@ -816,7 +874,7 @@ local function startSession(attempt)
             s.screenRight = cameraRightProj(s)
         end
     end
-    s.nextMove = NextMoveActive and solverReplan(s) or nil
+    s.nextMove = NextMoveActive and solverPlan(s) or nil
     Session = s
     retint(s)
     log(string.format("Next-move hint: %s, %d pieces, %d connections, first hint: %s",
@@ -855,7 +913,7 @@ local function setNextMove(active)
                         s.replanPending = false
                         if Session == s and not s.stop and NextMoveActive then
                             local t0 = os.clock()
-                            s.nextMove = solverReplan(s)
+                            s.nextMove = solverPlan(s)
                             if DebugSolver then
                                 log(string.format(
                                     "solver: toggle replan %.0f ms, hint=%s",
