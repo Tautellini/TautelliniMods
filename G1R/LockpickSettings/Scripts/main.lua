@@ -1,4 +1,4 @@
-﻿-- LockpickSettings for Gothic 1 Remake
+-- LockpickSettings for Gothic 1 Remake
 -- Two features, configured in config.lua:
 --   1. Extra tries: when the lockpicking minigame starts and
 --      LockpickDurability is at a known vanilla tier base
