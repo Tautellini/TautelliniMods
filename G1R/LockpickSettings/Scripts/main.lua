@@ -254,8 +254,37 @@ local function retint(s)
         local want = desired[id]
         if want then
             if id ~= selId or id == hintId then
-                writeColor(e, want)
-                newTinted[id] = true
+                -- truth guard: never stomp the game's selected glow.
+                -- On fast clicking the tracker can be momentarily
+                -- wrong, and painting over the glow would both mask
+                -- the truth and freeze the wrong state. The hint is
+                -- exempt: it is the action cue and may sit on the
+                -- selected piece.
+                local isGlow = false
+                if s.selectedSig and id ~= hintId then
+                    local mid = e.mids[1]
+                    if mid then
+                        local okc, c = pcall(function()
+                            return mid:K2_GetVectorParameterValue(
+                                FName("HighlightColor"))
+                        end)
+                        if okc and c then
+                            local sg = s.selectedSig
+                            local dr = c.R - sg.R
+                            local dg = c.G - sg.G
+                            local db = c.B - sg.B
+                            if dr * dr + dg * dg + db * db < 0.05 then
+                                isGlow = true
+                            end
+                        end
+                    end
+                end
+                if isGlow then
+                    s.selectedRow = id -- adopt the observed truth
+                else
+                    writeColor(e, want)
+                    newTinted[id] = true
+                end
             elseif s.tinted[id] then
                 newTinted[id] = true -- deferred while selected
             end
@@ -838,19 +867,20 @@ local function selSync(s)
     if not s.selectedSig then return end
     local sig = s.selectedSig
     local best, bestD = nil, 0.05
+    -- scan ALL pieces: a piece wearing our paint cannot match the glow
+    -- signature anyway, and excluding tinted pieces once hid the truth
+    -- when the tracker had painted over the actually-selected piece
     for id, e in pairs(s.pieces) do
-        if not s.tinted[id] then
-            local mid = e.mids[1]
-            if mid then
-                local okc, c = pcall(function()
-                    return mid:K2_GetVectorParameterValue(FName("HighlightColor"))
-                end)
-                if okc and c then
-                    local dr, dg, db = c.R - sig.R, c.G - sig.G, c.B - sig.B
-                    local d = dr * dr + dg * dg + db * db
-                    if d < bestD then
-                        best, bestD = id, d
-                    end
+        local mid = e.mids[1]
+        if mid then
+            local okc, c = pcall(function()
+                return mid:K2_GetVectorParameterValue(FName("HighlightColor"))
+            end)
+            if okc and c then
+                local dr, dg, db = c.R - sig.R, c.G - sig.G, c.B - sig.B
+                local d = dr * dr + dg * dg + db * db
+                if d < bestD then
+                    best, bestD = id, d
                 end
             end
         end
@@ -1290,6 +1320,10 @@ local function onSelectionStep(delta)
     local s = Session
     if not s or s.stop then return end
     s.selectedRow = math.max(0, math.min(s.pieceCount - 1, s.selectedRow + delta))
+    -- instant truth check: the game has already moved its glow within
+    -- this very input dispatch, so read it now instead of waiting for
+    -- the next tick (fast clicking outran the tick-based resync)
+    pcall(selSync, s)
     if ConnActive then
         pcall(retint, s)
     end
