@@ -263,8 +263,9 @@ end
 -- BFS over rail states. Kept deliberately small: expansion budget low
 -- enough to never hitch or build GC pressure (suspected cause of an
 -- earlier abort crash); locks are designed to be solvable in few moves.
-local function solverReplan(s)
+local function solverReplan(s, budget)
     if s.openRot == nil then return nil end
+    budget = budget or { left = 8000 }
     local n, sign, rotStart = s.pieceCount, s.sign, s.rotStart
     local target, start, atGoal = {}, {}, true
     for id = 0, n - 1 do
@@ -316,7 +317,7 @@ local function solverReplan(s)
     local bwdSeen = { [key(target)] = true } -- true = the goal itself
     local fq, fqi = { { st = start, first = nil } }, 1
     local bq, bqi = { { st = target } }, 1
-    local expansions, result = 0, nil
+    local result = nil
     local function resolveMeet(k)
         local f = fwdSeen[k]
         if type(f) == "table" then return f end
@@ -327,8 +328,8 @@ local function solverReplan(s)
     while result == nil do
         local fRemain, bRemain = #fq - fqi + 1, #bq - bqi + 1
         if fRemain <= 0 and bRemain <= 0 then break end
-        expansions = expansions + 1
-        if expansions > 12000 then
+        budget.left = budget.left - 1
+        if budget.left <= 0 then
             if DebugSolver then log("solver: search budget exhausted") end
             return nil
         end
@@ -386,31 +387,61 @@ end
 -- plan, hypothesize each unconfirmed edge dead and keep the first
 -- hypothesis that works; actual observations prune for real later.
 local function solverPlan(s)
+    -- never plan against an unknown state: when live geometry could not
+    -- be derived, the fallback positions may be garbage (re-scrambled
+    -- lock) and planning would burn full budgets every tick
+    if s.stateUnknown then return nil end
+    -- one shared budget for everything this call does: an unthrottled
+    -- hypothesis sweep once ran ELEVEN full searches back to back on the
+    -- game thread and crashed the game
+    local budget = { left = 6000 }
     if s.deadHypo then
         s.skipEdge = s.deadHypo
-        local r = solverReplan(s)
+        local r = solverReplan(s, budget)
         s.skipEdge = nil
         if r then return r end
         s.deadHypo = nil
     end
-    local r = solverReplan(s)
-    if r then return r end
-    for a, list in pairs(s.edges) do
-        for _, e in ipairs(list) do
-            if not (s.confirmed and s.confirmed[a .. ">" .. e.b]) then
-                s.skipEdge = { a = a, b = e.b }
-                local r2 = solverReplan(s)
-                s.skipEdge = nil
-                if r2 then
-                    s.deadHypo = { a = a, b = e.b }
-                    if DebugSolver then
-                        log(string.format(
-                            "solver: plan assumes edge %d->%d inactive", a, e.b))
-                    end
-                    return r2
-                end
+    local r = solverReplan(s, budget)
+    if r then
+        s.hypoIdx = nil
+        return r
+    end
+    -- progressive dead-edge hypothesis sweep: budget-bounded, resumes on
+    -- subsequent ticks instead of stalling the game thread
+    if not s.hypoList then
+        s.hypoList = {}
+        for a, list in pairs(s.edges) do
+            for _, e in ipairs(list) do
+                s.hypoList[#s.hypoList + 1] = { a = a, b = e.b }
             end
         end
+        table.sort(s.hypoList, function(p, q)
+            return p.a < q.a or (p.a == q.a and p.b < q.b)
+        end)
+    end
+    local idx = s.hypoIdx or 1
+    while idx <= #s.hypoList and budget.left > 0 do
+        local h = s.hypoList[idx]
+        idx = idx + 1
+        if not (s.confirmed and s.confirmed[h.a .. ">" .. h.b]) then
+            s.skipEdge = h
+            local r2 = solverReplan(s, budget)
+            s.skipEdge = nil
+            if r2 then
+                s.deadHypo = h
+                s.hypoIdx = nil
+                if DebugSolver then
+                    log(string.format(
+                        "solver: plan assumes edge %d->%d inactive", h.a, h.b))
+                end
+                return r2
+            end
+        end
+    end
+    s.hypoIdx = (idx <= #s.hypoList) and idx or nil
+    if s.hypoIdx and DebugSolver then
+        log("solver: hypothesis sweep continues next tick")
     end
     return nil
 end
@@ -687,6 +718,10 @@ local function solverTick(s)
         s.slotProcessed = now
         if count > 0 then processMove(s, moved, count, prevProcessed, now) end
     end
+    -- resume a budget-paused hypothesis sweep across ticks
+    if NextMoveActive and not s.nextMove and s.hypoIdx then
+        s.nextMove = solverPlan(s)
+    end
     retint(s)
 end
 
@@ -787,7 +822,7 @@ local function startSession(attempt)
     -- piece's rotation = (slot - center) projected on the axis / step.
     -- Mined data contributes only the connection graph (name-stable).
     local derived = false
-    pcall(function()
+    local okGeo, errGeo = pcall(function()
         local loc = scene:K2_GetActorLocation()
         local rot = scene:K2_GetActorRotation()
         local lib = StaticFindObject("/Script/Engine.Default__KismetMathLibrary")
@@ -875,11 +910,15 @@ local function startSession(attempt)
                 .. "] (geometric), screenRight=" .. tostring(s.screenRight))
         end
     else
-        log("Solver: live geometry not readable, assuming authored start "
-            .. "positions (hints may be wrong on re-scrambled locks)")
-        if calibrateAxis(s) then
-            s.screenRight = cameraRightProj(s)
+        -- without measured state, hints would be planned against garbage
+        -- on re-scrambled locks: disable them for this lock. The
+        -- connection display only needs edges and selection and stays.
+        if not okGeo and DebugSolver then
+            log("solver: geometry read failed: " .. tostring(errGeo))
         end
+        s.stateUnknown = true
+        log("Solver: live lock state not readable, next-move hint disabled "
+            .. "for this lock (connection display unaffected)")
     end
     s.nextMove = NextMoveActive and solverPlan(s) or nil
     Session = s
