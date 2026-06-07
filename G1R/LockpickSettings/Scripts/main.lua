@@ -823,17 +823,15 @@ local function startSession(attempt)
     -- Mined data contributes only the connection graph (name-stable).
     local derived = false
     local okGeo, errGeo = pcall(function()
-        -- location via reflected properties (works); rotation reads
-        -- degrade through this wrapper chain (UObject where numbers
-        -- should be), so NO rotation is used at all. The rail axis is
-        -- derived from the slot cloud itself: adjacent-row slot
-        -- differences mix row direction and rail axis, and differencing
-        -- those differences cancels the row component, leaving pure
-        -- rail axis. The axis sign is arbitrary, which the model
-        -- tolerates (symmetric) and the colors resolve via the camera.
-        local root = scene.RootComponent
-        local rl = root.RelativeLocation
-        local loc = { X = rl.X, Y = rl.Y, Z = rl.Z }
+        -- SLOTS ONLY: every read through the scene actor's wrapper chain
+        -- degrades under some UE4SS configurations (struct fields coming
+        -- back as UObjects), while the MPC slot reads have never failed.
+        -- The rail axis comes from the slot cloud (differencing
+        -- adjacent-row differences cancels the row direction), and the
+        -- absolute anchor is the integer offset that fits every piece
+        -- on the rail, unique whenever the pieces span enough of it.
+        -- The axis sign is arbitrary: the model is symmetric and the
+        -- colors resolve via the camera.
         local D = {}
         for id = 0, s.pieceCount - 2 do
             local a, b = s.slotStart[id], s.slotStart[id + 1]
@@ -857,16 +855,20 @@ local function startSession(attempt)
         end
         for _, cand in ipairs(candidates) do
             local axis = cand.v
-            local centerProj = loc.X * axis[1] + loc.Y * axis[2] + loc.Z * axis[3]
-            -- the scene origin can sit OFF the rail center by a constant
-            -- (observed: residuals fine, range check failing): align on
-            -- the common fractional offset (median residual), then pick
-            -- the integer shift that keeps every rotation on the rail
+            -- align on the common fractional offset (median residual),
+            -- then pick the integer shift that fits every rotation on
+            -- the rail, preferring the most centered arrangement
             local qs, resid = {}, {}
+            local qmean = 0
             for id = 0, s.pieceCount - 1 do
                 local sl = s.slotStart[id]
-                qs[id] = (sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3]
-                    - centerProj) / s.stepSize
+                qs[id] = (sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3])
+                    / s.stepSize
+                qmean = qmean + qs[id]
+            end
+            qmean = qmean / s.pieceCount
+            for id = 0, s.pieceCount - 1 do
+                qs[id] = qs[id] - qmean -- work near zero for clean rounding
                 resid[#resid + 1] = qs[id] - math.floor(qs[id] + 0.5)
             end
             table.sort(resid)
@@ -887,11 +889,19 @@ local function startSession(attempt)
                 if rr > maxR then maxR = rr end
             end
             if ok2 then
-                local bestK = nil
+                -- choose the offset that fits the rail; prefer the most
+                -- centered arrangement, and report remaining ambiguity
+                local bestK, bestSpread, nValid = nil, 99, 0
                 for k = -3 - minR, 3 - maxR do
-                    if bestK == nil or math.abs(k) < math.abs(bestK) then
-                        bestK = k
+                    nValid = nValid + 1
+                    local spread = math.max(math.abs(minR + k), math.abs(maxR + k))
+                    if spread < bestSpread then
+                        bestSpread, bestK = spread, k
                     end
+                end
+                if nValid > 1 and DebugSolver then
+                    log(string.format("solver: start anchor ambiguous "
+                        .. "(%d candidates), picked most centered", nValid))
                 end
                 if bestK ~= nil then
                     s.axis = axis
