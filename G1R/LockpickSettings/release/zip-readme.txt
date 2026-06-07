@@ -6,8 +6,9 @@ LockpickSettings for Gothic 1 Remake
    recomputed after every move. The colors calibrate themselves from
    your first move. Works with keyboard and controller. Off by default.
 3. Optional connection display: press F8 and the pieces connected to
-   your currently selected piece glow purple (they move along when you
-   turn it). Off by default.
+   your currently selected piece light up (purple = moves the same
+   direction as the selected piece, red = moves opposite).
+   Off by default.
 
 Requires UE4SS, experimental build (the game runs UE 5.4.3):
 https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest
@@ -28,7 +29,8 @@ Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the
 bonus, baseTries = vanilla tries per tier, showNextMove /
 showConnections = the assists' state at game start, nextMoveHotkey /
 connectionsHotkey = the toggle keys, hintColorLeft / hintColorRight /
-partnerColor = the colors). Apply with a game restart or CTRL+R. Both
+partnerColorSame / partnerColorOpposite = the colors). Apply with a
+game restart or CTRL+R. Both
 assists can be toggled at any time, even mid-pick: the mod follows
 every lock from its start, the keys only switch the highlights.
 

@@ -28,9 +28,10 @@ start, the keys only switch the highlights):
   master perk (removing connections when a pick breaks) keeps its
   full value
 - Connection display (`showConnections`, F8): the pieces connected to
-  your currently selected piece glow purple (they move along when you
-  turn it). Selection is tracked from the minigame's own input events
-  (keyboard and controller) and re-anchors on every actual move
+  your currently selected piece light up, purple when they travel the
+  SAME direction as the selected piece, red when they travel OPPOSITE.
+  Selection is tracked from the minigame's own input events (keyboard
+  and controller) and re-anchors on every actual move
 
 ## Configuration
 
@@ -50,7 +51,9 @@ Edit `Scripts/config.lua`, then restart the game or press CTRL+R ingame:
   false)
 - `connectionsHotkey`: key that toggles the connection display
   (default `"F8"`, `""` disables)
-- `partnerColor`: connected-pieces color as `{r, g, b}` (default purple)
+- `partnerColorSame` / `partnerColorOpposite`: connected-pieces colors
+  as `{r, g, b}`, by drag direction relative to the selected piece
+  (defaults: purple = same, red = opposite)
 - `debugSolver`: log solver internals to the UE4SS log (default false)
 
 The hint tints the piece to move next green and replans after every

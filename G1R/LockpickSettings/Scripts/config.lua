@@ -47,8 +47,11 @@ return {
     -- Hotkey that toggles the connection display ingame ("" disables).
     connectionsHotkey = "F8",
 
-    -- Color of connected pieces as {red, green, blue} with 0..1 values.
-    partnerColor = { 0.55, 0.10, 1.00 },
+    -- Colors of connected pieces as {red, green, blue} with 0..1
+    -- values: purple for pieces dragged in the SAME direction as the
+    -- selected piece, red for pieces dragged in the OPPOSITE direction.
+    partnerColorSame     = { 0.55, 0.10, 1.00 },
+    partnerColorOpposite = { 1.00, 0.15, 0.15 },
 
     -- Log solver internals (moved sets, replans, calibration) to the
     -- UE4SS log. Leave false for normal play.

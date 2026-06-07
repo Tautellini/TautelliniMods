@@ -136,8 +136,10 @@ local HintColorLeft  = colorFrom(Config.hintColorLeft,
     { R = 0.10, G = 1.00, B = 0.15, A = 1.0 })
 local HintColorRight = colorFrom(Config.hintColorRight,
     { R = 0.15, G = 0.45, B = 1.00, A = 1.0 })
-local PartnerColor   = colorFrom(Config.partnerColor,
+local PartnerColorSame = colorFrom(Config.partnerColorSame,
     { R = 0.55, G = 0.10, B = 1.00, A = 1.0 })
+local PartnerColorOpp  = colorFrom(Config.partnerColorOpposite,
+    { R = 1.00, G = 0.15, B = 0.15, A = 1.0 })
 
 local Session = nil -- at most one live minigame session
 
@@ -234,7 +236,9 @@ local function retint(s)
     if ConnActive then
         selId = s.selectedRow
         for _, e in ipairs(s.edges[selId] or {}) do
-            desired[e.b] = PartnerColor
+            -- direction-coded: purple partners travel WITH the selected
+            -- piece, red partners travel AGAINST it
+            desired[e.b] = (e.dir == 1) and PartnerColorSame or PartnerColorOpp
         end
     end
     local hintId = (NextMoveActive and s.nextMove) and s.nextMove.piece or nil

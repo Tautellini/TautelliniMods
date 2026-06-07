@@ -30,7 +30,7 @@ Press [b]F7[/b] during the lockpicking minigame and the piece you should move ne
 
 [quote][size=4][b]🔗 Connection Display[/b] [i](optional, off by default)[/i][/size]
 
-Press [b]F8[/b] during the lockpicking minigame and the pieces connected to your currently SELECTED piece glow [color=#b366ff][b]purple[/b][/color]: they will move along when you turn it. Selection tracking works with keyboard and controller and re-anchors itself on every actual move. The purple color is configurable, and the next-move hint always outranks it on the hinted piece.[/quote]
+Press [b]F8[/b] during the lockpicking minigame and the pieces connected to your currently SELECTED piece light up, direction-coded: [color=#b366ff][b]purple[/b][/color] when a piece travels the [b]SAME[/b] direction as the selected one, [color=#ff5555][b]red[/b][/color] when it travels [b]OPPOSITE[/b]. Selection tracking works with keyboard and controller and re-anchors itself on every actual move. Both colors are configurable, and the next-move hint always outranks them on the hinted piece.[/quote]
 
 [size=4][b]Planned[/b][/size]
 
@@ -72,7 +72,7 @@ Edit [b]...\ue4ss\Mods\LockpickSettings\Scripts\config.lua[/b]:
 [*][b]hintColorLeft[/b] / [b]hintColorRight[/b]: the hint colors as {r, g, b}, encoding which way to turn the hinted lock (defaults: green = left, blue = right; set both equal for a directionless hint)
 [*][b]showConnections[/b]: whether the connection display is active at game start (default false)
 [*][b]connectionsHotkey[/b]: the key that toggles the connection display (default "F8", "" disables)
-[*][b]partnerColor[/b]: the connected-pieces color as {r, g, b} (default purple)
+[*][b]partnerColorSame[/b] / [b]partnerColorOpposite[/b]: the connected-pieces colors as {r, g, b}, by drag direction relative to the selected piece (defaults: purple = same, red = opposite)
 [*][b]debugSolver[/b]: verbose solver logging for bug reports (default false)
 [/list]
 
