@@ -263,186 +263,238 @@ end
 -- BFS over rail states. Kept deliberately small: expansion budget low
 -- enough to never hitch or build GC pressure (suspected cause of an
 -- earlier abort crash); locks are designed to be solvable in few moves.
-local function solverReplan(s, budget)
-    if s.openRot == nil then return nil end
-    budget = budget or { left = 8000 }
-    local n, sign, rotStart = s.pieceCount, s.sign, s.rotStart
-    local target, start, atGoal = {}, {}, true
+-- ------------------------------------------------------ search machine --
+-- Integer-encoded persistent bidirectional BFS. States are base-7
+-- numbers (one digit per piece, digit = rotation + 3), so successor
+-- generation is pure arithmetic: no table copies, no string keys,
+-- roughly an order of magnitude faster than the previous BFS. Searches
+-- are RESUMABLE: a budget slice runs per tick and progress is never
+-- repeated (the previous design re-ran the base search every tick and
+-- froze the game on hard locks). Moves are ATOMIC (mover and all
+-- dragged partners must stay on their rails) and invertible, which
+-- makes the bidirectional meet valid.
+
+local function buildSearch(s, skipEdge)
+    local n, place = s.pieceCount, s.place
+    local out = {}
+    for x = 0, n - 1 do
+        local lst = {}
+        for _, e in ipairs(s.edges[x] or {}) do
+            if not (skipEdge and skipEdge.a == x and skipEdge.b == e.b) then
+                lst[#lst + 1] = e
+            end
+        end
+        out[x] = lst
+    end
+    local startS, goalS = 0, 0
     for id = 0, n - 1 do
-        target[id] = sign * (s.openRot - rotStart[id])
-        start[id] = s.steps[id] or 0
-        if start[id] ~= target[id] then atGoal = false end
+        local rot = s.rotStart[id] + s.sign * (s.steps[id] or 0)
+        startS = startS + (rot + 3) * place[id]
+        goalS = goalS + 3 * place[id]
     end
-    if atGoal then return nil end
-    local function key(st)
-        local p = {}
-        for id = 0, n - 1 do p[#p + 1] = st[id] end
-        return table.concat(p, ",")
+    if startS == goalS then
+        return { done = true, result = nil, atGoal = true }
     end
-    -- successor generator. Moves are ATOMIC: if the mover or any
-    -- dragged partner would leave its rail (-3..3), the game rejects
-    -- the whole move. No piece ever freezes (verified live). Moves are
-    -- invertible, which makes the search bidirectional below.
-    local skipEdge = s.skipEdge -- dead-edge hypothesis, see solverPlan
-    local function expand(st, fn)
+    return {
+        out = out,
+        startS = startS,
+        fwdSeen = { [startS] = 0 }, -- 0 = sentinel for the start itself
+        bwdSeen = { [goalS] = 0 },
+        fq = { startS }, fqi = 1,
+        bq = { goalS }, bqi = 1,
+        done = false, result = nil,
+    }
+end
+
+-- moves are packed as (piece+1)*4 + (1 if dir==+1 else 0)
+local function decodeMove(p)
+    return { piece = math.floor(p / 4) - 1, dir = (p % 4 == 1) and 1 or -1 }
+end
+
+local function stepSearch(s, search, budget)
+    if search.done then return end
+    local n, place, out = s.pieceCount, s.place, search.out
+    local fwdSeen, bwdSeen = search.fwdSeen, search.bwdSeen
+    local floor = math.floor
+    while budget.left > 0 do
+        local fRemain = #search.fq - search.fqi + 1
+        local bRemain = #search.bq - search.bqi + 1
+        if fRemain <= 0 and bRemain <= 0 then
+            search.done = true -- definitively no solution
+            return
+        end
+        budget.left = budget.left - 1
+        local forward = fRemain > 0 and (bRemain <= 0 or fRemain <= bRemain)
+        local S, inheritFirst
+        if forward then
+            S = search.fq[search.fqi]
+            search.fq[search.fqi] = nil
+            search.fqi = search.fqi + 1
+            inheritFirst = fwdSeen[S]
+        else
+            S = search.bq[search.bqi]
+            search.bq[search.bqi] = nil
+            search.bqi = search.bqi + 1
+        end
         for x = 0, n - 1 do
+            local px = place[x]
+            local dx = floor(S / px) % 7
             for d = -1, 1, 2 do
-                local nx = st[x] + d
-                if math.abs(rotStart[x] + sign * nx) <= 3 then
+                local nx = dx + d
+                if nx >= 0 and nx <= 6 then
+                    local delta = d * px
                     local valid = true
-                    local nst = {}
-                    for id = 0, n - 1 do nst[id] = st[id] end
-                    nst[x] = nx
-                    for _, e in ipairs(s.edges[x] or {}) do
-                        if not (skipEdge and x == skipEdge.a and e.b == skipEdge.b) then
-                            local np = nst[e.b] + d * e.dir
-                            if math.abs(rotStart[e.b] + sign * np) > 3 then
-                                valid = false
-                                break
+                    local lst = out[x]
+                    for i = 1, #lst do
+                        local e = lst[i]
+                        local pb = place[e.b]
+                        local nb = floor(S / pb) % 7 + d * e.dir
+                        if nb < 0 or nb > 6 then
+                            valid = false
+                            break
+                        end
+                        delta = delta + d * e.dir * pb
+                    end
+                    if valid then
+                        local T = S + delta
+                        if forward then
+                            if fwdSeen[T] == nil then
+                                local first = inheritFirst
+                                if first == 0 then
+                                    first = (x + 1) * 4 + (d > 0 and 1 or 0)
+                                end
+                                fwdSeen[T] = first
+                                if bwdSeen[T] ~= nil then
+                                    search.done = true
+                                    search.result = first
+                                    return
+                                end
+                                search.fq[#search.fq + 1] = T
                             end
-                            nst[e.b] = np
+                        else
+                            if bwdSeen[T] == nil then
+                                -- forward move from T toward the goal
+                                local back = (x + 1) * 4 + (d < 0 and 1 or 0)
+                                bwdSeen[T] = back
+                                local f = fwdSeen[T]
+                                if f ~= nil then
+                                    search.done = true
+                                    search.result = (f ~= 0) and f or back
+                                    return
+                                end
+                                search.bq[#search.bq + 1] = T
+                            end
                         end
                     end
-                    if valid then fn(nst, x, d) end
                 end
             end
         end
     end
-    -- bidirectional BFS: a forward frontier from the current state
-    -- (tagged with the FIRST move) meets a backward frontier grown from
-    -- the goal (tagged with the move toward the goal, inverted). This
-    -- replaced a unidirectional search whose ~600ms game-thread stalls
-    -- on 6-piece locks caused abort crashes.
-    local fwdSeen = { [key(start)] = true } -- true = the start itself
-    local bwdSeen = { [key(target)] = true } -- true = the goal itself
-    local fq, fqi = { { st = start, first = nil } }, 1
-    local bq, bqi = { { st = target } }, 1
-    local result = nil
-    local function resolveMeet(k)
-        local f = fwdSeen[k]
-        if type(f) == "table" then return f end
-        local b = bwdSeen[k]
-        if type(b) == "table" then return b end
-        return nil
+end
+
+-- the plan is keyed on the state AND the edge model it was built for;
+-- any change (a move, a prune, a new hypothesis) discards it
+local function planKey(s)
+    local parts = {}
+    for id = 0, s.pieceCount - 1 do
+        parts[#parts + 1] = s.rotStart[id] + s.sign * (s.steps[id] or 0)
     end
-    while result == nil do
-        local fRemain, bRemain = #fq - fqi + 1, #bq - bqi + 1
-        if fRemain <= 0 and bRemain <= 0 then break end
-        budget.left = budget.left - 1
-        if budget.left <= 0 then
-            if DebugSolver then log("solver: search budget exhausted") end
-            return nil
-        end
-        if fRemain > 0 and (bRemain <= 0 or fRemain <= bRemain) then
-            local node = fq[fqi]
-            fq[fqi] = false
-            fqi = fqi + 1
-            expand(node.st, function(nst, x, d)
-                if result then return end
-                local k = key(nst)
-                if fwdSeen[k] == nil then
-                    local first = node.first or { piece = x, dir = d }
-                    fwdSeen[k] = first
-                    if bwdSeen[k] then
-                        result = first
-                        return
-                    end
-                    fq[#fq + 1] = { st = nst, first = first }
-                end
-            end)
-        else
-            local node = bq[bqi]
-            bq[bqi] = false
-            bqi = bqi + 1
-            expand(node.st, function(nst, x, d)
-                if result then return end
-                local k = key(nst)
-                if not bwdSeen[k] then
-                    -- backward edge nst -> node.st in forward terms is
-                    -- the move (x, -d) from nst
-                    bwdSeen[k] = { piece = x, dir = -d }
-                    if fwdSeen[k] then
-                        result = resolveMeet(k)
-                        if result == nil then
-                            -- met exactly at the start: the hint is this
-                            -- backward move inverted at the start state
-                            result = { piece = x, dir = -d }
-                        end
-                        return
-                    end
-                    bq[#bq + 1] = { st = nst }
-                end
-            end)
-        end
-    end
-    if result then return result end
-    if DebugSolver then log("solver: no solution under current model") end
-    return nil
+    local ec = 0
+    for _, lst in pairs(s.edges) do ec = ec + #lst end
+    return table.concat(parts, ",") .. "|" .. ec .. "|"
+        .. (s.deadHypo and (s.deadHypo.a .. ">" .. s.deadHypo.b) or "-")
 end
 
 -- planning under dead-edge uncertainty: the game removes roughly
 -- LockpickPrecision connections per lock invisibly, and a phantom edge
--- can make our model reject moves reality allows (e.g. a phantom
--- partner sitting at its rail end). If the full edge set yields no
--- plan, hypothesize each unconfirmed edge dead and keep the first
--- hypothesis that works; actual observations prune for real later.
+-- can make the model reject moves reality allows. Phases: a kept
+-- hypothesis first (cheap revalidation), then the full edge set, then
+-- each unconfirmed edge hypothesized dead in turn. Each phase runs to
+-- a DEFINITIVE conclusion across as many ticks as needed.
 local function solverPlan(s)
-    -- never plan against an unknown state: when live geometry could not
-    -- be derived, the fallback positions may be garbage (re-scrambled
-    -- lock) and planning would burn full budgets every tick
     if s.stateUnknown then return nil end
-    -- one shared budget for everything this call does: an unthrottled
-    -- hypothesis sweep once ran ELEVEN full searches back to back on the
-    -- game thread and crashed the game
-    local budget = { left = 6000 }
-    if s.deadHypo then
-        s.skipEdge = s.deadHypo
-        local r = solverReplan(s, budget)
-        s.skipEdge = nil
-        if r then return r end
-        s.deadHypo = nil
+    local k = planKey(s)
+    if not s.plan or s.plan.key ~= k then
+        s.plan = {
+            key = k,
+            phase = s.deadHypo and "hypo0" or "base",
+            hypoIdx = 0,
+            search = nil,
+            finished = false,
+            result = nil,
+        }
     end
-    local r = solverReplan(s, budget)
-    if r then
-        s.hypoIdx = nil
-        return r
-    end
-    -- progressive dead-edge hypothesis sweep: budget-bounded, resumes on
-    -- subsequent ticks instead of stalling the game thread
-    if not s.hypoList then
-        s.hypoList = {}
-        for a, list in pairs(s.edges) do
-            for _, e in ipairs(list) do
-                s.hypoList[#s.hypoList + 1] = { a = a, b = e.b }
-            end
-        end
-        table.sort(s.hypoList, function(p, q)
-            return p.a < q.a or (p.a == q.a and p.b < q.b)
-        end)
-    end
-    local idx = s.hypoIdx or 1
-    while idx <= #s.hypoList and budget.left > 0 do
-        local h = s.hypoList[idx]
-        idx = idx + 1
-        if not (s.confirmed and s.confirmed[h.a .. ">" .. h.b]) then
-            s.skipEdge = h
-            local r2 = solverReplan(s, budget)
-            s.skipEdge = nil
-            if r2 then
-                s.deadHypo = h
-                s.hypoIdx = nil
-                if DebugSolver then
-                    log(string.format(
-                        "solver: plan assumes edge %d->%d inactive", h.a, h.b))
+    local plan = s.plan
+    if plan.finished then return plan.result end
+    local budget = { left = 12000 }
+    while budget.left > 0 do
+        if not plan.search then
+            if plan.phase == "hypo0" then
+                plan.search = buildSearch(s, s.deadHypo)
+            elseif plan.phase == "base" then
+                plan.search = buildSearch(s, nil)
+            else -- sweep over unconfirmed edges
+                if not s.hypoList then
+                    s.hypoList = {}
+                    for a, list in pairs(s.edges) do
+                        for _, e in ipairs(list) do
+                            s.hypoList[#s.hypoList + 1] = { a = a, b = e.b }
+                        end
+                    end
+                    table.sort(s.hypoList, function(p, q)
+                        return p.a < q.a or (p.a == q.a and p.b < q.b)
+                    end)
                 end
-                return r2
+                repeat
+                    plan.hypoIdx = plan.hypoIdx + 1
+                until plan.hypoIdx > #s.hypoList
+                    or not (s.confirmed and s.confirmed[s.hypoList[plan.hypoIdx].a
+                        .. ">" .. s.hypoList[plan.hypoIdx].b])
+                if plan.hypoIdx > #s.hypoList then
+                    plan.finished = true
+                    if DebugSolver then
+                        log("solver: no solution under any single-dead-edge "
+                            .. "hypothesis")
+                    end
+                    return nil
+                end
+                plan.search = buildSearch(s, s.hypoList[plan.hypoIdx])
+            end
+            if plan.search.atGoal then
+                plan.finished = true
+                return nil
             end
         end
+        stepSearch(s, plan.search, budget)
+        if plan.search.done then
+            if plan.search.result then
+                plan.finished = true
+                plan.result = decodeMove(plan.search.result)
+                if plan.phase == "sweep" then
+                    s.deadHypo = s.hypoList[plan.hypoIdx]
+                    plan.key = planKey(s) -- keep the cached plan valid
+                    if DebugSolver then
+                        log(string.format(
+                            "solver: plan assumes edge %d->%d inactive",
+                            s.deadHypo.a, s.deadHypo.b))
+                    end
+                end
+                return plan.result
+            end
+            -- definitive no-solution for this phase: advance. The key
+            -- tracks deadHypo, so keep it in sync or the plan would be
+            -- discarded and progress lost on the next call.
+            if plan.phase == "hypo0" then
+                s.deadHypo = nil
+                plan.phase = "base"
+                plan.key = planKey(s)
+            elseif plan.phase == "base" then
+                plan.phase = "sweep"
+            end
+            plan.search = nil
+        end
     end
-    s.hypoIdx = (idx <= #s.hypoList) and idx or nil
-    if s.hypoIdx and DebugSolver then
-        log("solver: hypothesis sweep continues next tick")
-    end
+    if DebugSolver then log("solver: planning continues next tick") end
     return nil
 end
 
@@ -718,8 +770,8 @@ local function solverTick(s)
         s.slotProcessed = now
         if count > 0 then processMove(s, moved, count, prevProcessed, now) end
     end
-    -- resume a budget-paused hypothesis sweep across ticks
-    if NextMoveActive and not s.nextMove and s.hypoIdx then
+    -- resume an unfinished plan across ticks (one budget slice per tick)
+    if NextMoveActive and not s.nextMove and s.plan and not s.plan.finished then
         s.nextMove = solverPlan(s)
     end
     retint(s)
@@ -796,6 +848,13 @@ local function startSession(attempt)
     for _, p in ipairs(graph.pieces) do
         s.rotStart[p.id] = p.rot
         s.steps[p.id] = 0
+    end
+    -- base-7 place values for the integer-encoded search
+    s.place = {}
+    local pw = 1
+    for id = 0, s.pieceCount - 1 do
+        s.place[id] = pw
+        pw = pw * 7
     end
     pcall(function() s.stepSize = scene.m_LockPieceTranslationStep end)
     if not s.stepSize or s.stepSize <= 0 then s.stepSize = 6.3 end
