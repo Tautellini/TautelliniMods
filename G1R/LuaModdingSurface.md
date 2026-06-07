@@ -138,21 +138,54 @@ Verified in-game 2026-06-06 (LockProbe sessions, see
   property anywhere holds the selected row (exhaustively searched)
 - Minigame mechanics (hard-won; each item below replaced a plausible
   but WRONG model, see the graveyard): rails span 7 positions
-  (rotations -3..+3), the OPEN position is the center (rot 0). Pieces
-  NEVER freeze, not even at the center. Moves are ATOMIC: the mover
-  and every dragged partner must stay within the rail or the game
-  rejects the whole move; this is the only blocking mechanism and the
-  sole reason a piece can appear "unmovable". Drags are direct-only
+  (rotations -3..+3), the OPEN position is ALWAYS the center (rot 0)
+  for EVERY lock, and the lock opens BY ITSELF the instant the last
+  correct move lands (player-canon 2026-06-07; a full day was lost to
+  drifting measurements that made pins-at-center look like a non-win,
+  never relitigate the goal on measurement evidence alone). Controls
+  are INVERTED: pressing LEFT moves a pin RIGHT. Pieces NEVER freeze,
+  not even at the center. Moves are ATOMIC: the mover and every
+  dragged partner must stay within the rail or the game rejects the
+  whole move (visible as a shake); this is the only blocking mechanism
+  and the sole reason a piece can appear "unmovable". A REFUSED move
+  counts as a FAIL and costs pick durability. Drags are direct-only
   (no cascading) and directed per the mined dir (+1 same direction,
   -1 opposite)
-- STARTING POSITIONS ARE RE-SCRAMBLED PER ATTEMPT: the mined rot is
-  only the authored scramble (seen on the first encounter); re-opening
-  a lock randomizes the positions under the same lock name. Never
-  trust mined rots for live state. Read geometry instead: the scene
-  actor's location is the rail center, its right vector the rail
-  axis, and a piece's rotation = round((slot - center) projected on
-  the axis / step). Mined data is name-stable ONLY for the connection
-  graph and the piece count
+- STARTING POSITIONS: not reliably re-scrambled per attempt after all.
+  At least one chest (OC_Chest_Mordrag) starts at the AUTHORED layout
+  on every fresh entry (verified repeatedly 2026-06-07); a mid-session
+  pick BREAK does randomize. Still never trust mined rots blindly for
+  live state, measure them. NOTE the scene actor is an AInfo with NO
+  transform (the "scene location is the rail center" formula here was
+  never actually verified and cannot work); the live read that works
+  is the MPC slot positions plus the fixed bar/latch part columns.
+  Mined data is name-stable for the connection graph and piece count
+- RANDOM LOCKS PER SAVE-STATE (verified 2026-06-07): the SAME physical
+  chest carries DIFFERENT lock configs across save reloads
+  (RandomLockSubsystem tier pools; observed live as three lock names
+  learned at one world position). A reload can therefore change a
+  chest's name, graph, piece count and layout. Identify the active
+  lock through the CURRENT AbilityTask_LockPick's owning Ability
+  (m_Lock), never by scanning ability instances (they linger and get
+  reused); key any per-lock persistence by name PLUS world location
+- The current minigame's verdicts are observable via UFunction hooks:
+  GameplayAbilityDoor/Open Server_SuccessLockEvent and
+  NetMulticast_OnSetLockUnlocked fire on success (proven in-game),
+  Server_FailedLockEvent on a pick break. Opened locks' actors LINGER
+  for minutes (the die-within-a-tick rule holds only for aborted
+  minigames), so sessions must close themselves on the success signal
+- The slot cloud ALONE fixes rotations only RELATIVE to each other:
+  the absolute center is ambiguous unless the scramble spans the full
+  rail, and a most-centered fit guesses wrong on roughly 4 of 10
+  non-spanning attempts (simulated over the mined graphs,
+  tools/sim_anchor.py; the "all pins end one beside the center"
+  community reports). The scene location anchors it absolutely where
+  readable (K2_GetActorLocation is a UFunction CALL and does not hit
+  the degrading struct-FIELD reads; validate the projection against
+  the fitted grid before trusting it). Any guessed anchor must be
+  treated as a hypothesis and corrected from evidence: rail bounds,
+  refused model-valid moves, planning dead ends, an unopened believed
+  goal (LockpickSettings 2.6 does all four)
 - The game removes roughly LockpickPrecision connections per lock at
   runtime, so mined graphs are upper bounds. Learn dead edges from
   observed moved-sets: exact covers confirm a mover's edges as active,

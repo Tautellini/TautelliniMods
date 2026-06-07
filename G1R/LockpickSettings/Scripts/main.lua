@@ -1,4 +1,16 @@
 -- LockpickSettings for Gothic 1 Remake
+--
+-- MINIGAME CANON (player-verified 2026-06-07, see README; when an
+-- observation contradicts these rules, the MEASUREMENT is wrong):
+--   * 7 pin positions per piece; THE GOAL IS ALWAYS ALL PINS ON
+--     POSITION 4 (center); the lock opens BY ITSELF on the last
+--     correct move, no confirm input exists
+--   * controls inverted: pressing LEFT moves a pin RIGHT
+--   * moves are atomic: refused entirely (shake, nothing moves) if
+--     the pin or any dragged partner pin would leave the rail, and a
+--     refusal COSTS DURABILITY (counts as a fail)
+--   * starts can equal the authored layout; breaks re-scramble
+--
 -- Two features, configured in config.lua:
 --   1. Extra tries: when the lockpicking minigame starts and
 --      LockpickDurability is at a known vanilla tier base
@@ -12,9 +24,17 @@
 --      every move. The connection graphs ship in lockgraphs.lua
 --      (extracted offline from the compiled AngelScript blob); all live
 --      state is MEASURED: piece positions from the MPC_Lockpicking
---      material collection, rotations from scene geometry (the game
---      re-scrambles starts per attempt), the goal is the rail center.
---      A bidirectional BFS plans under the verified rules (atomic
+--      material collection (the one channel that has never failed),
+--      snapped ABSOLUTELY onto the rail grid every settle. The goal is
+--      the rail center (canon). The anchor (which column is the
+--      center) comes from, in order: the remembered open position of
+--      this lock, the bar/latch part columns measured by float
+--      distance trilateration, part location reads, else the
+--      most-centered guess hardened by pure geometry (a unique
+--      candidate window IS the truth) and by evidence (a pin leaving
+--      the rail, a game-refused model-valid move, a planning dead end,
+--      a goal that does not open).
+--      A greedy best-first search plans under the verified rules (atomic
 --      moves, no freezing); runtime-removed connections are pruned from
 --      observed moves and hypothesized when planning fails. The screen
 --      direction for the colors is re-read from the camera every
@@ -92,6 +112,23 @@ local function liveInstances(className)
     return out
 end
 
+-- float distance between two actors, trying the name variants
+-- different UE4SS builds expose. Float returns never misdecode; the
+-- call itself is the part that dies on some boots.
+local function distTo(a, b)
+    local ok, d = pcall(function()
+        return a:GetDistanceTo(b)
+    end)
+    if ok and tonumber(d) then return d end
+    ok, d = pcall(function()
+        return a:GetSquaredDistanceTo(b)
+    end)
+    if ok and tonumber(d) and d >= 0 then
+        return math.sqrt(d)
+    end
+    return nil
+end
+
 -- ------------------------------------------------------------ attributes --
 local function findPlayerAttrSet()
     for _, s in ipairs(liveInstances("AttributeSet_Lockpicking")) do
@@ -136,14 +173,166 @@ local HintColorLeft  = colorFrom(Config.hintColorLeft,
     { R = 0.10, G = 1.00, B = 0.15, A = 1.0 })
 local HintColorRight = colorFrom(Config.hintColorRight,
     { R = 0.15, G = 0.45, B = 1.00, A = 1.0 })
+-- shown while the press direction is not yet MEASURED for this lock:
+-- marks the piece to move without guessing the turn (a directional
+-- coin flip sent players into walls, and refused moves cost
+-- durability; never gamble on direction)
+local HintColorNeutral = colorFrom(Config.hintColorNeutral,
+    { R = 1.00, G = 0.95, B = 0.20, A = 1.0 })
 local PartnerColorSame = colorFrom(Config.partnerColorSame,
     { R = 0.55, G = 0.10, B = 1.00, A = 1.0 })
 local PartnerColorOpp  = colorFrom(Config.partnerColorOpposite,
     { R = 1.00, G = 0.15, B = 0.15, A = 1.0 })
 
+-- GAME CONSTANT, measured in-game (a strict single-press calibration
+-- in the same session and frame as the latch/bar column measurement,
+-- 2026-06-07): pressing RIGHT moves the selected pin AWAY from the
+-- latch side of the lock. The lock prefab, its fixed camera framing
+-- and the key semantics are identical for every lock, so this one
+-- constant makes the direction colors correct from the FIRST hint of
+-- every session, no camera guess, no runtime learning. The runtime
+-- calibration stays armed and logs the re-derived invariant so a game
+-- patch flipping the controls is caught immediately.
+local RightTowardLatch = -1
+
 local Session = nil -- at most one live minigame session
+local StartSnap = nil -- slot snapshot of the previous start attempt
+local FreshPieces = {} -- piece actors by spawn time, see startSession
+
+-- learned open positions: when a lock OPENS, every pin provably sits
+-- on the center column, and the pins' 3D centroid at that moment is a
+-- FIXED property of the chest (scramble-independent, the chest does
+-- not move). Remembered per lock name, in memory and best-effort on
+-- disk, it anchors every later session of that chest from the slot
+-- reads alone: the one channel that has never failed on any boot,
+-- while every actor-based read (locations, distances, the subsystem
+-- array) proved flaky from one game launch to the next.
+local LearnedAnchors = nil
+local AnchorsPath = nil
+local AnchorPathCandidates = {
+    "ue4ss\\Mods\\LockpickSettings\\learned-anchors.txt",
+    "Mods\\LockpickSettings\\learned-anchors.txt",
+}
+local function anchorsLoad()
+    if LearnedAnchors then return end
+    LearnedAnchors = {}
+    for _, p in ipairs(AnchorPathCandidates) do
+        local f = io.open(p, "r")
+        if f then
+            AnchorsPath = p
+            for line in f:lines() do
+                local nm, rest = string.match(line, "^(.-)|(.+)$")
+                if nm then
+                    local nums = {}
+                    for v in string.gmatch(rest, "[-%d%.]+") do
+                        nums[#nums + 1] = tonumber(v)
+                    end
+                    if #nums >= 3 then
+                        -- one lock NAME can exist at several world
+                        -- locations: keep a LIST of entries per name,
+                        -- disambiguated by 3D distance at adoption
+                        LearnedAnchors[nm] = LearnedAnchors[nm] or {}
+                        table.insert(LearnedAnchors[nm], {
+                            g = { nums[1], nums[2], nums[3] },
+                            c = (#nums >= 6)
+                                and { nums[4], nums[5], nums[6] } or nil,
+                            ls = (#nums >= 7) and nums[7] or nil,
+                        })
+                    end
+                end
+            end
+            f:close()
+            return
+        end
+    end
+    for _, p in ipairs(AnchorPathCandidates) do
+        local f = io.open(p, "a")
+        if f then
+            f:close()
+            AnchorsPath = p
+            return
+        end
+    end
+end
+local function anchorsWrite()
+    if not AnchorsPath then return end
+    local f = io.open(AnchorsPath, "w")
+    if not f then return end
+    for nm, list in pairs(LearnedAnchors) do
+        for _, a in ipairs(list) do
+            if a.c then
+                f:write(string.format("%s|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f%s\n",
+                    nm, a.g[1], a.g[2], a.g[3], a.c[1], a.c[2], a.c[3],
+                    a.ls and string.format("|%d", a.ls) or ""))
+            else
+                f:write(string.format("%s|%.3f|%.3f|%.3f\n",
+                    nm, a.g[1], a.g[2], a.g[3]))
+            end
+        end
+    end
+    f:close()
+end
+local function anchorsSave(name, v)
+    anchorsLoad()
+    local list = LearnedAnchors[name] or {}
+    LearnedAnchors[name] = list
+    local replaced = false
+    for i, e in ipairs(list) do
+        local d2 = (e.g[1] - v.g[1]) ^ 2 + (e.g[2] - v.g[2]) ^ 2
+            + (e.g[3] - v.g[3]) ^ 2
+        -- 60 units: well over a lock's own footprint (~50), well under
+        -- the distance between neighboring locks (a chest's memory once
+        -- anchored the door of the same hut through a 300-unit gate)
+        if d2 < 60 ^ 2 then
+            list[i] = v
+            replaced = true
+            break
+        end
+    end
+    if not replaced then list[#list + 1] = v end
+    anchorsWrite()
+end
+local function anchorsDrop(name, entry)
+    anchorsLoad()
+    local list = LearnedAnchors[name]
+    if not list then return end
+    for i, e in ipairs(list) do
+        if e == entry then
+            table.remove(list, i)
+            break
+        end
+    end
+    anchorsWrite()
+end
+
+local FreshAbility = nil -- the most recently spawned open/door ability
+local FreshTask = nil -- the CURRENT minigame task (notify-captured)
 
 local function currentLockName()
+    -- the TASK is the only object guaranteed to belong to the current
+    -- minigame (we are notified of its creation); its owning Ability
+    -- carries the active m_Lock. Ability objects are REUSED by the
+    -- game across interactions, so both the fresh-spawn shortcut and
+    -- the world scan handed a door the previous chest's lock name
+    -- (wrong graph, wrong remembered anchor, impossible hints).
+    if FreshTask and os.clock() - FreshTask.t < 30.0 then
+        local name
+        local ok = pcall(function()
+            if FreshTask.obj:IsValid() then
+                name = FreshTask.obj.Ability.m_Lock:ToString()
+            end
+        end)
+        if ok and name and name ~= "" and name ~= "None" then return name end
+    end
+    if FreshAbility and os.clock() - FreshAbility.t < 30.0 then
+        local name
+        local ok = pcall(function()
+            if FreshAbility.obj:IsValid() then
+                name = FreshAbility.obj.m_Lock:ToString()
+            end
+        end)
+        if ok and name and name ~= "" and name ~= "None" then return name end
+    end
     for _, cls in ipairs({ "GameplayAbilityOpen", "GameplayAbilityDoor" }) do
         for _, ab in ipairs(liveInstances(cls)) do
             if string.find(ab:GetFullName(), "PlayerState", 1, true) then
@@ -195,8 +384,8 @@ local function writeColor(e, color)
     end
 end
 
--- Lock-in model: a piece at the open rotation (rail center, rot 0) is
--- frozen. This is a MODEL fact, not an observation: the bars visually
+-- Pieces NEVER freeze, not even at the center (canon; an old lock-in
+-- model claiming otherwise is in the graveyard). The bars visually
 -- track each piece's rotation continuously (m_RotationToBarOffset), so
 -- bar movement carries no extra information and is not read at all
 -- (an earlier bar-transition detector produced false lock-ins and
@@ -208,19 +397,32 @@ end
 -- green = move the piece left, blue = move it right. Screen mapping =
 -- rail axis projected on the camera's right vector (s.screenRight).
 local function hintColor(s)
-    if not s.nextMove then return HintColorLeft end
+    if not s.nextMove then return HintColorNeutral end
+    if s.nextMove.probe then
+        -- an anchor probe: the move may click or may be refused, and
+        -- either outcome teaches the solver. Neutral says so honestly
+        -- instead of pretending directional certainty.
+        return HintColorNeutral
+    end
     local axisDir = (s.nextMove.dir or 1) * s.sign
     if s.inputToAxis then
-        -- observationally calibrated: input * inputToAxis = pin axis
-        -- direction, learned from the player's own moves
+        -- measured: input * inputToAxis = piece axis direction, from
+        -- the latch geometry, the per-lock memory, or observed moves
         local pressRight = axisDir * s.inputToAxis > 0
         return pressRight and HintColorRight or HintColorLeft
     end
-    -- uncalibrated fallback (before the first observed move): camera
-    -- projection, sign set by the one session observed under the
-    -- slot-cloud geometry (the first real move recalibrates exactly)
-    local pressRight = axisDir * (s.screenRight or 1) > 0
-    return pressRight and HintColorRight or HintColorLeft
+    -- universal game rule (player canon): the PRESS direction equals
+    -- the PIECE's screen direction, so the camera right vector decides
+    -- deterministically, no calibration needed. Confirmed against the
+    -- measured mapping: sessions with inputToAxis -1 had screenRight
+    -- -1 (press right = piece screen right). Neutral only while the
+    -- minigame camera is still blending in (screenRight unreadable,
+    -- under a second; every repaint refreshes it).
+    if s.screenRight then
+        local pressRight = axisDir * s.screenRight > 0
+        return pressRight and HintColorRight or HintColorLeft
+    end
+    return HintColorNeutral
 end
 
 local cameraRightProj -- defined below, needed by retint
@@ -291,19 +493,18 @@ local function retint(s)
     s.tinted = newTinted
 end
 
--- BFS over rail states. Kept deliberately small: expansion budget low
--- enough to never hitch or build GC pressure (suspected cause of an
--- earlier abort crash); locks are designed to be solvable in few moves.
+-- Search over rail states. Kept deliberately small: expansion budget
+-- low enough to never hitch or build GC pressure (suspected cause of
+-- an earlier abort crash); locks are designed to be solvable in few
+-- moves.
 -- ------------------------------------------------------ search machine --
--- Integer-encoded persistent bidirectional BFS. States are base-7
--- numbers (one digit per piece, digit = rotation + 3), so successor
--- generation is pure arithmetic: no table copies, no string keys,
--- roughly an order of magnitude faster than the previous BFS. Searches
--- are RESUMABLE: a budget slice runs per tick and progress is never
--- repeated (the previous design re-ran the base search every tick and
--- froze the game on hard locks). Moves are ATOMIC (mover and all
--- dragged partners must stay on their rails) and invertible, which
--- makes the bidirectional meet valid.
+-- Integer-encoded persistent greedy best-first search. States are
+-- base-7 numbers (one digit per piece, digit = rotation + 3), so
+-- successor generation is pure arithmetic: no table copies, no string
+-- keys. Searches are RESUMABLE: a budget slice runs per tick and
+-- progress is never repeated (an earlier design re-ran the search
+-- every tick and froze the game on hard locks). Moves are ATOMIC
+-- (mover and all dragged partners must stay on their rails).
 
 local function buildSearch(s, skipEdge)
     local n, place = s.pieceCount, s.place
@@ -317,29 +518,37 @@ local function buildSearch(s, skipEdge)
         end
         out[x] = lst
     end
+    -- the goal is ALWAYS the rail center (player canon, machine-
+    -- confirmed by open captures of [0,0,...] arrangements). s.goalRot
+    -- defaults to 0 and becomes nonzero only as a memory-derived
+    -- per-lock safety; an earlier off-center theory came from sessions
+    -- whose measurements were drift-poisoned and is dead.
+    local gRot = s.goalRot or 0
+    local gd = gRot + 3
     local startS, goalS, h0 = 0, 0, 0
     for id = 0, n - 1 do
         local rot = s.rotStart[id] + s.sign * (s.steps[id] or 0)
         startS = startS + (rot + 3) * place[id]
-        goalS = goalS + 3 * place[id]
-        h0 = h0 + math.abs(rot)
+        goalS = goalS + gd * place[id]
+        h0 = h0 + math.abs(rot - gRot)
     end
     if startS == goalS then
         return { done = true, result = nil, atGoal = true }
     end
-    -- bucket priority queue on h = sum of distances to center
+    -- bucket priority queue on h = sum of distances to the goal column
     local buckets = {}
-    for h = 0, 3 * n do buckets[h] = {} end
+    for h = 0, 6 * n do buckets[h] = {} end
     buckets[h0][1] = startS
     return {
         out = out,
+        gd = gd,
         goalS = goalS,
         originS = startS,
         seen = { [startS] = 0 }, -- entering move per state; 0 = origin
         parent = {}, -- predecessor state, for route reconstruction
         buckets = buckets,
         minH = h0,
-        maxH = 3 * n,
+        maxH = 6 * n,
         expended = 0,
         done = false, result = nil,
     }
@@ -360,6 +569,7 @@ local function stepSearch(s, search, budget)
     local n, place, out = s.pieceCount, s.place, search.out
     local seen, buckets = search.seen, search.buckets
     local goalS, maxH = search.goalS, search.maxH
+    local gd = search.gd or 3
     local floor, abs = math.floor, math.abs
     while budget.left > 0 do
         -- pop the most promising state
@@ -391,7 +601,7 @@ local function stepSearch(s, search, budget)
                 if nx >= 0 and nx <= 6 then
                     local delta = d * px
                     local valid = true
-                    local h = abs(nx - 3) - abs(dx - 3)
+                    local h = abs(nx - gd) - abs(dx - gd)
                     local lst = out[x]
                     for i = 1, #lst do
                         local e = lst[i]
@@ -403,7 +613,7 @@ local function stepSearch(s, search, budget)
                             break
                         end
                         delta = delta + d * e.dir * pb
-                        h = h + abs(nb - 3) - abs(db - 3)
+                        h = h + abs(nb - gd) - abs(db - gd)
                     end
                     if valid then
                         local T = S + delta
@@ -447,6 +657,145 @@ local function edgesKey(s)
     return ec .. "|" .. (s.deadHypo and (s.deadHypo.a .. ">" .. s.deadHypo.b) or "-")
 end
 
+-- ------------------------------------------------- anchor correction --
+-- The geometric derivation in startSession recovers rotations only
+-- RELATIVE to each other; the absolute anchor (which grid column is
+-- the rail center) is unique only when the scramble spans the full
+-- rail. Everywhere else the most-centered pick is a guess, and a wrong
+-- guess routes every hint to a uniformly off-center "goal" (the
+-- community reports: all pins one beside the center, lock shut, no
+-- hint). Simulation over the mined graphs: ~43% of non-spanning
+-- scrambles mis-anchor, error almost always exactly one column.
+-- The anchor is therefore a HYPOTHESIS under evidence:
+--   * a measured rotation outside -3..3 disproves it (pins physically
+--     cannot leave the rail)
+--   * the game refusing a model-valid move disproves it (leaving the
+--     rail is the game's ONLY rejection cause, see solve_lock.py)
+--   * sitting at the believed goal with the lock still shut disproves
+--     it (the lock opens AT the true goal and the session dies with it)
+--   * no route under any single-dead-edge hypothesis disproves it in
+--     practice (a shifted frame encodes unreachable states)
+-- Each disproof shifts to the nearest untried anchor that fits every
+-- observation. The observed extremes only bound, never exclude, the
+-- true anchor, so the loop converges while evidence keeps arriving.
+
+local function reAnchor(s, k, why)
+    for id = 0, s.pieceCount - 1 do
+        s.rotStart[id] = s.rotStart[id] + k
+    end
+    s.obsMin, s.obsMax = s.obsMin + k, s.obsMax + k
+    s.anchorShift = s.anchorShift + k
+    if s.cpProj then
+        -- the believed frame shifts by k: the grid center moves the
+        -- other way so direct snapping lands on the new frame
+        s.cpProj = s.cpProj - k * s.stepSize
+    end
+    s.plan, s.nextMove = nil, nil
+    s.atGoalTicks = 0
+    if NextMoveActive or DebugSolver then
+        log(string.format("Solver: %s, start anchor shifted %+d", why, k))
+    end
+end
+
+-- nearest untried shift that keeps every OBSERVED rotation on the
+-- rail. Ordered by distance from the ORIGINAL anchor (the maximum
+-- likelihood guess; ordering by distance from the CURRENT one walked
+-- 0 -> +1 -> +2 in-game instead of trying -1 second), positive first
+-- on ties (the centered guess is biased low: the spread loop in
+-- startSession keeps the FIRST k on ties)
+local function nextAnchorShift(s, acceptFn)
+    local lo, hi = -3 - s.obsMin, 3 - s.obsMax
+    for m = 0, 6 do
+        for sgn = 1, -1, -2 do
+            local k = m * sgn - s.anchorShift -- target cumulative m*sgn
+            if k ~= 0 and k >= lo and k <= hi
+                and not s.shiftTried[s.anchorShift + k]
+                and (acceptFn == nil or acceptFn(k)) then
+                return k
+            end
+        end
+    end
+    return nil
+end
+
+-- revivable: exhaustion caused by candidate depletion may be undone
+-- when the edge model improves (a prune wipes the soft convictions);
+-- broken measurement may not
+local function anchorExhausted(s, revivable, why)
+    -- a memory that led the session into exhaustion is disproven:
+    -- drop it so the next entry of this lock starts clean
+    if s.anchorFromMemory and s.memEntry and s.lockName then
+        pcall(anchorsDrop, s.lockName, s.memEntry)
+        s.anchorFromMemory, s.memEntry, s.goalRot = nil, nil, 0
+        log("Solver: remembered open position was wrong, dropped")
+    end
+    s.stateUnknown = true
+    s.anchorGaveUp = revivable or nil
+    s.plan, s.nextMove = nil, nil
+    log("Solver: open position not determinable (" .. tostring(why)
+        .. "), next-move hint disabled (connection display unaffected)")
+end
+
+-- disprove the current anchor and move to the nearest viable one;
+-- acceptFn optionally narrows candidates to those explaining the
+-- evidence, falling back to all viable ones. Rail bounds, refused
+-- moves and unopened goals convict an anchor for good ("hard"); a
+-- no-route dead end only convicts it under the CURRENT edge model
+-- ("soft"), because unlearned dead edges can make the model wrong
+-- about reachability, and those convictions lift when a prune
+-- improves the model
+local function disproveAnchor(s, why, acceptFn, soft)
+    s.shiftTried[s.anchorShift] = soft and "soft" or true
+    local k = nextAnchorShift(s, acceptFn)
+    if not k and acceptFn then k = nextAnchorShift(s, nil) end
+    if not k and not s.evidenceReset then
+        -- evidence can be FALSE (a flapping glow read once convicted
+        -- the correct anchor in-game and killed the hint): restart the
+        -- search once per lock with a clean slate instead of giving
+        -- up. A wrongly cleared true conviction only costs a short
+        -- re-walk; a wrongly kept one costs the whole lock.
+        s.evidenceReset = true
+        s.shiftTried = {}
+        k = nextAnchorShift(s, nil)
+        if DebugSolver then
+            log("solver: anchor evidence inconsistent, search restarted")
+        end
+    end
+    if k then
+        reAnchor(s, k, why)
+        return true
+    end
+    anchorExhausted(s, true, why)
+    return false
+end
+
+-- would the game accept moving x by d under the believed state and the
+-- live edge model? Mirrors stepSearch validity (atomic, rail -3..3).
+-- The edge model only over-approximates (authored edges, pruned but
+-- never added), so model-valid implies physically valid whenever the
+-- anchor is right: a refusal of a model-valid move convicts the anchor.
+local function moveValid(s, x, d)
+    local rx = s.rotStart[x] + s.sign * (s.steps[x] or 0) + d
+    if rx < -3 or rx > 3 then return false end
+    for _, e in ipairs(s.edges[x] or {}) do
+        local rb = s.rotStart[e.b] + s.sign * (s.steps[e.b] or 0) + d * e.dir
+        if rb < -3 or rb > 3 then return false end
+    end
+    return true
+end
+
+-- does anchor shift k explain the game refusing to move x by d?
+-- (in the shifted frame the mover or a dragged partner leaves the rail)
+local function shiftExplainsRefusal(s, x, d, k)
+    local rx = s.rotStart[x] + s.sign * (s.steps[x] or 0) + k + d
+    if rx < -3 or rx > 3 then return true end
+    for _, e in ipairs(s.edges[x] or {}) do
+        local rb = s.rotStart[e.b] + s.sign * (s.steps[e.b] or 0) + k + d * e.dir
+        if rb < -3 or rb > 3 then return true end
+    end
+    return false
+end
+
 -- turn a completed search into a followable route: the move sequence
 -- plus a state -> position index for O(1) following
 local function finishRoute(plan, search)
@@ -466,6 +815,29 @@ local function finishRoute(plan, search)
     plan.preIndex = pre
     plan.goalS = search.goalS
     plan.finished = true
+end
+
+-- ANCHOR-PROBE MARKING. While several anchor candidates survive, the
+-- route's next move may be refusable under some of them. Substituting
+-- a "safe" move instead is MATHEMATICALLY USELESS: provably-safe
+-- means staying inside the already-observed pin span, which can never
+-- produce information, so the ambiguity would survive forever (and a
+-- greedy substitute oscillated one piece left-right in-game). The
+-- route move IS the optimal play: it probes the most likely frame and
+-- either outcome (click or shake) collapses the candidates. The only
+-- honest improvement is to SAY so: probe hints paint neutral instead
+-- of pretending certainty.
+local function safeHint(s, mv)
+    if not mv or s.anchorExact or not s.obsMin then return mv end
+    local lo, hi = -3 - s.obsMin, 3 - s.obsMax
+    if lo >= hi then return mv end -- unique window: certainty
+    for k = lo, hi do
+        if shiftExplainsRefusal(s, mv.piece, mv.dir, k) then
+            mv.probe = true
+            return mv
+        end
+    end
+    return mv
 end
 
 -- planning under dead-edge uncertainty: the game removes roughly
@@ -489,7 +861,7 @@ local function solverPlan(s)
         if plan.route and plan.edgesKey == ek then
             if curS == plan.goalS then return nil end
             local i = plan.preIndex[curS]
-            if i then return decodeMove(plan.route[i]) end
+            if i then return safeHint(s, decodeMove(plan.route[i])) end
         end
         s.plan, plan = nil, nil -- deviated, or the model changed
     end
@@ -534,14 +906,37 @@ local function solverPlan(s)
                     or not (s.confirmed and s.confirmed[s.hypoList[plan.hypoIdx].a
                         .. ">" .. s.hypoList[plan.hypoIdx].b])
                 if plan.hypoIdx > #s.hypoList then
-                    plan.finished = true
                     if DebugSolver then
                         log("solver: no solution under any single-dead-edge "
                             .. "hypothesis")
                     end
-                    return nil
+                    -- on a derived anchor a total dead end usually means
+                    -- the anchor itself is wrong (a shifted frame encodes
+                    -- states the real lock cannot reach): move to the
+                    -- next anchor candidate and keep planning
+                    if s.obsMin and not s.stateUnknown
+                        and disproveAnchor(s, "no route fits the believed state",
+                            nil, true) then
+                        curS = encodeCur(s)
+                        ek = edgesKey(s)
+                        plan = {
+                            edgesKey = ek,
+                            fromS = curS,
+                            phase = s.deadHypo and "hypo0" or "base",
+                            hypoIdx = 0,
+                            -- covers both: deadHypo nil = the base search
+                            search = buildSearch(s, s.deadHypo),
+                            finished = false,
+                        }
+                        s.plan = plan
+                    else
+                        plan.finished = true
+                        return nil
+                    end
                 end
-                plan.search = buildSearch(s, s.hypoList[plan.hypoIdx])
+                if plan.phase == "sweep" then
+                    plan.search = buildSearch(s, s.hypoList[plan.hypoIdx])
+                end
             end
             if plan.search.atGoal then
                 plan.finished = true
@@ -567,7 +962,7 @@ local function solverPlan(s)
                         #plan.route))
                 end
                 local i = plan.preIndex[curS]
-                return i and decodeMove(plan.route[i]) or nil
+                return i and safeHint(s, decodeMove(plan.route[i])) or nil
             end
             -- definitive no-solution for this phase: advance. The key
             -- tracks deadHypo, so keep it in sync or the plan would be
@@ -584,54 +979,6 @@ local function solverPlan(s)
     end
     if DebugSolver then log("solver: planning continues next tick") end
     return nil
-end
-
--- pre-move axis calibration from slot geometry: pieces sharing a start
--- rotation reveal the row-stacking direction; subtracting it from a
--- pair with different rotations isolates the rail axis WITH its sign
--- (pointing toward increasing rotation). Enables direction colors
--- before the first move; sign heuristics are skipped when this works.
-local function calibrateAxis(s)
-    local rowDir = nil
-    for a = 0, s.pieceCount - 1 do
-        for b = a + 1, s.pieceCount - 1 do
-            if s.rotStart[a] == s.rotStart[b] then
-                local va, vb = s.slotStart[a], s.slotStart[b]
-                local v = { vb[1] - va[1], vb[2] - va[2], vb[3] - va[3] }
-                local len = math.sqrt(v[1] * v[1] + v[2] * v[2] + v[3] * v[3])
-                if len > 1.0 then
-                    rowDir = { v[1] / len, v[2] / len, v[3] / len }
-                    break
-                end
-            end
-        end
-        if rowDir then break end
-    end
-    if not rowDir then return false end
-    for a = 0, s.pieceCount - 1 do
-        for b = 0, s.pieceCount - 1 do
-            local rd = s.rotStart[a] - s.rotStart[b]
-            if rd ~= 0 then
-                local va, vb = s.slotStart[a], s.slotStart[b]
-                local v = { va[1] - vb[1], va[2] - vb[2], va[3] - vb[3] }
-                local along = v[1] * rowDir[1] + v[2] * rowDir[2] + v[3] * rowDir[3]
-                local rail = { v[1] - along * rowDir[1], v[2] - along * rowDir[2],
-                    v[3] - along * rowDir[3] }
-                local rlen = math.sqrt(rail[1] * rail[1] + rail[2] * rail[2]
-                    + rail[3] * rail[3])
-                local expect = math.abs(rd) * s.stepSize
-                if rlen > 1.0 and rlen > expect * 0.6 and rlen < expect * 1.4 then
-                    local sgn = (rd > 0) and 1 or -1
-                    s.axis = { sgn * rail[1] / rlen, sgn * rail[2] / rlen,
-                        sgn * rail[3] / rlen }
-                    s.sign = 1
-                    s.axisCalibrated = true
-                    return true
-                end
-            end
-        end
-    end
-    return false
 end
 
 -- which way is "screen right" along the rail: rail axis projected on
@@ -667,6 +1014,8 @@ end
 -- sign; prune edges the game evidently removed (mover identified by
 -- matching the moved set against {X} + live out-edges of X)
 local function processMove(s, moved, count, prev, now)
+    -- pressesSinceMove is consumed by the calibration below and only
+    -- reset at the END of this function
     -- mover identification with edge-state learning. An exact cover
     -- (mover's partner set == moved set) CONFIRMS those edges as active.
     -- A superset candidate implies its absent partners are dead; any
@@ -694,8 +1043,12 @@ local function processMove(s, moved, count, prev, now)
     end
     -- the selection read makes the mover KNOWN rather than inferred:
     -- use it to resolve the ambiguous cases, which previously taught
-    -- the learner nothing
-    if s.selectedSig and moved[s.selectedRow] then
+    -- the learner nothing. ONLY when the glow read is stable across
+    -- ticks: it flaps between paired rows around move animations, and
+    -- a flapped resolution once pruned a REAL connection (the planner
+    -- then hinted a totally blocked piece, seen in-game)
+    if s.selectedSig and moved[s.selectedRow]
+        and s.selectedRow == s.lastTickSel then
         local sel = s.selectedRow
         if exact == false then
             local ds = directSet(s, sel)
@@ -724,8 +1077,19 @@ local function processMove(s, moved, count, prev, now)
         s.selectedRow = exact
         -- calibrate the input-to-axis mapping for the hint colors: the
         -- last Left/Right press plus the mover's observed displacement
-        -- pin down which input direction moves pins toward +axis
-        if s.lastInput and os.clock() - s.lastInput.t < 2.0 and s.axis then
+        -- pin down which input direction moves pins toward +axis.
+        -- ONLY from single-piece moves with exactly one press behind
+        -- them: dragged pairs make the mover ambiguous and the glow
+        -- read flaps between the pair, so calibrating off a partner
+        -- (which travels OPPOSITE to the press) kept flipping the
+        -- mapping in-game; stale presses from fast play did the same
+        -- the ONLY color mechanism besides the deterministic camera
+        -- rule: a MEASUREMENT from a clean single-press single-piece
+        -- move. No audits, no flips, nothing mutates colors from
+        -- gameplay heuristics (those once fought each other and lost
+        -- the player's trust)
+        if s.lastInput and os.clock() - s.lastInput.t < 2.0 and s.axis
+            and s.pressesSinceMove == 1 and count == 1 then
             local a, b = prev[exact], now[exact]
             if a and b then
                 local dproj = (b[1] - a[1]) * s.axis[1]
@@ -736,7 +1100,10 @@ local function processMove(s, moved, count, prev, now)
                         s.inputToAxis = newMap
                         if DebugSolver then
                             log("solver: color mapping calibrated from input ("
-                                .. newMap .. ")")
+                                .. newMap .. ")" .. (s.latchSide and
+                                string.format(", key invariant "
+                                    .. "RightTowardLatch=%+d",
+                                    newMap * s.latchSide) or ""))
                         end
                     end
                 end
@@ -757,14 +1124,41 @@ local function processMove(s, moved, count, prev, now)
         if #viable == 1 then
             local x = viable[1]
             local es = s.edges[x]
+            local pruned = false
             for i = #es, 1, -1 do
                 if not moved[es[i].b] then
                     log(string.format("Edge %d->%d inactive this session, pruned",
                         x, es[i].b))
+                    -- journal every prune: an unexplainable refused
+                    -- move later means a prune was wrong and restores
+                    -- them all
+                    s.prunedLog = s.prunedLog or {}
+                    table.insert(s.prunedLog,
+                        { a = x, b = es[i].b, dir = es[i].dir })
                     table.remove(es, i)
+                    pruned = true
                 end
             end
             s.selectedRow = x -- mover = selection anchor
+            if pruned then
+                -- the sweep list mirrors the edge set; a stale entry
+                -- could hypothesize a no-longer-existing edge dead
+                s.hypoList = nil
+                -- a better edge model lifts the soft (no-route) anchor
+                -- convictions and reopens an exhausted anchor search:
+                -- what had no route may have one now
+                if s.shiftTried then
+                    for sk, v in pairs(s.shiftTried) do
+                        if v == "soft" then s.shiftTried[sk] = nil end
+                    end
+                end
+                if s.anchorGaveUp then
+                    s.anchorGaveUp, s.stateUnknown = nil, nil
+                    if DebugSolver then
+                        log("solver: edge model improved, anchor search reopened")
+                    end
+                end
+            end
         end
     end
     -- absolute state measurement: steps = displacement from the session
@@ -801,7 +1195,14 @@ local function processMove(s, moved, count, prev, now)
         end
         for id = 0, s.pieceCount - 1 do
             local from, cur = s.slotStart[id], now[id]
-            if from and cur then
+            if cur and s.cpProj then
+                -- absolute grid snap around the anchored center:
+                -- shakes, resets and missed settles cannot drift it
+                local pr = cur[1] * s.axis[1] + cur[2] * s.axis[2]
+                    + cur[3] * s.axis[3]
+                s.steps[id] = math.floor((pr - s.cpProj) / s.stepSize + 0.5)
+                    - s.rotStart[id]
+            elseif from and cur then
                 local proj = (cur[1] - from[1]) * s.axis[1]
                     + (cur[2] - from[2]) * s.axis[2]
                     + (cur[3] - from[3]) * s.axis[3]
@@ -821,6 +1222,47 @@ local function processMove(s, moved, count, prev, now)
     if not s.axisCalibrated and not plausible(s.sign) and plausible(-s.sign) then
         s.sign = -s.sign
         if DebugSolver then log("solver: rail axis sign flipped") end
+    end
+    -- merge the settled state into the observed extremes (settled reads
+    -- only; mid-motion slots record impossible transients). A rotation
+    -- outside the rail disproves the anchor outright: shift to the
+    -- nearest anchor that fits everything seen so far. Must run before
+    -- the replan below, the base-7 encoding has no digit for rot 4.
+    if s.obsMin and not s.stateUnknown then
+        local minR, maxR = s.obsMin, s.obsMax
+        for id = 0, s.pieceCount - 1 do
+            local r = s.rotStart[id] + s.sign * (s.steps[id] or 0)
+            if r < minR then minR = r end
+            if r > maxR then maxR = r end
+        end
+        s.obsMin, s.obsMax = minR, maxR
+        -- PURE GEOMETRY hardening: the true anchor always fits every
+        -- observation, so when the candidate window narrows to exactly
+        -- ONE shift, that shift IS the truth. As the route pushes pins
+        -- toward the rail ends this happens within a few moves on any
+        -- ambiguous lock, with no API reads and no refusal evidence.
+        if not s.anchorExact then
+            local lo, hi = -3 - minR, 3 - maxR
+            if lo == hi then
+                if lo ~= 0 then
+                    reAnchor(s, lo, "pin span pinned the anchor")
+                    minR, maxR = minR + lo, maxR + lo
+                end
+                s.anchorExact = true
+                if DebugSolver then
+                    log("solver: anchor now unique by pin span")
+                end
+            end
+        end
+        if minR < -3 or maxR > 3 then
+            if maxR - minR > 6 then
+                -- no anchor fits a spread wider than the rail: the
+                -- measurement itself broke, stop hinting on it
+                anchorExhausted(s, nil, "measured spread exceeds the rail")
+            else
+                disproveAnchor(s, "a pin left the believed rail")
+            end
+        end
     end
     -- if the axis only became known through this move, map it to the screen
     if s.axis and not s.screenRight then
@@ -848,6 +1290,7 @@ local function processMove(s, moved, count, prev, now)
             table.concat(list, ","),
             s.nextMove and ("piece " .. s.nextMove.piece) or "none"))
     end
+    s.pressesSinceMove = 0 -- this move's presses are accounted for
 end
 
 -- selection ground truth: the piece currently wearing the game's
@@ -885,6 +1328,62 @@ local function selSync(s)
     end
 end
 
+-- snapshot and persist the OPEN arrangement: called the instant the
+-- game broadcasts success (the actors die within a tick, so this
+-- cannot wait for the session teardown)
+local function learnOpenState(s)
+    if not (s.axis and s.lockName and s.slotNow) then return end
+    local n, sx, sy, sz = 0, 0, 0, 0
+    local minP, maxP = nil, nil
+    local rots = {}
+    for id = 0, s.pieceCount - 1 do
+        local v = s.slotNow[id]
+        if v then
+            n = n + 1
+            sx, sy, sz = sx + v[1], sy + v[2], sz + v[3]
+            local pr = v[1] * s.axis[1] + v[2] * s.axis[2] + v[3] * s.axis[3]
+            if not minP or pr < minP then minP = pr end
+            if not maxP or pr > maxP then maxP = pr end
+            if s.cpProj then
+                rots[#rots + 1] = tostring(math.floor(
+                    (pr - s.cpProj) / s.stepSize + 0.5))
+            end
+        end
+    end
+    -- always document the winning arrangement: the open instant is
+    -- ground truth and has repeatedly settled debates that drifting
+    -- measurements started
+    log("Solver: OPEN captured, rots [" .. table.concat(rots, ",")
+        .. "] (believed frame, 0 = rail center)")
+    if n == s.pieceCount and maxP - minP < s.stepSize * 0.35 then
+        -- the centroid at the open INSTANT is the GOAL column (ground
+        -- truth); the rail center derives from the session's goal
+        -- rotation so a future session recovers both frame and goal
+        local g = { sx / n, sy / n, sz / n }
+        local gr = s.goalRot or 0
+        local c = {
+            g[1] - gr * s.stepSize * s.axis[1],
+            g[2] - gr * s.stepSize * s.axis[2],
+            g[3] - gr * s.stepSize * s.axis[3],
+        }
+        -- the latch side rides along when known so remembered locks
+        -- get exact direction colors from the first paint; when it is
+        -- unknown the session-measured input mapping substitutes (the
+        -- player calibrated it by playing)
+        local ls = s.latchSide
+        if not ls and s.inputToAxis then
+            ls = RightTowardLatch * s.inputToAxis
+        end
+        anchorsSave(s.lockName, { g = g, c = c, ls = ls })
+        log("Solver: open position of '" .. s.lockName
+            .. "' learned, this lock anchors exactly from now on")
+    else
+        log("Solver: open arrangement not a single clean column this "
+            .. "session (a pin was likely still settling), nothing "
+            .. "learned yet")
+    end
+end
+
 local function solverTick(s)
     -- liveness via the piece ACTOR and the scene actor: actors are
     -- destroyed (pending-kill) the moment the minigame ends, so the
@@ -897,8 +1396,58 @@ local function solverTick(s)
         alive = s.lifeActor:IsValid() and s.scene:IsValid()
     end)
     if not alive then
+        -- backstop: if the success hooks missed (unknown ability
+        -- variant), a death moments after an open signal still learns;
+        -- and the FINAL settled state is always documented, it is the
+        -- closest capture of the winning arrangement we get when the
+        -- hooks are silent
+        pcall(function()
+            if DebugSolver then
+                local rr = {}
+                for id = 0, s.pieceCount - 1 do
+                    rr[#rr + 1] = tostring(s.rotStart[id]
+                        + s.sign * (s.steps[id] or 0))
+                end
+                log("solver: session ended, last rots ["
+                    .. table.concat(rr, ",") .. "]")
+            end
+            if s.openSignalT and os.clock() - s.openSignalT < 3.0
+                and not s.openLearned then
+                s.openLearned = true
+                -- refresh: the last cached read may be mid-glide
+                for id = 0, s.pieceCount - 1 do
+                    local v = readSlot(s, id)
+                    if v then s.slotNow[id] = v end
+                end
+                learnOpenState(s)
+            end
+        end)
         s.stop = true
         if Session == s then Session = nil end
+        return
+    end
+    -- OPENED epilogue: the win signal arrived but the actors LINGER
+    -- (an opened chest's pieces stayed valid for minutes; the old
+    -- die-within-a-tick doctrine is wrong for opened locks, which once
+    -- left a stale session blocking the NEXT lock entirely). Close the
+    -- session ourselves: wait out the final animation, learn the open
+    -- arrangement from settled slots, restore tints, free the slot.
+    if s.opened then
+        if os.clock() - s.opened > 2.0 then
+            for id = 0, s.pieceCount - 1 do
+                local v = readSlot(s, id)
+                if v then s.slotNow[id] = v end
+            end
+            if not s.openLearned then
+                s.openLearned = true
+                learnOpenState(s)
+            end
+            s.nextMove = nil
+            pcall(retint, s)
+            s.stop = true
+            if Session == s then Session = nil end
+            if DebugSolver then log("solver: session closed after open") end
+        end
         return
     end
     -- fresh selection truth BEFORE move processing: the learner uses it
@@ -914,10 +1463,10 @@ local function solverTick(s)
             if d > 0.2 then movingNow = true end
         end
     end
-    local prev = s.slotNow
     s.slotNow = now
     if movingNow then
         s.wasMoving = true
+        s.atGoalTicks = 0
         return
     end
     if s.wasMoving then
@@ -937,7 +1486,165 @@ local function solverTick(s)
         end
         local prevProcessed = s.slotProcessed
         s.slotProcessed = now
-        if count > 0 then processMove(s, moved, count, prevProcessed, now) end
+        if count > 0 then
+            processMove(s, moved, count, prevProcessed, now)
+        elseif NextMoveActive and s.obsMin and not s.stateUnknown
+            and (s.pressesSinceMove or 0) > 0 and s.lastInput
+            and os.clock() - s.lastInput.t < 1.5 then
+            -- motion that settled back where it started, WITH a fresh
+            -- press behind it, is the game's SHAKE: a refused move,
+            -- confirmed by the game itself. The press requirement
+            -- keeps idle settle-wobble (sub-step jitter between the
+            -- 0.2 motion and 1.0 move thresholds) from fabricating
+            -- refusals out of thin air.
+            s.shakeRefusal = true
+        end
+    end
+    -- the learner's cross-tick selection stability gate: updated every
+    -- settled tick AFTER move processing (processMove compares against
+    -- the previous tick's value), and regardless of the hint toggle
+    -- (gating it on the hint once silently weakened edge learning in
+    -- hints-off sessions)
+    s.lastTickSel = s.selectedRow
+    -- diagnostics: does the per-boot-dead distance API come alive
+    -- mid-session? One float call per tick, debug builds only; the
+    -- answer decides whether mid-session re-measuring is worth having
+    if DebugSolver and s.probePair and not s.probeAlive
+        and not s.anchorExact then
+        local dd = distTo(s.probePair[1], s.probePair[2])
+        if dd then
+            s.probeAlive = true
+            log(string.format("solver: distance API ALIVE mid-session "
+                .. "(d=%.2f, start expected %.2f)", dd,
+                s.probePair.expected or -1))
+        end
+    end
+    -- anchor evidence while settled, only while the hint is on (the
+    -- connection display does not read rotations; with hints off the
+    -- pin-left-rail check in processMove alone keeps the state warm).
+    -- (1) The believed goal with the minigame still alive: the lock
+    -- opens AT the true goal and this session dies with it within a
+    -- tick, so persisting here a short grace disproves the anchor;
+    -- this is the report "followed all hints, pins one beside the
+    -- center, lock shut". (2) Repeated Left/Right presses that move
+    -- NOTHING while the model allows the selected piece to move: the
+    -- game's only refusal cause is a piece leaving the rail, so a
+    -- refused model-valid move convicts the anchor too (a wrong frame
+    -- otherwise deadlocks the hint: no move, no replan).
+    if NextMoveActive and s.obsMin and not s.stateUnknown then
+        local atGoal = true
+        for id = 0, s.pieceCount - 1 do
+            if s.rotStart[id] + s.sign * (s.steps[id] or 0)
+                ~= (s.goalRot or 0) then
+                atGoal = false
+                break
+            end
+        end
+        if atGoal then
+            s.atGoalTicks = s.atGoalTicks + 1
+            -- an EXACT (part-anchored) goal that does not open is
+            -- almost certainly the open animation still playing (the
+            -- session dies ~2s after the last move; a false disproof
+            -- fired in exactly that window in-game), so exact anchors
+            -- get a long grace; guessed anchors keep the short one
+            local grace = s.anchorExact and 12 or 5
+            -- an open signal in flight means the game is already
+            -- opening: never disprove in that window
+            if s.atGoalTicks >= grace and not s.openSignalT then
+                -- the lock provably auto-opens on the last correct move
+                -- (player-confirmed), so a shut lock at the believed
+                -- goal is HARD evidence the frame is wrong. With direct
+                -- grid snapping the only wrong part can be the anchor:
+                -- drop a wrong remembered one for good, then walk.
+                if s.anchorFromMemory and s.lockName and s.memEntry then
+                    pcall(anchorsDrop, s.lockName, s.memEntry)
+                    s.anchorFromMemory, s.memEntry = nil, nil
+                    -- the goal came from the same dropped memory:
+                    -- back to canon (center), or the solver would
+                    -- chase a disproven goal column forever and even
+                    -- persist a corrupted center on the next open
+                    s.goalRot = 0
+                    log("Solver: remembered open position was wrong, dropped")
+                end
+                disproveAnchor(s,
+                    "the lock did not open at the believed goal")
+                if not s.stateUnknown and NextMoveActive then
+                    s.nextMove = solverPlan(s)
+                end
+            end
+        else
+            s.atGoalTicks = 0
+            -- the glow read flaps between paired rows around move
+            -- animations (seen in-game, once false-convicting the
+            -- correct anchor): only a selection stable across two
+            -- settled ticks may testify
+            local shake = s.shakeRefusal
+            s.shakeRefusal = nil
+            -- the game-confirmed SHAKE is the ONLY refusal evidence:
+            -- press counting is gone (the shake supersedes it) and
+            -- nothing here may touch the colors (they are measured)
+            if shake then
+                local x, d = s.selectedRow, nil
+                -- the PRESSED key mapped through the measured mapping,
+                -- or through the canon camera rule (press = piece
+                -- screen direction). NEVER assume the player pressed
+                -- the hinted direction: a press into a physical wall
+                -- is normal play, and that assumption once convicted
+                -- a TRUE anchor and dropped a valid memory.
+                local m = s.inputToAxis or s.screenRight
+                if m and s.lastInput
+                    and os.clock() - s.lastInput.t < 2.0 then
+                    d = s.lastInput.dir * m * s.sign
+                end
+                local refusedValid
+                if d then
+                    refusedValid = moveValid(s, x, d)
+                else
+                    -- direction unknown on a non-hinted piece: only
+                    -- both-ways-movable makes ANY press hard evidence
+                    refusedValid = moveValid(s, x, 1) and moveValid(s, x, -1)
+                end
+                if refusedValid then
+                    -- a refused model-valid move has TWO possible
+                    -- causes, in evidence order: (1) a wrong anchor,
+                    -- when some viable shift explains the refusal;
+                    -- (2) a wrongly pruned connection (the physical
+                    -- drag set is bigger than the model's, a totally
+                    -- blocked piece hinted as movable): restore every
+                    -- journaled prune and let the learner re-prove
+                    -- them. Colors are NEVER touched here.
+                    local explained = d and nextAnchorShift(s, function(k)
+                        return shiftExplainsRefusal(s, x, d, k)
+                    end) ~= nil
+                    if not explained and s.prunedLog
+                        and #s.prunedLog > 0 then
+                        for _, e in ipairs(s.prunedLog) do
+                            s.edges[e.a] = s.edges[e.a] or {}
+                            table.insert(s.edges[e.a],
+                                { b = e.b, dir = e.dir })
+                        end
+                        log(string.format("Solver: refused move has no "
+                            .. "anchor explanation, restored %d pruned "
+                            .. "connections", #s.prunedLog))
+                        s.prunedLog = {}
+                        s.hypoList = nil
+                        s.plan, s.nextMove = nil, nil
+                        if NextMoveActive then
+                            s.nextMove = solverPlan(s)
+                        end
+                    else
+                        disproveAnchor(s,
+                            "the lock refused a move the model allows",
+                            d and function(k)
+                                return shiftExplainsRefusal(s, x, d, k)
+                            end or nil)
+                        if not s.stateUnknown and NextMoveActive then
+                            s.nextMove = solverPlan(s)
+                        end
+                    end
+                end
+            end
+        end
     end
     -- resume an unfinished plan across ticks (one budget slice per tick)
     if NextMoveActive and not s.nextMove and s.plan and not s.plan.finished then
@@ -957,12 +1664,114 @@ local function startSession(attempt)
     if not graph then
         if lockName then
             log("No graph data for lock '" .. lockName .. "', next-move hint off")
+        else
+            log("Lock name not readable, next-move hint off for this lock")
         end
         return
     end
+    -- THE SCRAMBLE ANIMATION GATE: when the session starts, the pieces
+    -- may still be GLIDING into their scrambled columns. A baseline
+    -- captured mid-glide, or worse, still at a clean pre-scramble
+    -- column, poisons that one piece's measured rotation for the whole
+    -- session, and every anchor source then validates a believed state
+    -- that is wrong for exactly that piece (seen in-game: a pin
+    -- believed at -2 while visibly at the rail edge; the lock then
+    -- refuses hints or stays shut at the believed goal). Proceed only
+    -- once two snapshots ~450ms apart agree for every slot.
+    do
+        local lib0, mpc0, scene0 = mpcHandles()
+        if lib0 then
+            local n = #graph.pieces
+            local s0 = { lib = lib0, mpc = mpc0, scene = scene0 }
+            local snap = {}
+            for id = 0, n - 1 do
+                snap[id] = readSlot(s0, id)
+            end
+            local prev = StartSnap
+            StartSnap = { t = os.clock(), lock = lockName, slots = snap }
+            local stable = prev ~= nil and prev.lock == lockName
+                and os.clock() - prev.t < 2.0
+            if stable then
+                for id = 0, n - 1 do
+                    local a, b = prev.slots[id], snap[id]
+                    if not a or not b
+                        or math.abs(a[1] - b[1]) > 0.2
+                        or math.abs(a[2] - b[2]) > 0.2
+                        or math.abs(a[3] - b[3]) > 0.2 then
+                        stable = false
+                        break
+                    end
+                end
+            end
+            if not stable then
+                if attempt < 12 then
+                    ExecuteWithDelay(450, function()
+                        ExecuteInGameThread(function()
+                            pcall(startSession, attempt + 1)
+                        end)
+                    end)
+                else
+                    log("Lock pieces never settled, next-move hint off "
+                        .. "for this lock")
+                end
+                return
+            end
+        end
+    end
     local pieces, found = {}, 0
     local lifeActor = nil
-    for _, a in ipairs(liveInstances("GothicLockPieceActor")) do
+    -- the piece actors come from the subsystem's own array for THIS
+    -- minigame: FindAllOf also returns the actors of earlier minigames
+    -- (an unsolved exit leaves them alive in the world), and on the
+    -- SECOND lock of a run those contaminated the glow signature, the
+    -- life actor and the part-column measurements with same-id stale
+    -- actors (seen in-game repeatedly: first lock fine, second lock
+    -- broken, fixed by a save load purging the world)
+    -- runtime equivalent of what a save reload proved: only actors
+    -- born for THIS minigame may be read. Fresh spawns (tracked via
+    -- NotifyOnNewObject, see FreshPieces) are authoritative; the
+    -- subsystem array would be too but is empty during play; the
+    -- world-wide FindAllOf is the last resort and the one that mixed
+    -- two locks' actors together on every second lock of a run.
+    local actorList, actorSrc = {}, "fresh spawns"
+    local nowT = os.clock()
+    local keep = {}
+    for _, e in ipairs(FreshPieces) do
+        if nowT - e.t < 60.0 then
+            keep[#keep + 1] = e
+            if nowT - e.t < 12.0 then
+                local okv, valid = pcall(function() return e.obj:IsValid() end)
+                if okv and valid and not string.find(e.obj:GetFullName(),
+                    "Default__", 1, true) then
+                    actorList[#actorList + 1] = e.obj
+                end
+            end
+        end
+    end
+    FreshPieces = keep
+    if #actorList < 2 then
+        actorList, actorSrc = {}, "subsystem"
+        for _, sub in ipairs(liveInstances("LockPickSubsystem")) do
+            pcall(function()
+                local arr = sub.m_PendingLockPieces
+                for i = 1, #arr do
+                    local a = arr[i]
+                    if a and a:IsValid() then
+                        actorList[#actorList + 1] = a
+                    end
+                end
+            end)
+            if #actorList > 0 then break end
+        end
+    end
+    if #actorList == 0 then
+        actorList = liveInstances("GothicLockPieceActor")
+        actorSrc = "FindAllOf (no fresh spawns, subsystem empty)"
+    end
+    if DebugSolver then
+        log("solver: " .. #actorList .. " piece actors from " .. actorSrc)
+    end
+    for _, a in ipairs(actorList) do
         local id, mid, ty, rr
         pcall(function() id = a.m_PieceId end)
         pcall(function() mid = a.m_MaterialInstanceDynamic end)
@@ -983,8 +1792,13 @@ local function startSession(attempt)
                     end)
                 end
             end
-            if ty and rr and rr:IsValid() then
-                table.insert(pieces[id].parts, { ty = ty, rr = rr })
+            if ty then
+                -- the part ACTOR is kept for the column anchor reads
+                -- at session start; rr is OPTIONAL (latch actors carry
+                -- no runtime root, requiring one silently dropped them
+                -- and left the bar column without its orientation
+                -- reference)
+                table.insert(pieces[id].parts, { ty = ty, rr = rr, actor = a })
             end
         end
     end
@@ -993,6 +1807,10 @@ local function startSession(attempt)
             ExecuteWithDelay(500, function()
                 ExecuteInGameThread(function() startSession(attempt + 1) end)
             end)
+        else
+            -- never fail wordlessly: a boost without a session banner
+            -- once cost a debugging round
+            log("Lock pieces not found, next-move hint off for this lock")
         end
         return
     end
@@ -1040,6 +1858,9 @@ local function startSession(attempt)
         selectedRow = 0, -- the game starts on the bottom row = piece 0
         selectedSig = selectedSig,
         wasMoving = false, stop = false,
+        atGoalTicks = 0,
+        pressesSinceMove = 0, lastTickSel = 0,
+        lockName = lockName, goalRot = 0,
     }
     for _, c in ipairs(graph.connections) do
         s.edges[c.a] = s.edges[c.a] or {}
@@ -1058,8 +1879,6 @@ local function startSession(attempt)
     end
     pcall(function() s.stepSize = scene.m_LockPieceTranslationStep end)
     if not s.stepSize or s.stepSize <= 0 then s.stepSize = 6.3 end
-    pcall(function() s.upOff = scene.m_LockBarUpOffset end)
-    pcall(function() s.downOff = scene.m_LockBarDownOffset end)
     for id = 0, s.pieceCount - 1 do
         local slot = readSlot(s, id)
         if not slot then
@@ -1070,16 +1889,16 @@ local function startSession(attempt)
         s.slotNow[id] = slot
         s.slotProcessed[id] = slot
     end
-    -- open position = the rail center, rotation 0 (user-verified:
-    -- "all pins on position 4 of 7")
-    s.openRot = 0
-    -- THE GAME RE-SCRAMBLES STARTING POSITIONS PER ATTEMPT (verified:
-    -- a reset landed on positions unrelated to the authored ones), so
-    -- mined rotations must never be trusted for the current state. The
-    -- live state is read from geometry instead: the scene actor sits at
-    -- the rail center and its right vector is the rail axis; each
-    -- piece's rotation = (slot - center) projected on the axis / step.
-    -- Mined data contributes only the connection graph (name-stable).
+    -- open position = the rail center, rotation 0 (player canon).
+    -- Starts CAN equal the authored layout (observed repeatedly), but
+    -- a mid-session break re-scrambles AND a save reload can swap the
+    -- chest's entire lock config (RandomLockSubsystem assigns a random
+    -- lock per save-state: three different names were learned at one
+    -- physical chest). So mined rotations are never trusted for the
+    -- current state: it is measured. NOTE the scene actor is an AInfo
+    -- with NO transform; the live state comes from the MPC slots and
+    -- the fixed bar/latch part columns, never from the scene location.
+    -- Mined data contributes the connection graph (name-stable).
     local derived = false
     local okGeo, errGeo = pcall(function()
         -- SLOTS ONLY: every read through the scene actor's wrapper chain
@@ -1088,7 +1907,13 @@ local function startSession(attempt)
         -- The rail axis comes from the slot cloud (differencing
         -- adjacent-row differences cancels the row direction), and the
         -- absolute anchor is the integer offset that fits every piece
-        -- on the rail, unique whenever the pieces span enough of it.
+        -- on the rail, unique ONLY when the pieces span the whole rail.
+        -- Non-spanning scrambles keep several valid offsets and the
+        -- most-centered pick is a guess (wrong ~43% of those attempts,
+        -- simulated over the mined graphs; the community's "all pins
+        -- end one beside the center" reports). The guess is upgraded
+        -- from the scene center when that read validates, and corrected
+        -- at runtime from evidence either way (see anchor correction).
         -- The axis sign is arbitrary: the model is symmetric and the
         -- colors resolve via the camera.
         local D = {}
@@ -1111,6 +1936,28 @@ local function startSession(attempt)
         if best then
             candidates[1] = { name = "slot-cloud", v = { best[1] / bestLen,
                 best[2] / bestLen, best[3] / bestLen } }
+        end
+        if not best and #D > 0 then
+            -- DEGENERATE SCRAMBLE fallback (all pieces in one column):
+            -- the difference-of-differences cancels to nothing, but
+            -- the ROW direction always exists, rails are horizontal,
+            -- so the axis is the row direction's horizontal
+            -- perpendicular (a same-column scramble once left a lock
+            -- entirely hintless)
+            local rx, ry, rz = 0, 0, 0
+            for _, dv in ipairs(D) do
+                rx, ry, rz = rx + dv[1], ry + dv[2], rz + dv[3]
+            end
+            local rl = math.sqrt(rx * rx + ry * ry + rz * rz)
+            if rl > 1.0 then
+                rx, ry = rx / rl, ry / rl
+                local ax, ay = ry, -rx -- cross(rowDir, worldUp)
+                local al = math.sqrt(ax * ax + ay * ay)
+                if al > 0.5 then
+                    candidates[#candidates + 1] = { name = "row-cross",
+                        v = { ax / al, ay / al, 0 } }
+                end
+            end
         end
         for _, cand in ipairs(candidates) do
             local axis = cand.v
@@ -1182,11 +2029,410 @@ local function startSession(attempt)
                     for id = 0, s.pieceCount - 1 do
                         s.rotStart[id] = bestRots[id] + bestK
                     end
+                    -- anchor-correction bookkeeping: observed rotation
+                    -- extremes bound the viable anchors, shiftTried
+                    -- holds the disproven ones (keyed by total shift)
+                    s.obsMin, s.obsMax = bestMin + bestK, bestMax + bestK
+                    s.anchorShift, s.shiftTried = 0, {}
                     derived = true
                     if DebugSolver then
                         log(string.format("solver: rail axis from slot cloud "
                             .. "(step %.2f, residual %.2f, shift %+d)",
                             bestStep, bestWorst, bestK))
+                    end
+                    -- ABSOLUTE anchor from the piece part actors. Each
+                    -- piece is several GothicLockPieceActor instances
+                    -- (plate/bar/latch); bar and latch are FIXED columns
+                    -- shared by all pieces, and the BAR COLUMN IS THE
+                    -- OPEN COLUMN (eye-verified against settle-gated
+                    -- baselines: pin positions match believed rotations
+                    -- exactly when the center sits on the bar column).
+                    -- The scene actor is an AInfo with NO transform, so
+                    -- the old read-the-scene idea could never work.
+                    -- Nothing is hardcoded by part-type enum: every
+                    -- fixed column is offered as a center candidate and
+                    -- must snap every plate onto the grid as a pure
+                    -- shift in range; the latch lies far off the rail
+                    -- and dies at the range gate. Every failure falls
+                    -- back to the centered guess + runtime corrections.
+                    -- part actors from EARLIER minigames at other locks
+                    -- can still be alive (seen in-game), so each
+                    -- (piece, type) keeps all candidates and the one
+                    -- nearest the minigame camera wins; GetDistanceTo
+                    -- is a float UFunction and works on every setup
+                    local camAct = nil
+                    pcall(function()
+                        local pc = FindFirstOf("PlayerController")
+                        camAct = pc.PlayerCameraManager
+                    end)
+                    -- distTo is file-scope (also used by the
+                    -- mid-session API revival probe)
+                    local cand, tySet = {}, {}
+                    for id = 0, s.pieceCount - 1 do
+                        cand[id] = {}
+                        for _, part in ipairs((pieces[id] or {}).parts or {}) do
+                            cand[id][part.ty] = cand[id][part.ty] or {}
+                            table.insert(cand[id][part.ty], part.actor)
+                            tySet[part.ty] = true
+                        end
+                    end
+                    local resolved = {}
+                    for id = 0, s.pieceCount - 1 do
+                        resolved[id] = {}
+                        for ty, list in pairs(cand[id]) do
+                            local best, bestD = list[#list], nil
+                            if camAct and #list > 1 then
+                                for _, a in ipairs(list) do
+                                    local dd = distTo(a, camAct)
+                                    if dd and (bestD == nil or dd < bestD) then
+                                        best, bestD = a, dd
+                                    end
+                                end
+                            end
+                            resolved[id][ty] = best
+                        end
+                    end
+                    -- grid validation shared by every absolute-anchor
+                    -- source: a center candidate must snap every plate
+                    -- onto the grid, in range, as a pure shift of the
+                    -- relative shape. Adopts the anchor on success;
+                    -- only TRUSTED sources mark it exact (a long
+                    -- goal-miss grace), doubtful ones keep the
+                    -- corrections fully armed
+                    local function adoptCenter(cp, src, exact)
+                        local rotsAbs, shift, reject = {}, nil, nil
+                        for id = 0, s.pieceCount - 1 do
+                            local q = (ps[id] - cp) / s.stepSize
+                            local r = math.floor(q + 0.5)
+                            if math.abs(q - r) > 0.30 then
+                                reject = "residual"
+                                break
+                            end
+                            if r < -3 or r > 3 then
+                                reject = "range"
+                                break
+                            end
+                            local dk = r - s.rotStart[id]
+                            if shift == nil then
+                                shift = dk
+                            elseif dk ~= shift then
+                                reject = "shape"
+                                break
+                            end
+                            rotsAbs[id] = r
+                        end
+                        if not reject and shift then
+                            for id = 0, s.pieceCount - 1 do
+                                s.rotStart[id] = rotsAbs[id]
+                            end
+                            s.obsMin = s.obsMin + shift
+                            s.obsMax = s.obsMax + shift
+                            s.anchorExact = exact or nil
+                            if DebugSolver then
+                                log(string.format("solver: anchor from %s "
+                                    .. "(%+d vs centered guess)", src, shift))
+                            end
+                            return true
+                        end
+                        if DebugSolver then
+                            log(string.format("solver: %s rejected (%s)",
+                                src, tostring(reject)))
+                        end
+                        return false
+                    end
+                    local tys = {}
+                    for ty in pairs(tySet) do tys[#tys + 1] = ty end
+                    table.sort(tys)
+                    local anchored = false
+                    -- FIRST: a remembered open position for this chest,
+                    -- the slot-only source that survives every boot
+                    pcall(anchorsLoad)
+                    local la = nil
+                    do
+                        -- a memory may only anchor a lock whose slot
+                        -- cloud it physically sits at: the same name
+                        -- exists at several world locations, and a
+                        -- chest's memory once anchored a door across
+                        -- the room (garbage that validated by luck)
+                        local list = LearnedAnchors
+                            and LearnedAnchors[lockName]
+                        if list then
+                            local mx, my, mz, mn = 0, 0, 0, 0
+                            for id = 0, s.pieceCount - 1 do
+                                local v = s.slotStart[id]
+                                if v then
+                                    mx, my, mz = mx + v[1], my + v[2],
+                                        mz + v[3]
+                                    mn = mn + 1
+                                end
+                            end
+                            if mn > 0 then
+                                mx, my, mz = mx / mn, my / mn, mz / mn
+                                local bestD
+                                for _, e in ipairs(list) do
+                                    local d2 = (e.g[1] - mx) ^ 2
+                                        + (e.g[2] - my) ^ 2
+                                        + (e.g[3] - mz) ^ 2
+                                    -- 60 units, see anchorsSave: a
+                                    -- neighboring lock's memory must
+                                    -- never validate here
+                                    if d2 < 60 ^ 2
+                                        and (not bestD or d2 < bestD) then
+                                        la, bestD = e, d2
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    if la then
+                        local gp = la.g[1] * axis[1] + la.g[2] * axis[2]
+                            + la.g[3] * axis[3]
+                        if la.c then
+                            -- remembered rail center anchors the frame;
+                            -- the remembered goal column is a per-lock
+                            -- safety (by canon it equals the center,
+                            -- goalRot 0)
+                            local cp = la.c[1] * axis[1] + la.c[2] * axis[2]
+                                + la.c[3] * axis[3]
+                            anchored = adoptCenter(cp,
+                                "remembered open position", true)
+                            if anchored then
+                                s.goalRot = math.floor(
+                                    (gp - cp) / s.stepSize + 0.5)
+                            end
+                        else
+                            -- old single-column memory: frame on the
+                            -- goal itself
+                            anchored = adoptCenter(gp,
+                                "remembered open position", true)
+                        end
+                        s.anchorFromMemory = anchored or nil
+                        s.memEntry = anchored and la or nil
+                        if anchored and la.ls then
+                            s.latchSide = la.ls
+                        end
+                    end
+                    -- SECOND: distance trilateration, floats only.
+                    -- GetDistanceTo is a float UFunction (immune to the
+                    -- LWC double marshalling that breaks location reads
+                    -- on stock UE4SS) and the plates' true positions
+                    -- are already known (the slots), so the center
+                    -- column falls out of same-row part-to-plate
+                    -- DISTANCES alone: with d_r = dist(column part,
+                    -- own plate) and p_r the plate projections, rows r,s
+                    -- in different columns give
+                    --   c = (p_r+p_s)/2 + (d_s^2-d_r^2)/(2(p_r-p_s)).
+                    -- The plate part type is identified by checking one
+                    -- cross-row part distance against the known slot
+                    -- distance; column candidates pass the same grid
+                    -- validation (the latch column cannot).
+                    if not anchored then
+                        local partOf = resolved
+                        -- two reference rows in different columns
+                        local r1, r2 = nil, nil
+                        for a = 0, s.pieceCount - 1 do
+                            for b = a + 1, s.pieceCount - 1 do
+                                if math.abs(ps[a] - ps[b]) > s.stepSize * 0.5 then
+                                    r1, r2 = a, b
+                                    break
+                                end
+                            end
+                            if r1 then break end
+                        end
+                        local plateTy = nil
+                        if r1 then
+                            local va, vb = s.slotStart[r1], s.slotStart[r2]
+                            local expected = math.sqrt(
+                                (va[1] - vb[1]) ^ 2 + (va[2] - vb[2]) ^ 2
+                                + (va[3] - vb[3]) ^ 2)
+                            for _, ty in ipairs(tys) do
+                                local pa, pb = partOf[r1][ty], partOf[r2][ty]
+                                if pa and pb then
+                                    local d = distTo(pa, pb)
+                                    if DebugSolver then
+                                        -- the decisive diagnosis line:
+                                        -- nil d = the distance calls do
+                                        -- not work at all, a wrong d =
+                                        -- stale or mismatched actors
+                                        log(string.format("solver: plate probe "
+                                            .. "ty=%s d=%s expected=%.2f",
+                                            tostring(ty),
+                                            d and string.format("%.2f", d)
+                                            or "nil", expected))
+                                    end
+                                    if d and math.abs(d - expected) < 1.0 then
+                                        plateTy = ty
+                                        break
+                                    end
+                                end
+                            end
+                            -- keep one pair for the mid-session API
+                            -- revival probe (diagnostics: does a
+                            -- dead-boot distance API ever come back?)
+                            local ty1 = tys[1]
+                            if ty1 and partOf[r1][ty1] and partOf[r2][ty1] then
+                                s.probePair = { partOf[r1][ty1],
+                                    partOf[r2][ty1], expected = expected }
+                            end
+                        end
+                        if plateTy then
+                            -- column projection per non-plate part type
+                            local colC = {}
+                            for _, ty in ipairs(tys) do
+                                if ty ~= plateTy then
+                                    local dist = {}
+                                    for id = 0, s.pieceCount - 1 do
+                                        local pa = partOf[id][ty]
+                                        local pl = partOf[id][plateTy]
+                                        if pa and pl then
+                                            dist[id] = distTo(pa, pl)
+                                        end
+                                    end
+                                    local cs = {}
+                                    for a = 0, s.pieceCount - 1 do
+                                        for b = a + 1, s.pieceCount - 1 do
+                                            if dist[a] and dist[b] and
+                                                math.abs(ps[a] - ps[b])
+                                                > s.stepSize * 0.5 then
+                                                cs[#cs + 1] = (ps[a] + ps[b]) / 2
+                                                    + (dist[b] ^ 2 - dist[a] ^ 2)
+                                                    / (2 * (ps[a] - ps[b]))
+                                            end
+                                        end
+                                    end
+                                    if #cs > 0 then
+                                        table.sort(cs)
+                                        colC[ty] = cs[math.floor((#cs + 1) / 2)]
+                                    end
+                                end
+                            end
+                            if DebugSolver then
+                                local cls = {}
+                                for ty2, c2 in pairs(colC) do
+                                    cls[#cls + 1] = string.format("ty=%s@%.2f",
+                                        tostring(ty2), c2)
+                                end
+                                table.sort(cls)
+                                log("solver: fixed columns: " .. (#cls > 0
+                                    and table.concat(cls, " ") or "none"))
+                            end
+                            -- the bar column IS the open column (eye-
+                            -- verified against a settle-gated baseline:
+                            -- believed rots uniformly one off until the
+                            -- center was moved onto the bar column; an
+                            -- earlier one-step-offset theory came from
+                            -- sessions whose baselines were poisoned by
+                            -- the scramble animation). Adopt each fixed
+                            -- column directly; the latch candidate lies
+                            -- far off the rail and dies at the range
+                            -- gate, the bar's snaps exactly.
+                            for _, ty in ipairs(tys) do
+                                if colC[ty] and adoptCenter(colC[ty],
+                                    "part distances ty=" .. tostring(ty),
+                                    true) then
+                                    anchored = true
+                                    -- the OTHER fixed column is the
+                                    -- latch: its side orients the keys.
+                                    -- The goal stays the center (player
+                                    -- canon: pins at 4, ALWAYS; the
+                                    -- shut-at-center sessions that once
+                                    -- suggested otherwise predate the
+                                    -- drift-proof measurement)
+                                    for ty2, c2 in pairs(colC) do
+                                        if ty2 ~= ty then
+                                            s.latchSide = (c2 > colC[ty])
+                                                and 1 or -1
+                                        end
+                                    end
+                                    break
+                                end
+                            end
+                        elseif DebugSolver then
+                            log("solver: plate part type not identifiable "
+                                .. "(uniform scramble?), distances skipped")
+                        end
+                    end
+                    -- SECONDARY: direct location read of the part
+                    -- column. Needs healthy LWC double marshalling: on
+                    -- stock UE4SS it can decode CONSISTENTLY WRONG and
+                    -- still pass validation (seen in-game: exactly one
+                    -- grid step off, the lock then refused to open), so
+                    -- it never counts as exact and the goal-miss
+                    -- correction keeps its short grace
+                    if not anchored then
+                        local colC = {}
+                        for _, ty in ipairs(tys) do
+                            local list = {}
+                            for id = 0, s.pieceCount - 1 do
+                                local a = resolved[id][ty]
+                                if a then
+                                    local okp, px, py, pz = pcall(function()
+                                        local v = a:K2_GetActorLocation()
+                                        return v.X, v.Y, v.Z
+                                    end)
+                                    if okp and tonumber(px) and tonumber(py)
+                                        and tonumber(pz) then
+                                        list[#list + 1] = px * axis[1]
+                                            + py * axis[2] + pz * axis[3]
+                                    end
+                                end
+                            end
+                            -- the fixed columns are the same for every
+                            -- piece: varying projections are the plates
+                            if #list >= s.pieceCount then
+                                table.sort(list)
+                                if list[#list] - list[1] < s.stepSize * 0.5 then
+                                    colC[ty] = list[math.floor((#list + 1) / 2)]
+                                end
+                            end
+                        end
+                        -- direct adoption, same as the distance path:
+                        -- the bar column is the open column
+                        for _, ty in ipairs(tys) do
+                            if colC[ty] and adoptCenter(colC[ty],
+                                "part column ty=" .. tostring(ty),
+                                false) then
+                                anchored = true
+                                for ty2, c2 in pairs(colC) do
+                                    if ty2 ~= ty then
+                                        s.latchSide = (c2 > colC[ty])
+                                            and 1 or -1
+                                    end
+                                end
+                                break
+                            end
+                        end
+                    end
+                    if not anchored and DebugSolver then
+                        log("solver: no absolute anchor, centered guess "
+                            .. "stands (corrections will cover it)")
+                    end
+                    -- the key mapping is a game constant relative to
+                    -- the lock geometry: with the latch side known the
+                    -- colors are correct from the FIRST hint, nothing
+                    -- to learn at runtime
+                    if s.latchSide then
+                        s.inputToAxis = RightTowardLatch * s.latchSide
+                        if DebugSolver then
+                            log(string.format("solver: colors pre-calibrated "
+                                .. "(latch side %+d)", s.latchSide))
+                        end
+                    end
+                    -- the anchor as an absolute projection: from here
+                    -- on every settle snaps every pin DIRECTLY onto
+                    -- the grid around this center. The lock provably
+                    -- auto-opens on the last correct move (player-
+                    -- confirmed), yet believed goals sat shut: the
+                    -- displacement-from-start tracking accumulated
+                    -- error. Direct snapping has nothing to accumulate
+                    do
+                        local offs = {}
+                        for id = 0, s.pieceCount - 1 do
+                            offs[#offs + 1] = ps[id]
+                                - s.rotStart[id] * s.stepSize
+                        end
+                        table.sort(offs)
+                        s.cpProj = offs[math.floor((#offs + 1) / 2)]
                     end
                     break
                 end
@@ -1203,7 +2449,8 @@ local function startSession(attempt)
             local rr = {}
             for id = 0, s.pieceCount - 1 do rr[#rr + 1] = s.rotStart[id] end
             log("solver: live start rots [" .. table.concat(rr, ",")
-                .. "] (geometric), screenRight=" .. tostring(s.screenRight))
+                .. "] (geometric), goal rot " .. tostring(s.goalRot or 0)
+                .. ", screenRight=" .. tostring(s.screenRight))
         end
     else
         -- without measured state, hints would be planned against garbage
@@ -1328,25 +2575,89 @@ if not NextMoveBroken then
     pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:DownPressed", function()
         pcall(onSelectionStep, -1)
     end)
-    -- Left/Right presses calibrate the input-to-axis mapping for the
-    -- hint colors: fixed assumptions about camera and pin conventions
-    -- contradicted themselves across sessions, observation does not
+    -- Left/Right presses feed the color-mapping MEASUREMENT only (a
+    -- single clean press + the observed displacement pin the mapping
+    -- down exactly). Refusals are detected from the game's own shake,
+    -- never from press counting. Dedup keyed per SESSION, not per
+    -- chunk: old-chunk closures see their own Session and cannot
+    -- double count ours after a hot reload
+    local function onMovePress(dir)
+        local s = Session
+        if not s or s.stop then return end
+        local now = os.clock()
+        if now - (s.lastPressT or 0) > 0.005 then
+            s.lastPressT = now
+            s.pressesSinceMove = (s.pressesSinceMove or 0) + 1
+        end
+        s.lastInput = { dir = dir, t = now }
+    end
     pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:LeftPressed", function()
-        pcall(function()
-            local s = Session
-            if s and not s.stop then
-                s.lastInput = { dir = -1, t = os.clock() }
-            end
-        end)
+        pcall(onMovePress, -1)
     end)
     pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:RightPressed", function()
+        pcall(onMovePress, 1)
+    end)
+    -- the open signal: combined with aligned pins at session death it
+    -- marks a TRUE open position worth remembering for the chest
+    pcall(RegisterHook, "/Script/G1R.AbilityTask_LockPick:TryOpenLock", function()
         pcall(function()
             local s = Session
             if s and not s.stop then
-                s.lastInput = { dir = 1, t = os.clock() }
+                s.openSignalT = os.clock()
+                if DebugSolver then log("solver: TryOpenLock fired") end
             end
         end)
     end)
+    -- the AUTHORITATIVE verdict signals: the C++ minigame broadcasts
+    -- success/failure through these ability UFunctions (located by
+    -- mining the native bind table). Proven in-game: they fired on
+    -- every solve and drive the open learning. MemorizeLockpick rides
+    -- along as a redundant non-replicated source; all are idempotent
+    -- on the same flags. (A key-locked door was once misattributed to
+    -- these hooks; keys are vanilla behavior, the hooks were clean.)
+    local function onOpenSignal(src)
+        local s = Session
+        if s and not s.stop then
+            s.openSignalT = os.clock()
+            -- do NOT learn here: the final pin's animation is still
+            -- mid-glide at signal time; the epilogue in solverTick
+            -- learns from settled slots and closes the session
+            s.opened = s.opened or os.clock()
+            if DebugSolver then
+                log("solver: OPEN signal: " .. src)
+            end
+        end
+    end
+    for _, fn in ipairs({
+        "/Script/G1R.GameplayAbilityDoor:Server_SuccessLockEvent",
+        "/Script/G1R.GameplayAbilityOpen:Server_SuccessLockEvent",
+        "/Script/G1R.GameplayAbilityDoor:NetMulticast_OnSetLockUnlocked",
+        "/Script/G1R.GameplayAbilityOpen:NetMulticast_OnSetLockUnlocked",
+        "/Script/G1R.AbilityTask_LockPick:MemorizeLockpick",
+    }) do
+        pcall(RegisterHook, fn, function()
+            pcall(onOpenSignal, fn)
+        end)
+    end
+    for _, fn in ipairs({
+        "/Script/G1R.GameplayAbilityDoor:Server_FailedLockEvent",
+        "/Script/G1R.GameplayAbilityOpen:Server_FailedLockEvent",
+    }) do
+        pcall(RegisterHook, fn, function()
+            pcall(function()
+                local s = Session
+                if s and not s.stop then
+                    -- a fail = pick break, a re-scramble follows: the
+                    -- pins will fly, evidence counters must not read
+                    -- the flight as anything
+                    s.atGoalTicks = 0
+                    if DebugSolver then
+                        log("solver: FAIL signal (pick broke): " .. fn)
+                    end
+                end
+            end)
+        end)
+    end
 end
 
 -- toggle for the connection display
@@ -1385,8 +2696,26 @@ end)
 -- --------------------------------------------------------------- trigger --
 -- The callback runs on the game thread during task construction, before
 -- the minigame snapshots durability.
+-- every piece actor spawn is recorded with its time: startSession then
+-- reads only actors born for the current minigame (the save-reload
+-- insight made permanent: stale actors of earlier minigames poisoned
+-- every read that touched them)
+pcall(NotifyOnNewObject, "/Script/G1R.GothicLockPieceActor", function(obj)
+    FreshPieces[#FreshPieces + 1] = { obj = obj, t = os.clock() }
+end)
+-- the active lock identity comes from the freshest ability spawn
+pcall(NotifyOnNewObject, "/Script/G1R.GameplayAbilityOpen", function(obj)
+    FreshAbility = { obj = obj, t = os.clock() }
+end)
+pcall(NotifyOnNewObject, "/Script/G1R.GameplayAbilityDoor", function(obj)
+    FreshAbility = { obj = obj, t = os.clock() }
+end)
+
 local okNotify, errNotify = pcall(NotifyOnNewObject, "/Script/G1R.AbilityTask_LockPick",
-    function()
+    function(task)
+        pcall(function()
+            FreshTask = { obj = task, t = os.clock() }
+        end)
         local ok, err = pcall(boostTries)
         if not ok then log("Boost error: " .. tostring(err)) end
         if not NextMoveBroken then

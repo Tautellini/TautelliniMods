@@ -3,6 +3,33 @@
 More lockpick tries, a next-move hint and a connection display for
 Gothic 1 Remake, shipped as the UE4SS Lua mod `LockpickSettings`.
 
+## The minigame rules (canon, player-verified 2026-06-07)
+
+These are the ground-truth game rules. When any observation appears to
+contradict them, the MEASUREMENT is wrong, not the rules; one full day
+of debugging was spent relitigating the goal because drifting
+measurements made pins-at-center look like a non-win. Do not repeat
+that.
+
+- Every lock has N pieces on horizontal rails; each piece's PIN has
+  exactly 7 possible positions
+- THE GOAL IS ALWAYS ALL PINS ON POSITION 4 (the center), for every
+  lock. There is no per-lock goal column and no confirm input: the
+  lock opens BY ITSELF the instant the last correct move lands
+- The controls are inverted: pressing LEFT moves a pin RIGHT and vice
+  versa (the mod's direction colors encode the PRESS to make, measured
+  against observed pin motion, so the inversion is transparent)
+- Connections drag partner pieces atomically and directionally per the
+  mined graph; a move is refused entirely (NOTHING moves, the piece
+  shakes) when the moved pin or any dragged pin would leave its rail
+- A REFUSED MOVE COUNTS AS A FAIL and costs pick durability; at zero
+  the pick breaks and the lock re-scrambles mid-session
+- Starting positions can equal the authored layout (locks do not
+  necessarily re-scramble per attempt; a mid-session break DOES
+  re-scramble)
+- The game removes roughly LockpickPrecision connections per lock at
+  runtime; the mined graphs are upper bounds
+
 ## What it does
 
 When the lockpicking minigame starts, the mod raises your lockpick
@@ -22,12 +49,21 @@ ingame at any time (even mid-pick; the mod follows every lock from its
 start, the keys only switch the highlights):
 
 - Next-move hint (`showNextMove`, F7): the piece you should move next
-  lights up, green when the correct turn is LEFT, blue when it is
+  lights up, green when the correct press is LEFT, blue when it is
   RIGHT, recomputed after every move from the lock's live state. The
-  direction colors calibrate themselves from your first move. Routes
+  direction colors are derived from the lock's fixed geometry and the
+  camera. YELLOW means honest uncertainty: either the direction is not
+  measurable yet (rare, resolves within a second), or the hinted move
+  is an anchor probe on a low-information scramble, it may click or
+  may be refused with a shake, and either outcome teaches the solver
+  the lock's exact frame. Routes
   are planned greedily (frame stability over optimality), so early
-  hints can look like a detour but end at an open lock. The master
-  perk (removing connections when a pick breaks) keeps its full value
+  hints can look like a detour but end at an open lock. When a
+  scrambled start hides where the rail center is, the solver may aim
+  one beside it once, notice the lock did not open, correct itself and
+  continue; pins walking one extra round is that correction at work,
+  not a malfunction. The master perk (removing connections when a pick
+  breaks) keeps its full value
 - Connection display (`showConnections`, F8): the pieces connected to
   your currently selected piece light up, purple when they travel the
   SAME direction as the selected piece, red when they travel OPPOSITE.
@@ -93,15 +129,29 @@ a working UE4SS setup, see the G1R modding guide (`../README.md`).
   `Scripts/lockgraphs.lua`, extracted offline from the game's compiled
   AngelScript blob (`tools/extract_locks.py`); the running game exposes
   no readable graph, and the graph is the ONLY thing taken from mined
-  data. Everything else is measured live, because the game re-scrambles
-  starting positions on every attempt: piece positions come from the
+  data. Everything else is measured live, because mined rotations
+  cannot be trusted for the current state (a break re-scrambles, and a
+  save reload can even swap a chest's entire lock config: the game
+  assigns random locks per save-state): piece positions come from the
   `MPC_Lockpicking` material collection (the one read mechanism that
-  never failed), the rail axis from the slot cloud itself (differencing
-  adjacent-row differences cancels the row direction), the step size
-  fitted by grid-snapping, and the rotations anchored by the integer
-  offset that fits every piece on the rail
-- Planning runs on an integer-encoded persistent bidirectional BFS
-  (states are base-7 numbers), sliced across ticks with a budget, under
+  never failed), the rail axis from the slot cloud itself, the step
+  size fitted by grid-snapping, and the rotations snapped ABSOLUTELY
+  onto that grid every settle
+- The anchor (which slot column is the rail center) comes from, in
+  order: the lock's remembered open position (`learned-anchors.txt`,
+  written the moment a lock opens, location-validated so neighboring
+  locks can never borrow it; safe to delete, it relearns), the fixed
+  bar/latch part columns measured by float distance calls, part
+  location reads, else the most-centered fit. A guessed anchor hardens
+  by pure geometry (when the pin span leaves only one candidate, that
+  candidate is adopted as the truth) and by evidence (a pin leaving
+  the believed rail, the game refusing a move the model allows, a
+  planning dead end, a believed goal that does not open). Simulated
+  over all 416 mined graphs: the guess-only solver opened 54% of
+  attempts, the self-correcting one 100% (`tools/sim_anchor.py`)
+- Planning runs on an integer-encoded persistent greedy best-first
+  search (states are base-7 numbers), sliced across ticks with a
+  budget, under
   the verified rules: atomic moves (rejected entirely if any dragged
   piece would leave its rail), no freezing, goal = all pieces centered.
   Connections the game deactivated at your skill level are learned and
@@ -133,6 +183,19 @@ Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[LockpickSettings]` lines:
 - `live lock state not readable, next-move hint disabled for this
   lock`: the geometry derivation rejected the measured positions (rare;
   the connection display still works there)
+- `Solver: ..., start anchor shifted +1`: normal self-correction, not
+  an error; the scrambled start hid where the rail center is and the
+  first guess was off. Follow the new hints, the lock will open
+- `Solver: open position not determinable (<reason>), next-move hint
+  disabled (connection display unaffected)`: every anchor candidate
+  was ruled out; picking continues without hints for this lock
+- `Solver: open position of '...' learned, this lock anchors exactly
+  from now on`: normal learning at the moment a lock opens; the data
+  lands in `learned-anchors.txt` in the mod folder and is safe to
+  delete (it relearns on the next solve)
+- `Edge X->Y inactive this session, pruned`: the game removed that
+  connection at runtime (skill mechanic); the solver learned it from
+  your moves, normal behavior
 - `Next-move hint error, stopping`: the solver shut itself down for
   this lock; picking continues unaffected, the next lock starts fresh
 - `debugSolver = true` logs the full solver internals (derived state,
