@@ -823,24 +823,28 @@ local function startSession(attempt)
     -- Mined data contributes only the connection graph (name-stable).
     local derived = false
     local okGeo, errGeo = pcall(function()
-        local loc = scene:K2_GetActorLocation()
-        local rot = scene:K2_GetActorRotation()
-        local lib = StaticFindObject("/Script/Engine.Default__KismetMathLibrary")
+        -- transform via reflected PROPERTIES only: UFunction calls on
+        -- the property-derived scene wrapper fail inside UE4SS ("Array
+        -- failed invariants check"), and silently did so from day one.
+        -- The scene actor is spawned unattached, so relative == world.
+        local root = scene.RootComponent
+        local rl = root.RelativeLocation
+        local rrot = root.RelativeRotation
+        local loc = { X = rl.X, Y = rl.Y, Z = rl.Z }
+        -- UE FRotationMatrix axes from pitch/yaw/roll, done in Lua
+        local rad = math.pi / 180.0
+        local cp, sp = math.cos(rrot.Pitch * rad), math.sin(rrot.Pitch * rad)
+        local cy, sy = math.cos(rrot.Yaw * rad), math.sin(rrot.Yaw * rad)
+        local cr, sr = math.cos(rrot.Roll * rad), math.sin(rrot.Roll * rad)
         -- the rail axis is one of the scene's local axes, but WHICH one
-        -- differs between lock placements: try right, forward and up
-        local candidates = {}
-        pcall(function()
-            local v = lib:GetRightVector(rot)
-            candidates[#candidates + 1] = { name = "right", v = { v.X, v.Y, v.Z } }
-        end)
-        pcall(function()
-            local v = lib:GetForwardVector(rot)
-            candidates[#candidates + 1] = { name = "forward", v = { v.X, v.Y, v.Z } }
-        end)
-        pcall(function()
-            local v = lib:GetUpVector(rot)
-            candidates[#candidates + 1] = { name = "up", v = { v.X, v.Y, v.Z } }
-        end)
+        -- differs between lock placements: try forward, right and up
+        local candidates = {
+            { name = "forward", v = { cp * cy, cp * sy, sp } },
+            { name = "right", v = { sr * sp * cy - cr * sy,
+                sr * sp * sy + cr * cy, -sr * cp } },
+            { name = "up", v = { -(cr * sp * cy + sr * sy),
+                cy * sr - cr * sp * sy, cr * cp } },
+        }
         for _, cand in ipairs(candidates) do
             local axis = cand.v
             local centerProj = loc.X * axis[1] + loc.Y * axis[2] + loc.Z * axis[3]
