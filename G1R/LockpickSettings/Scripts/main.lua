@@ -326,14 +326,16 @@ local function stepSearch(s, search, budget)
         budget.left = budget.left - 1
         local forward = fRemain > 0 and (bRemain <= 0 or fRemain <= bRemain)
         local S, inheritFirst
+        -- NOTE: never nil-out processed queue slots: a nil hole makes
+        -- the # length operator undefined and the frontier reads as
+        -- empty (this exact bug made every search return no-solution
+        -- in milliseconds). Integers need no GC release anyway.
         if forward then
             S = search.fq[search.fqi]
-            search.fq[search.fqi] = nil
             search.fqi = search.fqi + 1
             inheritFirst = fwdSeen[S]
         else
             S = search.bq[search.bqi]
-            search.bq[search.bqi] = nil
             search.bqi = search.bqi + 1
         end
         for x = 0, n - 1 do
