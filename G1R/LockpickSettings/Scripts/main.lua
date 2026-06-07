@@ -823,28 +823,38 @@ local function startSession(attempt)
     -- Mined data contributes only the connection graph (name-stable).
     local derived = false
     local okGeo, errGeo = pcall(function()
-        -- transform via reflected PROPERTIES only: UFunction calls on
-        -- the property-derived scene wrapper fail inside UE4SS ("Array
-        -- failed invariants check"), and silently did so from day one.
-        -- The scene actor is spawned unattached, so relative == world.
+        -- location via reflected properties (works); rotation reads
+        -- degrade through this wrapper chain (UObject where numbers
+        -- should be), so NO rotation is used at all. The rail axis is
+        -- derived from the slot cloud itself: adjacent-row slot
+        -- differences mix row direction and rail axis, and differencing
+        -- those differences cancels the row component, leaving pure
+        -- rail axis. The axis sign is arbitrary, which the model
+        -- tolerates (symmetric) and the colors resolve via the camera.
         local root = scene.RootComponent
         local rl = root.RelativeLocation
-        local rrot = root.RelativeRotation
         local loc = { X = rl.X, Y = rl.Y, Z = rl.Z }
-        -- UE FRotationMatrix axes from pitch/yaw/roll, done in Lua
-        local rad = math.pi / 180.0
-        local cp, sp = math.cos(rrot.Pitch * rad), math.sin(rrot.Pitch * rad)
-        local cy, sy = math.cos(rrot.Yaw * rad), math.sin(rrot.Yaw * rad)
-        local cr, sr = math.cos(rrot.Roll * rad), math.sin(rrot.Roll * rad)
-        -- the rail axis is one of the scene's local axes, but WHICH one
-        -- differs between lock placements: try forward, right and up
-        local candidates = {
-            { name = "forward", v = { cp * cy, cp * sy, sp } },
-            { name = "right", v = { sr * sp * cy - cr * sy,
-                sr * sp * sy + cr * cy, -sr * cp } },
-            { name = "up", v = { -(cr * sp * cy + sr * sy),
-                cy * sr - cr * sp * sy, cr * cp } },
-        }
+        local D = {}
+        for id = 0, s.pieceCount - 2 do
+            local a, b = s.slotStart[id], s.slotStart[id + 1]
+            D[#D + 1] = { b[1] - a[1], b[2] - a[2], b[3] - a[3] }
+        end
+        local best, bestLen = nil, 4.0 -- ignore sub-step noise
+        for i = 1, #D do
+            for j = i + 1, #D do
+                local e = { D[i][1] - D[j][1], D[i][2] - D[j][2],
+                    D[i][3] - D[j][3] }
+                local len = math.sqrt(e[1] * e[1] + e[2] * e[2] + e[3] * e[3])
+                if len > bestLen then
+                    best, bestLen = e, len
+                end
+            end
+        end
+        local candidates = {}
+        if best then
+            candidates[1] = { name = "slot-cloud", v = { best[1] / bestLen,
+                best[2] / bestLen, best[3] / bestLen } }
+        end
         for _, cand in ipairs(candidates) do
             local axis = cand.v
             local centerProj = loc.X * axis[1] + loc.Y * axis[2] + loc.Z * axis[3]
