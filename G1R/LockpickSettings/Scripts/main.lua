@@ -914,6 +914,21 @@ local function startSession(attempt)
         end
         return
     end
+    -- normalize the restore color: the game STARTS with the bottom row
+    -- (piece 0) selected, so its captured color is the brightened
+    -- selected look, and restoring it later would paint a phantom
+    -- selection. The default is one shared material value, so take it
+    -- from a piece that is NOT selected at start.
+    local commonDefault = nil
+    for id, e in pairs(pieces) do
+        if id ~= 0 and e.default then
+            commonDefault = e.default
+            break
+        end
+    end
+    if commonDefault then
+        for _, e in pairs(pieces) do e.default = commonDefault end
+    end
     local lib, mpc, scene = mpcHandles()
     if not lib then
         log("Lockpicking MPC not available, next-move hint off")
@@ -1190,9 +1205,11 @@ end
 local lastSelStep = 0
 local function onSelectionStep(delta)
     -- dedup duplicate registrations after hot reloads: those fire within
-    -- the same input dispatch, real presses are never this close
+    -- the same input dispatch (sub-millisecond). Keep the window TINY:
+    -- holding a key repeats at ~30ms and a wider window swallowed every
+    -- other step, desyncing the selection tracker.
     local now = os.clock()
-    if now - lastSelStep < 0.03 then return end
+    if now - lastSelStep < 0.005 then return end
     lastSelStep = now
     local s = Session
     if not s or s.stop then return end
