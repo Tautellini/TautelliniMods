@@ -40,6 +40,8 @@ Press [b]F7[/b] during the lockpicking minigame and the piece you should move ne
 [url=https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest]https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest[/url]
 Grab the regular UE4SS zip, not the zDEV developer package.
 
+Note: experimental-latest is a moving tag. This mod is developed and tested against the build identified as [b]v3.0.1 Beta, Git SHA e09d3821[/b] (v4.0.0-rc1 line) in the first lines of UE4SS.log. If you see strange script errors with a different snapshot, that version difference is the first suspect.
+
 [size=4][b]Installation[/b][/size]
 
 [list=1]
@@ -85,7 +87,7 @@ Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
 [*][b]No log lines / mod not loading:[/b] check the folder layout (exactly as shown above, with enabled.txt directly inside the LockpickSettings folder).
 [*][b]"durability X not a known tier" in the log:[/b] a game patch changed the vanilla values; update baseTries in config.lua.
 [*][b]"No graph data for lock" in the log:[/b] that lock is not in the shipped data (one lock in the game has none, and future patches may add locks); the hint stays off for it, everything else works.
-[*][b]Game hard-freezes when loading a save with UE4SS installed:[/b] some UE4SS engine hooks can collide with this game's AngelScript layer. The mod needs none of them, so you can safely turn them off in ue4ss\UE4SS-settings.ini: set HookProcessInternal, HookProcessLocalScriptFunction, HookUObjectProcessEvent, HookCallFunctionByNameWithArguments and HookAActorTick to 0, and bUseUObjectArrayCache to false.
+[*][b]Game hard-freezes when loading a save, or crashes/strange script errors during lockpicking:[/b] some UE4SS engine hooks can collide with this game's AngelScript layer and corrupt the process (the mod's own errors are caught and only disable the hint until the next lock; they never crash the game by themselves). The mod needs none of those hooks, so you can safely turn them off in ue4ss\UE4SS-settings.ini: set HookProcessInternal, HookProcessLocalScriptFunction, HookUObjectProcessEvent, HookCallFunctionByNameWithArguments and HookAActorTick to 0, and bUseUObjectArrayCache to false. Also check that your UE4SS build matches the tested one (see Requirements).
 [*][b]Access violation when quitting the game:[/b] known cosmetic UE4SS teardown issue, happens after everything has been saved. Harmless.
 [/list]
 
