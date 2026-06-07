@@ -671,6 +671,30 @@ local function processMove(s, moved, count, prev, now)
             end
         end
     end
+    -- the selection read makes the mover KNOWN rather than inferred:
+    -- use it to resolve the ambiguous cases, which previously taught
+    -- the learner nothing
+    if s.selectedSig and moved[s.selectedRow] then
+        local sel = s.selectedRow
+        if exact == false then
+            local ds = directSet(s, sel)
+            local covers, nds = true, 0
+            for id in pairs(moved) do
+                if not ds[id] then covers = false break end
+            end
+            if covers then
+                for _ in pairs(ds) do nds = nds + 1 end
+                if nds == count then exact = sel end
+            end
+        elseif exact == nil and #supers > 1 then
+            for _, x in ipairs(supers) do
+                if x == sel then
+                    supers = { sel }
+                    break
+                end
+            end
+        end
+    end
     if exact then
         for _, e in ipairs(s.edges[exact] or {}) do
             s.confirmed[exact .. ">" .. e.b] = true
@@ -805,6 +829,40 @@ local function processMove(s, moved, count, prev, now)
     end
 end
 
+-- selection ground truth: the piece currently wearing the game's
+-- selected-look signature (excluding our own tints) IS the selected
+-- one. Input counting desyncs when the game ignores presses
+-- mid-animation; this read corrects it every tick, and it also hands
+-- the edge learner the true mover instead of an inferred one.
+local function selSync(s)
+    if not s.selectedSig then return end
+    local sig = s.selectedSig
+    local best, bestD = nil, 0.05
+    for id, e in pairs(s.pieces) do
+        if not s.tinted[id] then
+            local mid = e.mids[1]
+            if mid then
+                local okc, c = pcall(function()
+                    return mid:K2_GetVectorParameterValue(FName("HighlightColor"))
+                end)
+                if okc and c then
+                    local dr, dg, db = c.R - sig.R, c.G - sig.G, c.B - sig.B
+                    local d = dr * dr + dg * dg + db * db
+                    if d < bestD then
+                        best, bestD = id, d
+                    end
+                end
+            end
+        end
+    end
+    if best and best ~= s.selectedRow then
+        if DebugSolver then
+            log("solver: selection resynced " .. s.selectedRow .. " -> " .. best)
+        end
+        s.selectedRow = best
+    end
+end
+
 local function solverTick(s)
     -- liveness via the piece ACTOR and the scene actor: actors are
     -- destroyed (pending-kill) the moment the minigame ends, so the
@@ -821,6 +879,8 @@ local function solverTick(s)
         if Session == s then Session = nil end
         return
     end
+    -- fresh selection truth BEFORE move processing: the learner uses it
+    selSync(s)
     -- read all slots; wait for motion to settle before processing
     local now, movingNow = {}, false
     for id = 0, s.pieceCount - 1 do
@@ -856,37 +916,6 @@ local function solverTick(s)
         local prevProcessed = s.slotProcessed
         s.slotProcessed = now
         if count > 0 then processMove(s, moved, count, prevProcessed, now) end
-    end
-    -- selection ground truth: the piece currently wearing the game's
-    -- selected-look signature (excluding our own tints) IS the selected
-    -- one. Input counting desyncs when the game ignores presses
-    -- mid-animation; this read corrects it every tick.
-    if s.selectedSig and ConnActive then
-        local sig = s.selectedSig
-        local best, bestD = nil, 0.05
-        for id, e in pairs(s.pieces) do
-            if not s.tinted[id] then
-                local mid = e.mids[1]
-                if mid then
-                    local okc, c = pcall(function()
-                        return mid:K2_GetVectorParameterValue(FName("HighlightColor"))
-                    end)
-                    if okc and c then
-                        local dr, dg, db = c.R - sig.R, c.G - sig.G, c.B - sig.B
-                        local d = dr * dr + dg * dg + db * db
-                        if d < bestD then
-                            best, bestD = id, d
-                        end
-                    end
-                end
-            end
-        end
-        if best and best ~= s.selectedRow then
-            if DebugSolver then
-                log("solver: selection resynced " .. s.selectedRow .. " -> " .. best)
-            end
-            s.selectedRow = best
-        end
     end
     -- resume an unfinished plan across ticks (one budget slice per tick)
     if NextMoveActive and not s.nextMove and s.plan and not s.plan.finished then
