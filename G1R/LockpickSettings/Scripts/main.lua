@@ -855,46 +855,59 @@ local function startSession(attempt)
         end
         for _, cand in ipairs(candidates) do
             local axis = cand.v
-            -- align on the common fractional offset (median residual),
-            -- then pick the integer shift that fits every rotation on
-            -- the rail, preferring the most centered arrangement
-            local qs, resid = {}, {}
-            local qmean = 0
+            -- project once, then FIT THE STEP SIZE: the grid is slightly
+            -- nonuniform and the scene's step property is unreadable in
+            -- some configurations (6.3 fallback), which alone pushed the
+            -- residual to 0.26 on a full-spread lock. Scan for the step
+            -- that snaps the projections onto a grid.
+            local ps = {}
             for id = 0, s.pieceCount - 1 do
                 local sl = s.slotStart[id]
-                qs[id] = (sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3])
-                    / s.stepSize
-                qmean = qmean + qs[id]
+                ps[id] = sl[1] * axis[1] + sl[2] * axis[2] + sl[3] * axis[3]
             end
-            qmean = qmean / s.pieceCount
-            for id = 0, s.pieceCount - 1 do
-                qs[id] = qs[id] - qmean -- work near zero for clean rounding
-                resid[#resid + 1] = qs[id] - math.floor(qs[id] + 0.5)
-            end
-            table.sort(resid)
-            local c = resid[math.floor((#resid + 1) / 2)]
-            local rots, ok2, worst = {}, true, 0
-            local minR, maxR = 99, -99
-            for id = 0, s.pieceCount - 1 do
-                local q = qs[id] - c
-                local rr = math.floor(q + 0.5)
-                local rs = math.abs(q - rr)
-                if rs > worst then worst = rs end
-                if rs > 0.25 then
-                    ok2 = false
-                    break
+            local bestStep, bestWorst, bestRots, bestMin, bestMax
+            local step = 5.6
+            while step <= 7.0 do
+                local qs, qmean = {}, 0
+                for id = 0, s.pieceCount - 1 do
+                    qs[id] = ps[id] / step
+                    qmean = qmean + qs[id]
                 end
-                rots[id] = rr
-                if rr < minR then minR = rr end
-                if rr > maxR then maxR = rr end
+                qmean = qmean / s.pieceCount
+                local resid = {}
+                for id = 0, s.pieceCount - 1 do
+                    qs[id] = qs[id] - qmean
+                    resid[#resid + 1] = qs[id] - math.floor(qs[id] + 0.5)
+                end
+                table.sort(resid)
+                local c = resid[math.floor((#resid + 1) / 2)]
+                local rots, worst = {}, 0
+                local minR, maxR = 99, -99
+                for id = 0, s.pieceCount - 1 do
+                    local q = qs[id] - c
+                    local rr = math.floor(q + 0.5)
+                    local rs = math.abs(q - rr)
+                    if rs > worst then worst = rs end
+                    rots[id] = rr
+                    if rr < minR then minR = rr end
+                    if rr > maxR then maxR = rr end
+                end
+                if maxR - minR <= 6
+                    and (bestWorst == nil or worst < bestWorst) then
+                    bestStep, bestWorst, bestRots = step, worst, rots
+                    bestMin, bestMax = minR, maxR
+                end
+                step = step + 0.02
             end
-            if ok2 then
+            if bestWorst and bestWorst <= 0.30 then
+                s.stepSize = bestStep
                 -- choose the offset that fits the rail; prefer the most
                 -- centered arrangement, and report remaining ambiguity
                 local bestK, bestSpread, nValid = nil, 99, 0
-                for k = -3 - minR, 3 - maxR do
+                for k = -3 - bestMin, 3 - bestMax do
                     nValid = nValid + 1
-                    local spread = math.max(math.abs(minR + k), math.abs(maxR + k))
+                    local spread = math.max(math.abs(bestMin + k),
+                        math.abs(bestMax + k))
                     if spread < bestSpread then
                         bestSpread, bestK = spread, k
                     end
@@ -908,20 +921,20 @@ local function startSession(attempt)
                     s.axisCalibrated = true
                     s.sign = 1
                     for id = 0, s.pieceCount - 1 do
-                        s.rotStart[id] = rots[id] + bestK
+                        s.rotStart[id] = bestRots[id] + bestK
                     end
                     derived = true
                     if DebugSolver then
-                        log(string.format("solver: rail axis = scene %s vector "
-                            .. "(residual %.2f, frac %+.2f, shift %+d)",
-                            cand.name, worst, c, bestK))
+                        log(string.format("solver: rail axis from slot cloud "
+                            .. "(step %.2f, residual %.2f, shift %+d)",
+                            bestStep, bestWorst, bestK))
                     end
                     break
                 end
             end
             if not derived and DebugSolver then
-                log(string.format("solver: scene %s vector rejected "
-                    .. "(residual %.2f)", cand.name, worst))
+                log(string.format("solver: slot-cloud axis rejected "
+                    .. "(best residual %.2f)", bestWorst or 99))
             end
         end
     end)
