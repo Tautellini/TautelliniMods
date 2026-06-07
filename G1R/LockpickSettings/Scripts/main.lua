@@ -232,10 +232,8 @@ local cameraRightProj -- defined below, needed by retint
 -- cue. Restores are deferred while a piece is selected.
 local function retint(s)
     local desired = {}
-    local selId = nil
     if ConnActive then
-        selId = s.selectedRow
-        for _, e in ipairs(s.edges[selId] or {}) do
+        for _, e in ipairs(s.edges[s.selectedRow] or {}) do
             -- direction-coded: purple partners travel WITH the selected
             -- piece, red partners travel AGAINST it
             desired[e.b] = (e.dir == 1) and PartnerColorSame or PartnerColorOpp
@@ -249,51 +247,45 @@ local function retint(s)
         end
         desired[hintId] = hintColor(s)
     end
+    -- protection keys on the OBSERVED GLOW, never on the tracked
+    -- selection: deferring writes/restores for the piece we THOUGHT was
+    -- selected once preserved stale hint tints (two blue pieces at
+    -- once). Reading the truth per piece is cheap and self-correcting.
+    -- The hint is exempt from the guard: it is the action cue and may
+    -- sit on the selected piece.
     local newTinted = {}
     for id, e in pairs(s.pieces) do
         local want = desired[id]
-        if want then
-            if id ~= selId or id == hintId then
-                -- truth guard: never stomp the game's selected glow.
-                -- On fast clicking the tracker can be momentarily
-                -- wrong, and painting over the glow would both mask
-                -- the truth and freeze the wrong state. The hint is
-                -- exempt: it is the action cue and may sit on the
-                -- selected piece.
-                local isGlow = false
-                if s.selectedSig and id ~= hintId then
-                    local mid = e.mids[1]
-                    if mid then
-                        local okc, c = pcall(function()
-                            return mid:K2_GetVectorParameterValue(
-                                FName("HighlightColor"))
-                        end)
-                        if okc and c then
-                            local sg = s.selectedSig
-                            local dr = c.R - sg.R
-                            local dg = c.G - sg.G
-                            local db = c.B - sg.B
-                            if dr * dr + dg * dg + db * db < 0.05 then
-                                isGlow = true
-                            end
+        local isGlow = false
+        if s.selectedSig and id ~= hintId and (want or s.tinted[id]) then
+            local mid = e.mids[1]
+            if mid then
+                local okc, c = pcall(function()
+                    return mid:K2_GetVectorParameterValue(FName("HighlightColor"))
+                end)
+                if okc and c then
+                    local sg = s.selectedSig
+                    local dr = c.R - sg.R
+                    local dg = c.G - sg.G
+                    local db = c.B - sg.B
+                    if dr * dr + dg * dg + db * db < 0.05 then
+                        isGlow = true
+                        if id ~= s.selectedRow then
+                            s.selectedRow = id -- adopt the observed truth
                         end
                     end
                 end
-                if isGlow then
-                    s.selectedRow = id -- adopt the observed truth
-                else
-                    writeColor(e, want)
-                    newTinted[id] = true
-                end
-            elseif s.tinted[id] then
-                newTinted[id] = true -- deferred while selected
             end
+        end
+        if isGlow then
+            -- never paint over or "restore" the game's selected look;
+            -- keep any buried tint marked so it is cleaned on deselect
+            if s.tinted[id] then newTinted[id] = true end
+        elseif want then
+            writeColor(e, want)
+            newTinted[id] = true
         elseif s.tinted[id] then
-            if id == selId then
-                newTinted[id] = true -- deferred restore while selected
-            elseif e.default then
-                writeColor(e, e.default)
-            end
+            if e.default then writeColor(e, e.default) end
         end
     end
     s.tinted = newTinted
