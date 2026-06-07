@@ -292,22 +292,28 @@ local function buildSearch(s, skipEdge)
         end
         out[x] = lst
     end
-    local startS, goalS = 0, 0
+    local startS, goalS, h0 = 0, 0, 0
     for id = 0, n - 1 do
         local rot = s.rotStart[id] + s.sign * (s.steps[id] or 0)
         startS = startS + (rot + 3) * place[id]
         goalS = goalS + 3 * place[id]
+        h0 = h0 + math.abs(rot)
     end
     if startS == goalS then
         return { done = true, result = nil, atGoal = true }
     end
+    -- bucket priority queue on h = sum of distances to center
+    local buckets = {}
+    for h = 0, 3 * n do buckets[h] = {} end
+    buckets[h0][1] = startS
     return {
         out = out,
-        startS = startS,
-        fwdSeen = { [startS] = 0 }, -- 0 = sentinel for the start itself
-        bwdSeen = { [goalS] = 0 },
-        fq = { startS }, fqi = 1,
-        bq = { goalS }, bqi = 1,
+        goalS = goalS,
+        seen = { [startS] = 0 }, -- 0 = sentinel for the start itself
+        buckets = buckets,
+        minH = h0,
+        maxH = 3 * n,
+        expended = 0,
         done = false, result = nil,
     }
 end
@@ -317,33 +323,39 @@ local function decodeMove(p)
     return { piece = math.floor(p / 4) - 1, dir = (p % 4 == 1) and 1 or -1 }
 end
 
+-- greedy best-first, persistent across ticks. A hint replans after
+-- every move, so ANY route beats an optimal one that costs 100-250ms
+-- game-thread slices (the bidirectional BFS did exactly that and its
+-- sustained stalls aborted the game). Greedy on h = sum of distances
+-- to center typically reaches the goal within a few thousand states.
 local function stepSearch(s, search, budget)
     if search.done then return end
     local n, place, out = s.pieceCount, s.place, search.out
-    local fwdSeen, bwdSeen = search.fwdSeen, search.bwdSeen
-    local floor = math.floor
+    local seen, buckets = search.seen, search.buckets
+    local goalS, maxH = search.goalS, search.maxH
+    local floor, abs = math.floor, math.abs
     while budget.left > 0 do
-        local fRemain = #search.fq - search.fqi + 1
-        local bRemain = #search.bq - search.bqi + 1
-        if fRemain <= 0 and bRemain <= 0 then
-            search.done = true -- definitively no solution
+        -- pop the most promising state
+        local bucket = buckets[search.minH]
+        local bn = #bucket
+        while bn == 0 do
+            search.minH = search.minH + 1
+            if search.minH > maxH then
+                search.done = true -- explored everything reachable
+                return
+            end
+            bucket = buckets[search.minH]
+            bn = #bucket
+        end
+        local S = bucket[bn]
+        bucket[bn] = nil
+        budget.left = budget.left - 1
+        search.expended = search.expended + 1
+        if search.expended > 80000 then
+            search.done = true -- give up on this phase, not on the game
             return
         end
-        budget.left = budget.left - 1
-        local forward = fRemain > 0 and (bRemain <= 0 or fRemain <= bRemain)
-        local S, inheritFirst
-        -- NOTE: never nil-out processed queue slots: a nil hole makes
-        -- the # length operator undefined and the frontier reads as
-        -- empty (this exact bug made every search return no-solution
-        -- in milliseconds). Integers need no GC release anyway.
-        if forward then
-            S = search.fq[search.fqi]
-            search.fqi = search.fqi + 1
-            inheritFirst = fwdSeen[S]
-        else
-            S = search.bq[search.bqi]
-            search.bqi = search.bqi + 1
-        end
+        local inheritFirst = seen[S]
         for x = 0, n - 1 do
             local px = place[x]
             local dx = floor(S / px) % 7
@@ -352,46 +364,41 @@ local function stepSearch(s, search, budget)
                 if nx >= 0 and nx <= 6 then
                     local delta = d * px
                     local valid = true
+                    local h = abs(nx - 3) - abs(dx - 3)
                     local lst = out[x]
                     for i = 1, #lst do
                         local e = lst[i]
                         local pb = place[e.b]
-                        local nb = floor(S / pb) % 7 + d * e.dir
+                        local db = floor(S / pb) % 7
+                        local nb = db + d * e.dir
                         if nb < 0 or nb > 6 then
                             valid = false
                             break
                         end
                         delta = delta + d * e.dir * pb
+                        h = h + abs(nb - 3) - abs(db - 3)
                     end
                     if valid then
                         local T = S + delta
-                        if forward then
-                            if fwdSeen[T] == nil then
-                                local first = inheritFirst
-                                if first == 0 then
-                                    first = (x + 1) * 4 + (d > 0 and 1 or 0)
-                                end
-                                fwdSeen[T] = first
-                                if bwdSeen[T] ~= nil then
-                                    search.done = true
-                                    search.result = first
-                                    return
-                                end
-                                search.fq[#search.fq + 1] = T
+                        if seen[T] == nil then
+                            local first = inheritFirst
+                            if first == 0 then
+                                first = (x + 1) * 4 + (d > 0 and 1 or 0)
                             end
-                        else
-                            if bwdSeen[T] == nil then
-                                -- forward move from T toward the goal
-                                local back = (x + 1) * 4 + (d < 0 and 1 or 0)
-                                bwdSeen[T] = back
-                                local f = fwdSeen[T]
-                                if f ~= nil then
-                                    search.done = true
-                                    search.result = (f ~= 0) and f or back
-                                    return
-                                end
-                                search.bq[#search.bq + 1] = T
+                            seen[T] = first
+                            if T == goalS then
+                                search.done = true
+                                search.result = first
+                                return
                             end
+                            local nh = search.minH + h
+                            -- h is the delta vs the popped state's bucket;
+                            -- clamp defensively
+                            if nh < 0 then nh = 0 end
+                            if nh > maxH then nh = maxH end
+                            local b = buckets[nh]
+                            b[#b + 1] = T
+                            if nh < search.minH then search.minH = nh end
                         end
                     end
                 end
@@ -434,7 +441,9 @@ local function solverPlan(s)
     end
     local plan = s.plan
     if plan.finished then return plan.result end
-    local budget = { left = 12000 }
+    -- small slices: sustained 100ms+ game-thread stalls abort the game
+    -- (proven twice tonight); greedy usually finishes well within one
+    local budget = { left = 2500 }
     while budget.left > 0 do
         if not plan.search then
             if plan.phase == "hypo0" then
