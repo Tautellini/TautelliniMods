@@ -32,14 +32,18 @@ function Deploy-OneMod($name) {
     }
     $targetDir = Join-Path $ModsDir $name
 
-    # 1. the mod's Scripts, RECURSIVELY (the subfolders core/util/data/features
-    #    are required by dotted name; a non-recursive copy silently drops them).
+    # 1. the mod's Scripts, RECURSIVELY. CLEAN the target subtree first so a
+    #    rename or deletion in the source propagates: a stale flat file from an
+    #    older layout would otherwise linger in the live folder (inert at runtime
+    #    since requires are dotted, but a confusing stale-install hazard).
+    if (Test-Path "$targetDir\Scripts") { Remove-Item -Recurse -Force "$targetDir\Scripts" }
     New-Item -ItemType Directory -Force "$targetDir\Scripts" | Out-Null
     Copy-Item "$sourceDir\Scripts\*" "$targetDir\Scripts\" -Recurse -Force
 
     # 2. vendor the shared kit under <Mod>\shared\kit\ (the *.lua files only;
     #    the kit's tests\ subfolder never ships). main.lua self-adds this dir to
     #    package.path, so require("kit") resolves it. Self-contained build.
+    if (Test-Path "$targetDir\shared") { Remove-Item -Recurse -Force "$targetDir\shared" }
     New-Item -ItemType Directory -Force "$targetDir\shared\kit" | Out-Null
     Copy-Item (Get-ChildItem -File "$KitSource\*.lua") -Destination "$targetDir\shared\kit\" -Force
 
