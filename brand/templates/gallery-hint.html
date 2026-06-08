@@ -25,8 +25,8 @@
     <path d="M1800,1024 L1864,1024 L1864,960"/>
   </g>
 
-  <!-- eyebrow -->
-  <text x="132" y="180" class="mono" font-size="30" letter-spacing="8">
+  <!-- eyebrow (hidden when ?eyebrow=0, for the in-description variant) -->
+  <text id="eyebrow" x="132" y="180" class="mono" font-size="30" letter-spacing="8">
     <tspan class="acc">[</tspan><tspan class="ink2"> LOCKPICKSETTINGS </tspan><tspan class="acc">]</tspan>
   </text>
 
@@ -64,5 +64,11 @@
     <path d="M1788,844 L1828,844 L1828,804"/>
   </g>
 </svg>
+<script>
+  // eyebrow-less variant for embedding in the description body
+  if (new URLSearchParams(location.search).get('eyebrow') === '0') {
+    var e = document.getElementById('eyebrow'); if (e) e.style.display = 'none';
+  }
+</script>
 </body>
 </html>

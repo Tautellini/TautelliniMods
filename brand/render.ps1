@@ -118,3 +118,14 @@ if (-not $Only -or ($Only -contains "card.html")) {
     Render-Uri ($cardHtml + $q) $png 720 440 "card-$key"
   }
 }
+
+# eyebrow-less gallery variants for embedding inside the description body
+# (the [ LOCKPICKSETTINGS ] eyebrow is clutter there). Same templates, ?eyebrow=0.
+$bareGalleries = @("gallery-hint", "gallery-connections", "gallery-safe")
+if (-not $Only -or ($Only -contains "galleries-bare")) {
+  foreach ($g in $bareGalleries) {
+    $uri = ([System.Uri](Join-Path $tpl "$g.html")).AbsoluteUri + "?eyebrow=0"
+    $png = Join-Path $OutDir "$g-bare.png"
+    Render-Uri $uri $png 1920 1080 "$g-bare"
+  }
+}
