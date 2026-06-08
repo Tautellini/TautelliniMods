@@ -30,6 +30,7 @@
     <tspan class="acc">[</tspan><tspan class="ink2"> LOCKPICKSETTINGS </tspan><tspan class="acc">]</tspan>
   </text>
 
+  <g id="content">
   <!-- title -->
   <text x="126" y="372" class="mono ink0" font-size="72" font-weight="700">NEXT-MOVE HINT</text>
   <rect x="130" y="404" width="260" height="5" fill="var(--accent)"/>
@@ -51,6 +52,9 @@
   <text x="240" y="816" class="sans ink2" font-size="28">toggle anytime</text>
   <text x="240" y="850" class="mono ink2" font-size="20">off by default &#183; your call when to cheat</text>
 
+  </g>
+
+  <g id="visual">
   <!-- ============ framed screenshot, right ============ -->
   <rect x="1016" y="196" width="812" height="648" fill="var(--bg-1)" class="s-line" style="stroke-width:1.5"/>
   <image href="../LockpickScreenshotHighlight.png" x="1032" y="212" width="780" height="616"
@@ -63,11 +67,18 @@
     <path d="M1016,804 L1016,844 L1056,844"/>
     <path d="M1788,844 L1828,844 L1828,804"/>
   </g>
+  </g>
 </svg>
 <script>
+  var p = new URLSearchParams(location.search);
   // eyebrow-less variant for embedding in the description body
-  if (new URLSearchParams(location.search).get('eyebrow') === '0') {
+  if (p.get('eyebrow') === '0') {
     var e = document.getElementById('eyebrow'); if (e) e.style.display = 'none';
+  }
+  // inverted variant: graphic to the left, text block to the right
+  if (p.get('invert') === '1') {
+    var c = document.getElementById('content'); if (c) c.setAttribute('transform', 'translate(840,0)');
+    var v = document.getElementById('visual');  if (v) v.setAttribute('transform', 'translate(-900,0)');
   }
 </script>
 </body>

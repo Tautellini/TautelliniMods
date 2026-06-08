@@ -35,6 +35,7 @@
     <tspan class="acc">[</tspan><tspan class="ink2"> LOCKPICKSETTINGS </tspan><tspan class="acc">]</tspan>
   </text>
 
+  <g id="content">
   <!-- title -->
   <text x="126" y="372" class="mono ink0" font-size="72" font-weight="700">MORE TRIES</text>
   <rect x="130" y="404" width="260" height="5" fill="var(--accent)"/>
@@ -44,6 +45,9 @@
   <text x="132" y="540" class="sans ink2" font-size="28">Durability climbs by <tspan class="acc" font-weight="700">+10</tspan> at every Picklock</text>
   <text x="132" y="576" class="sans ink2" font-size="28">tier, so leveling the skill still pays off.</text>
 
+  </g>
+
+  <g id="visual">
   <!-- ===== before/after bar chart, right (no border) ===== -->
   <!-- glow -->
   <circle cx="1470" cy="500" r="300" fill="url(#glowGrad)"/>
@@ -76,11 +80,18 @@
     <text x="1450" y="754">TRAINED</text>
     <text x="1682" y="754">MASTER</text>
   </g>
+  </g>
 </svg>
 <script>
+  var p = new URLSearchParams(location.search);
   // eyebrow-less variant for embedding in the description body
-  if (new URLSearchParams(location.search).get('eyebrow') === '0') {
+  if (p.get('eyebrow') === '0') {
     var e = document.getElementById('eyebrow'); if (e) e.style.display = 'none';
+  }
+  // inverted variant: graphic to the left, text block to the right
+  if (p.get('invert') === '1') {
+    var c = document.getElementById('content'); if (c) c.setAttribute('transform', 'translate(840,0)');
+    var v = document.getElementById('visual');  if (v) v.setAttribute('transform', 'translate(-900,0)');
   }
 </script>
 </body>

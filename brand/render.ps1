@@ -30,6 +30,7 @@ $sizes = [ordered]@{
   "gallery-connections.html" = @(1920, 1080)
   "gallery-tries.html"       = @(1920, 1080)
   "gallery-safe.html"        = @(1920, 1080)
+  "gallery-autosolve.html"   = @(1920, 1080)
   "nexus-header.html"        = @(1300, 372)
   "warning.html"             = @(1920, 1080)
 }
@@ -122,11 +123,11 @@ if (-not $Only -or ($Only -contains "card.html")) {
 
 # eyebrow-less gallery variants for embedding inside the description body
 # (the [ LOCKPICKSETTINGS ] eyebrow is clutter there). Same templates, ?eyebrow=0.
-$bareGalleries = @("gallery-tries", "gallery-hint", "gallery-connections", "gallery-safe")
+$bareGalleries = @("gallery-tries", "gallery-hint", "gallery-connections", "gallery-safe", "gallery-autosolve")
 if (-not $Only -or ($Only -contains "galleries-bare")) {
   foreach ($g in $bareGalleries) {
-    $uri = ([System.Uri](Join-Path $tpl "$g.html")).AbsoluteUri + "?eyebrow=0"
-    $png = Join-Path $OutDir "$g-bare.png"
-    Render-Uri $uri $png 1920 1080 "$g-bare"
+    $base = ([System.Uri](Join-Path $tpl "$g.html")).AbsoluteUri
+    Render-Uri ($base + "?eyebrow=0")          (Join-Path $OutDir "$g-bare.png")     1920 1080 "$g-bare"
+    Render-Uri ($base + "?eyebrow=0&invert=1") (Join-Path $OutDir "$g-bare-inv.png") 1920 1080 "$g-bare-inv"
   }
 }

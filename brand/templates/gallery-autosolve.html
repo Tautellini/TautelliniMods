@@ -14,8 +14,8 @@
       <stop offset="1"   style="stop-color:var(--accent-lo)"/>
     </linearGradient>
     <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0"   style="stop-color:var(--accent);stop-opacity:0.20"/>
-      <stop offset="0.6" style="stop-color:var(--accent);stop-opacity:0.06"/>
+      <stop offset="0"   style="stop-color:var(--accent);stop-opacity:0.18"/>
+      <stop offset="0.6" style="stop-color:var(--accent);stop-opacity:0.05"/>
       <stop offset="1"   style="stop-color:var(--accent);stop-opacity:0"/>
     </radialGradient>
     <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
@@ -41,42 +41,42 @@
 
   <g id="content">
   <!-- title -->
-  <text x="126" y="372" class="mono ink0" font-size="72" font-weight="700">SAFE TO USE</text>
+  <text x="126" y="372" class="mono ink0" font-size="72" font-weight="700">AUTO SOLVER</text>
   <rect x="130" y="404" width="260" height="5" fill="var(--accent)"/>
 
-  <!-- safety checklist -->
-  <g class="s-acc" style="stroke-width:5;stroke-linecap:round;stroke-linejoin:round">
-    <path d="M134,497 L145,509 L167,483"/>
-    <path d="M134,567 L145,579 L167,553"/>
-    <path d="M134,637 L145,649 L167,623"/>
-    <path d="M134,707 L145,719 L167,693"/>
-  </g>
-  <text x="190" y="504" class="sans" font-size="30"><tspan class="acc" font-weight="700">Achievements keep unlocking</tspan><tspan class="ink1">, every one.</tspan></text>
-  <text x="190" y="574" class="sans ink1" font-size="30">No game files touched, nothing patched on disk.</text>
-  <text x="190" y="644" class="sans ink1" font-size="30">The tries boost never persists in your saves.</text>
-  <text x="190" y="714" class="sans ink1" font-size="30">Add or remove anytime. Everything returns to vanilla.</text>
+  <!-- copy -->
+  <text x="132" y="480" class="sans ink1" font-size="42" font-weight="500">Hands-off lockpicking.</text>
+  <text x="132" y="548" class="sans ink2" font-size="28">Trigger it once and the lock walks itself open,</text>
+  <text x="132" y="584" class="sans ink2" font-size="28">piece by piece. No further input from you.</text>
 
+  <!-- badge -->
+  <text x="132" y="668" class="mono" font-size="26" letter-spacing="1">
+    <tspan class="acc">[</tspan><tspan class="ink1"> ZERO MOVES </tspan><tspan class="acc">]</tspan>
+    <tspan class="ink2" dx="20">  </tspan>
+    <tspan class="acc">[</tspan><tspan class="ink1"> ONE KEYPRESS </tspan><tspan class="acc">]</tspan>
+  </text>
   </g>
 
   <g id="visual">
-  <!-- ===== shield, right (no border, prominent) ===== -->
-  <g transform="translate(-561,-155) scale(1.4)">
-    <!-- glow -->
-    <circle cx="1422" cy="500" r="215" fill="url(#glowGrad)"/>
-    <!-- shield -->
-    <g fill="none" stroke-linejoin="round">
-      <path d="M1302,366 C1302,354 1311,346 1323,346 L1521,346 C1533,346 1542,354 1542,366 L1542,498 C1542,582 1488,632 1422,656 C1356,632 1302,582 1302,498 Z"
-            fill="var(--bg-2)" stroke="var(--accent)" stroke-width="3"/>
-      <path d="M1316,372 C1316,362 1323,356 1333,356 L1511,356 C1521,356 1528,362 1528,372 L1528,496 C1528,572 1480,618 1422,640 C1364,618 1316,572 1316,496 Z"
-            stroke="var(--accent)" stroke-opacity="0.25" stroke-width="2"/>
-    </g>
-    <!-- checkmark -->
-    <path d="M1378,484 L1414,524 L1488,430" fill="none" stroke="url(#accentGrad)"
-          stroke-width="20" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
+  <!-- ===== auto-solved padlock, right ===== -->
+  <circle cx="1420" cy="490" r="280" fill="url(#glowGrad)"/>
+  <g transform="translate(-134,-100)">
+    <!-- shackle -->
+    <path d="M1501,528 L1501,461 A53,53 0 0 1 1607,461 L1607,528" fill="none"
+          stroke="url(#accentGrad)" stroke-width="15" stroke-linecap="round"/>
+    <!-- body -->
+    <rect x="1454" y="520" width="200" height="174" rx="20" fill="var(--bg-2)" stroke="var(--accent)" stroke-width="3"/>
+    <rect x="1466" y="532" width="176" height="150" rx="14" fill="none" stroke="var(--accent)" stroke-opacity="0.25" stroke-width="2"/>
+    <!-- checkmark: the lock is already solved -->
+    <path d="M1512,608 L1544,642 L1602,572" fill="none" stroke="url(#accentGrad)" stroke-width="16"
+          stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
   </g>
-
-  <!-- caption -->
-  <text x="1430" y="862" class="mono acc" font-size="28" text-anchor="middle" letter-spacing="3" font-weight="700">ACHIEVEMENTS INTACT</text>
+  <!-- sparkles: automatic, hands-free -->
+  <g fill="var(--accent-hi)" filter="url(#softGlow)">
+    <path d="M1290,330 l5,-16 5,16 16,5 -16,5 -5,16 -5,-16 -16,-5 Z"/>
+    <path d="M1572,372 l4,-12 4,12 12,4 -12,4 -4,12 -4,-12 -12,-4 Z" opacity="0.85"/>
+    <path d="M1300,566 l4,-13 4,13 13,4 -13,4 -4,13 -4,-13 -13,-4 Z" opacity="0.9"/>
+  </g>
   </g>
 </svg>
 <script>
