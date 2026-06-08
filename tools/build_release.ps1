@@ -205,7 +205,7 @@ if ($haveUE4SS) {
     $x.Add('      <optionalFileGroups order="Explicit">')
     $x.Add('        <group name="UE4SS (this mod needs it, please read)" type="SelectAny">')
     $x.Add('          <plugins order="Explicit">')
-    $x.Add('            <plugin name="Install the bundled UE4SS too (tick ONLY if you do not already have UE4SS)">')
+    $x.Add('            <plugin name="Install bundled UE4SS (TICK ONLY IF YOU HAVE READ AND ACCEPTED THE CONSEQUENCES)">')
     $x.Add('              <description>This mod needs UE4SS. RECOMMENDED: install UE4SS yourself from   https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest   (the regular zip, not zDEV), so it stays even if you remove this mod. Tick this box ONLY if you do not have UE4SS and want it bundled in: your mod manager WILL REMOVE the bundled UE4SS when you uninstall this mod, which can break other UE4SS mods. If you already have UE4SS, leave this unticked.</description>')
     if (Test-Path $WarnSrc) { $x.Add('              <image path="fomod\images\warning.png"/>') }
     $x.Add("              <files><folder source=`"ue4ss`" destination=`"$Win64`" priority=`"0`"/></files>")
