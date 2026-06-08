@@ -174,6 +174,12 @@ $x.Add('<?xml version="1.0" encoding="utf-8"?>')
 $x.Add('<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">')
 $x.Add("  <moduleName>$Mod $ver</moduleName>")
 $x.Add('  <moduleImage path="fomod\images\hero.png" showImage="true" showFade="true" height="-1"/>')
+# NOTE schema order on <config>: moduleName, moduleImage, moduleDependencies,
+# requiredInstallFiles, installSteps, conditionalFileInstalls. requiredInstallFiles
+# MUST precede installSteps or the FOMOD fails schema validation.
+$x.Add('  <requiredInstallFiles>')
+$x.Add("    <folder source=`"mod\$Mod`" destination=`"$ModDest`" priority=`"0`"/>")
+$x.Add('  </requiredInstallFiles>')
 $x.Add('  <installSteps order="Explicit">')
 $x.Add("    <installStep name=`"Configure $Mod`">")
 $x.Add('      <optionalFileGroups order="Explicit">')
@@ -206,9 +212,6 @@ $x.Add('        </group>')
 $x.Add('      </optionalFileGroups>')
 $x.Add('    </installStep>')
 $x.Add('  </installSteps>')
-$x.Add('  <requiredInstallFiles>')
-$x.Add("    <folder source=`"mod\$Mod`" destination=`"$ModDest`" priority=`"0`"/>")
-$x.Add('  </requiredInstallFiles>')
 $x.Add('  <conditionalFileInstalls>')
 $x.Add('    <patterns>')
 foreach ($t in $triesOpts) { foreach ($h in $bools) { foreach ($c in $bools) {
@@ -240,6 +243,24 @@ $x.Add('    </patterns>')
 $x.Add('  </conditionalFileInstalls>')
 $x.Add('</config>')
 [System.IO.File]::WriteAllText((Join-Path $fomod "ModuleConfig.xml"), ($x -join "`r`n"), (New-Object System.Text.UTF8Encoding($false)))
+
+# Validate the FOMOD against the schema so an invalid installer never ships
+# again (a misordered <config> child once failed in Vortex at install time).
+$xsd = Join-Path $PSScriptRoot "fomod\ModConfig5.0.xsd"
+if (Test-Path $xsd) {
+    $verr = New-Object System.Collections.Generic.List[string]
+    $rs = New-Object System.Xml.XmlReaderSettings
+    $rs.ValidationType = [System.Xml.ValidationType]::Schema
+    $rs.Schemas.Add($null, $xsd) | Out-Null
+    $rs.add_ValidationEventHandler([System.Xml.Schema.ValidationEventHandler] { param($snd, $ev) $verr.Add("L$($ev.Exception.LineNumber): $($ev.Message)") })
+    $xr = [System.Xml.XmlReader]::Create((Join-Path $fomod "ModuleConfig.xml"), $rs)
+    while ($xr.Read()) { }
+    $xr.Close()
+    if ($verr.Count -gt 0) { throw ("FOMOD ModuleConfig.xml failed schema validation:`n  " + ($verr -join "`n  ")) }
+    Write-Host "  FOMOD schema: valid"
+} else {
+    Write-Warning "FOMOD schema not found at $xsd; skipping validation"
+}
 
 Zip $s "$Mod-$ver-vortex.zip"
 
