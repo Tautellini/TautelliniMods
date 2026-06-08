@@ -22,7 +22,8 @@ $ErrorActionPreference = "Stop"
 # section.html and card.html are NOT here: they are data-driven and rendered once
 # per section / per feature in the dedicated loops below.
 $sizes = [ordered]@{
-  "hero.html"    = @(1920, 1080)
+  "hero.html"       = @(1920, 1080)
+  "hero-cards.html" = @(1920, 1080)
   "badge.html"   = @(960, 180)
   "footer.html"  = @(1920, 140)
   "gallery-hint.html"        = @(1920, 1080)
@@ -121,7 +122,7 @@ if (-not $Only -or ($Only -contains "card.html")) {
 
 # eyebrow-less gallery variants for embedding inside the description body
 # (the [ LOCKPICKSETTINGS ] eyebrow is clutter there). Same templates, ?eyebrow=0.
-$bareGalleries = @("gallery-hint", "gallery-connections", "gallery-safe")
+$bareGalleries = @("gallery-tries", "gallery-hint", "gallery-connections", "gallery-safe")
 if (-not $Only -or ($Only -contains "galleries-bare")) {
   foreach ($g in $bareGalleries) {
     $uri = ([System.Uri](Join-Path $tpl "$g.html")).AbsoluteUri + "?eyebrow=0"
