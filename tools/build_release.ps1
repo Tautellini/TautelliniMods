@@ -142,7 +142,7 @@ if (Test-Path $HeroSrc) {
 }
 if (Test-Path $WarnSrc) {
     Copy-Item $WarnSrc (Join-Path $fomod "images\warning.png") -Force
-} elseif ($haveUE4SS) {
+} else {
     Write-Warning "UE4SS warning image not found at $WarnSrc; the UE4SS page will show no image"
 }
 
@@ -160,12 +160,10 @@ foreach ($t in $triesOpts) { foreach ($h in $bools) { foreach ($c in $bools) {
     Write-Lua (Join-Path $configsDir $fname) (New-ConfigVariant $baseConfig $t $h $c)
 } } }
 
-# UE4SS payload under ue4ss\ (installed to the game root, only if missing)
-if ($haveUE4SS) {
-    $u = Join-Path $s "ue4ss"
-    New-Item -ItemType Directory -Force $u | Out-Null
-    Copy-Item "$UE4SSSrc\*" $u -Recurse -Force
-}
+# the Vortex FOMOD does NOT bundle UE4SS: mod managers cannot deploy the UE4SS
+# proxy DLL reliably (symlink/VFS load it too late), so UE4SS must be installed
+# separately. The manual complete.zip still bundles it (real files) for hand
+# installs.
 
 # info.xml
 $info = @"
@@ -175,7 +173,7 @@ $info = @"
   <Author>Tautellini</Author>
   <Version>$ver</Version>
   <Website>https://github.com/Tautellini/TautelliniMods</Website>
-  <Description>More tries, an optional next-move hint, and a connection display for the Gothic 1 Remake lockpicking minigame.$(if ($haveUE4SS) { ' Can install the experimental UE4SS for you if it is missing (opt-in during install).' })</Description>
+  <Description>More tries, an optional next-move hint, and a connection display for the Gothic 1 Remake lockpicking minigame. Requires UE4SS, installed separately.</Description>
 </fomod>
 "@
 [System.IO.File]::WriteAllText((Join-Path $fomod "info.xml"), $info, (New-Object System.Text.UTF8Encoding($false)))
@@ -195,27 +193,24 @@ $x.Add('  <requiredInstallFiles>')
 $x.Add("    <folder source=`"mod\$Mod`" destination=`"$ModDest`" priority=`"0`"/>")
 $x.Add('  </requiredInstallFiles>')
 $x.Add('  <installSteps order="Explicit">')
-if ($haveUE4SS) {
-    # ONE opt-in checkbox, always shown (no fileDependency auto-detect). When the
-    # box is ticked the plugin's OWN <files> install UE4SS directly: the most
-    # reliable FOMOD path, no flags and no raw-game-file checks. Untick = no
-    # UE4SS (you already have it, or will install it yourself). The mod is
-    # required and installs either way.
-    $x.Add('    <installStep name="UE4SS">')
-    $x.Add('      <optionalFileGroups order="Explicit">')
-    $x.Add('        <group name="UE4SS (this mod needs it, please read)" type="SelectAny">')
-    $x.Add('          <plugins order="Explicit">')
-    $x.Add('            <plugin name="Install bundled UE4SS (TICK ONLY IF YOU HAVE READ AND ACCEPTED THE CONSEQUENCES)">')
-    $x.Add('              <description>This mod needs UE4SS. RECOMMENDED: install UE4SS yourself from   https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest   (the regular zip, not zDEV), so it stays even if you remove this mod. Tick this box ONLY if you do not have UE4SS and want it bundled in: your mod manager WILL REMOVE the bundled UE4SS when you uninstall this mod, which can break other UE4SS mods. If you already have UE4SS, leave this unticked.</description>')
-    if (Test-Path $WarnSrc) { $x.Add('              <image path="fomod\images\warning.png"/>') }
-    $x.Add("              <files><folder source=`"ue4ss`" destination=`"$Win64`" priority=`"0`"/></files>")
-    $x.Add('              <typeDescriptor><type name="Optional"/></typeDescriptor>')
-    $x.Add('            </plugin>')
-    $x.Add('          </plugins>')
-    $x.Add('        </group>')
-    $x.Add('      </optionalFileGroups>')
-    $x.Add('    </installStep>')
-}
+# UE4SS is REQUIRED but NOT bundled (mod managers cannot deploy the dwmapi.dll
+# proxy reliably). A required acknowledgment page, always shown: the user must
+# tick to confirm they will install UE4SS themselves before continuing.
+# SelectAtLeastOne forces the tick; the flag is unused (info-only, no install).
+$x.Add('    <installStep name="UE4SS required">')
+$x.Add('      <optionalFileGroups order="Explicit">')
+$x.Add('        <group name="UE4SS is required and is NOT included: install it yourself" type="SelectAtLeastOne">')
+$x.Add('          <plugins order="Explicit">')
+$x.Add('            <plugin name="I understand: I will install UE4SS myself (tick to continue)">')
+$x.Add('              <description>This mod needs UE4SS, and it is NOT bundled here: mod managers cannot deploy the UE4SS proxy DLL reliably. Install UE4SS yourself from   https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest   (the regular zip, not zDEV) into the game Win64 folder, next to G1R-Win64-Shipping.exe. This mod will not load until UE4SS is present. Tick this box to confirm and continue.</description>')
+if (Test-Path $WarnSrc) { $x.Add('              <image path="fomod\images\warning.png"/>') }
+$x.Add('              <conditionFlags><flag name="ue4ssAck">on</flag></conditionFlags>')
+$x.Add('              <typeDescriptor><type name="Optional"/></typeDescriptor>')
+$x.Add('            </plugin>')
+$x.Add('          </plugins>')
+$x.Add('        </group>')
+$x.Add('      </optionalFileGroups>')
+$x.Add('    </installStep>')
 $x.Add("    <installStep name=`"Configure $Mod`">")
 $x.Add('      <optionalFileGroups order="Explicit">')
 $x.Add('        <group name="Extra lockpick tries" type="SelectExactlyOne">')
