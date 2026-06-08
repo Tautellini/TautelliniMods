@@ -29,7 +29,7 @@ $ScriptsSrc = Join-Path $ModSrc "Scripts"
 $KitSrc     = Join-Path $RepoRoot "G1R\shared\kit"
 $UE4SSSrc   = Join-Path $PSScriptRoot "ue4ss"
 $ReadmeSrc  = Join-Path $ModSrc "release\zip-readme.txt"
-$HeroSrc    = Join-Path $ModSrc "release\2.7\images\hero.png"
+$HeroSrc    = Join-Path $ModSrc "nexus-page\images\hero.png"
 $OutDir     = Join-Path $ModSrc "release\build"
 
 if (-not (Test-Path "$ScriptsSrc\main.lua")) { throw "mod not found at $ModSrc (need Scripts\main.lua)" }
@@ -134,7 +134,11 @@ if ($haveUE4SS) {
 $s = New-Stage "vortex"
 $fomod = Join-Path $s "fomod"
 New-Item -ItemType Directory -Force (Join-Path $fomod "images") | Out-Null
-if (Test-Path $HeroSrc) { Copy-Item $HeroSrc (Join-Path $fomod "images\hero.png") -Force }
+if (Test-Path $HeroSrc) {
+    Copy-Item $HeroSrc (Join-Path $fomod "images\hero.png") -Force
+} else {
+    Write-Warning "hero image not found at $HeroSrc; the FOMOD wizard will show a broken image"
+}
 
 # mod payload (without config.lua) under mod\<Mod>
 Copy-ModPayload (Join-Path $s "mod") $false
