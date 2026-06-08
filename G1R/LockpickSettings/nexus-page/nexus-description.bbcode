@@ -1,69 +1,68 @@
 [center][img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/hero.png[/img][/center]
-
-
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-features.png[/img]
-[b]More Tries.[/b] Lockpick durability rises +10 over the vanilla value of your Picklock tier, the same on every tier:
-[list]
-[*][b]Untrained[/b]  2 -> 12
-[*][b]Trained[/b]  4 -> 14
-[*][b]Master[/b]  6 -> 16
-[/list]
+
+[size=4][b]More Tries[/b][/size]
+[color=#ffffff]Lockpick durability rises +10 (by default) over the vanilla value of your lockpicking skill.[/color]
 [line]
-[b]Next-Move Hint.[/b] [i](F7, off by default)[/i] The piece to move next lights up: [color=#7ddb62][b]green[/b][/color] to turn it LEFT, [color=#6f9fe8][b]blue[/b][/color] to turn it RIGHT. Replanned after every move from the lock's live state, all 416 locks built in. Routes favor a sure opening over a short one, so trust the colors; they end at an open lock.
+[b][size=4]Next-Move Hint [/size][/b][i](F7, off by default)[/i] 
+The piece to move next lights up: [b][color=#00ff00]GREEN [/color][/b]to turn it [b][color=#00ff00]LEFT[/color] [/b]and [b][color=#1e84cc]BLUE [/color][/b]to turn it [color=#1e84cc][b]RIGHT[/b][/color]. 
 [line]
-[b]Connection Display.[/b] [i](F8, off by default)[/i] The pieces wired to your selected piece light up: [color=#c08aff][b]purple[/b][/color] moves the same way, [color=#ff7a7a][b]red[/b][/color] moves opposite.
-[b]Honest caveat:[/b] this shows the authored layout. Connections the game removed at runtime keep showing until one of your moves disproves them, then prune. Read the colors as "may drag", not "will drag".
+[b][size=4]Connection Display[/size] [/b][i](F8, off by default)[/i] 
+Connections to your selected piece will be highlighted: [color=#9900ff][b]PURPLE[/b] [/color]moves the [color=#9900ff]SAME DIRECTION[/color] and [b][color=#980000]RED [/color][/b]moves [color=#980000]OPPOSITE DIRECTION[/color].
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-requirements.png[/img]
-[url=https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest][b]UE4SS, experimental build[/b][/url]. The game runs Unreal Engine 5.4.3, newer than the stable 3.0.1 release, so grab [b]experimental-latest[/b] (the regular zip, not the zDEV package).
+
+[url=https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest]UE4SS, experimental build[/url]. 
+The game runs Unreal Engine 5.4.3, newer than the stable 3.0.1 release, so grab [b]experimental-latest[/b] (the regular zip, not the zDEV package).
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-install.png[/img]
 [list=1]
-[*]Extract the UE4SS zip into [b]...\Gothic 1 Remake\G1R\Binaries\Win64[/b], so dwmapi.dll sits next to G1R-Win64-Shipping.exe and a ue4ss folder appears beside it.
+[*]Extract the UE4SS zip into [b]...\Gothic 1 Remake\G1R\Binaries\Win64[/b], so dwmapi.dll sits next to G1R-Win64-Shipping.exe and a ue4ss folder appears beside it.[/*]
 [*]Extract the LockpickSettings zip from this page into [b]...\Win64\ue4ss\Mods[/b]:
 [code]...\ue4ss\Mods\LockpickSettings\enabled.txt
-...\ue4ss\Mods\LockpickSettings\Scripts\   (main.lua, config.lua, feature folders)
-...\ue4ss\Mods\LockpickSettings\shared\    (bundled helper library)[/code]
-The bundled enabled.txt activates the mod; you do not need to edit mods.txt.
-[*]Start the game. [b]...\ue4ss\UE4SS.log[/b] should show:
-[code][LockpickSettings] Loaded 2.7.8-alpha (kit 1.0.0): untrained 2->12, trained 4->14, master 6->16, next-move hint off (416 lock graphs, toggle: F7), connection display off, toggle: F8[/code]
+...\ue4ss\Mods\LockpickSettings\Scripts\  (main.lua, config.lua, feature folders)
+...\ue4ss\Mods\LockpickSettings\shared\    (bundled helper library)[/code]
+The bundled enabled.txt activates the mod. You do not need to edit mods.txt.[/*]
+[*]Start the game. [b]...\ue4ss\UE4SS.log[/b] should show something like:
+[code][LockpickSettings] Loaded 2.7.8-alpha (kit 1.0.0) [...][/code]
+[/*]
 [/list]
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-config.png[/img]
+
 Edit [b]Scripts\config.lua[/b], apply with a game restart.
 [list]
-[*][b]extraTries[/b]: bonus on top of the vanilla tries (default 10)
-[*][b]showNextMove[/b] / [b]showConnections[/b]: whether each assist is active at startup (default false)
-[*][b]nextMoveHotkey[/b] / [b]connectionsHotkey[/b]: the toggle keys (default "F7" / "F8", "" disables)
-[*][b]hintColorLeft[/b] / [b]hintColorRight[/b]: hint colors as {r, g, b}, encoding the turn (set both equal for a directionless hint)
-[*][b]partnerColorSame[/b] / [b]partnerColorOpposite[/b]: connection colors as {r, g, b}
-[*][b]debugSolver[/b]: verbose solver log for bug reports. On by default during the alpha; set false for quiet play.
+[*][b]extraTries[/b]: bonus on top of the vanilla tries (default 10)[/*]
+[*][b]showNextMove[/b] / [b]showConnections[/b]: whether each assist is active at startup (default false)[/*]
+[*][b]nextMoveHotkey[/b] / [b]connectionsHotkey[/b]: the toggle keys (default "F7" / "F8", "" disables)[/*]
+[*][b]hintColorLeft[/b] / [b]hintColorRight[/b]: hint colors as {r, g, b}, encoding the turn (set both equal for a directionless hint)[/*]
+[*][b]partnerColorSame[/b] / [b]partnerColorOpposite[/b]: connection colors as {r, g, b}[/*]
+[*][b]debugSolver[/b]: verbose solver log for bug reports. On by default during the alpha; set false for quiet play.[/*]
 [/list]
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-safety.png[/img]
 [list]
-[*]No game files are modified, nothing is patched on disk. Pure UE4SS Lua.
-[*]The tries boost is idempotent: already-raised values are recognized and never stack across sessions, saves or reloads.
-[*]The assists read only. Your inputs reach the game untouched, and the hint computes in tiny per-tick slices so the game never stalls.
+[*]No game files are modified, nothing is patched on disk. Pure UE4SS Lua.[/*]
+[*]The tries boost is idempotent: already-raised values are recognized and never stack across sessions, saves or reloads.[/*]
+[*]The assists read only. Your inputs reach the game untouched, and the hint computes in tiny per-tick slices so the game never stalls.[/*]
 [/list]
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-troubleshooting.png[/img]
 [list]
-[*][b]No [LockpickSettings] lines in UE4SS.log:[/b] the folder layout is wrong; enabled.txt must sit directly inside the LockpickSettings folder, exactly as shown under Installation.
-[*][b]"durability X not a known tier":[/b] a game patch changed the vanilla values; update boost.BASE_TRIES in Scripts/tries/boost.lua.
-[*][b]"No graph data for lock":[/b] that lock is not in the shipped data (one lock in the game has none); the hint stays off for it, everything else works.
-[*][b]Access violation when quitting:[/b] known cosmetic UE4SS teardown issue, after everything is saved. Harmless.
+[*][b]No [LockpickSettings] lines in UE4SS.log:[/b] the folder layout is wrong; enabled.txt must sit directly inside the LockpickSettings folder, exactly as shown under Installation.[/*]
+[*][b]"durability X not a known tier":[/b] a game patch changed the vanilla values; update boost.BASE_TRIES in Scripts/tries/boost.lua.[/*]
+[*][b]"No graph data for lock":[/b] that lock is not in the shipped data (one lock in the game has none); the hint stays off for it, everything else works.[/*]
+[*][b]Access violation when quitting:[/b] known cosmetic UE4SS teardown issue, after everything is saved. Harmless.[/*]
 [/list]
 
 
 [center][line]
-[size=2][ a [url=https://github.com/Tautellini][b]Tautellini[/b][/url] mod ]   ·   source, lock-data extractor & dev notes [color=#D4B06A]→[/color] [url=https://github.com/Tautellini/TautelliniMods]github.com/Tautellini/TautelliniMods[/url]
-
+[size=2][ a [url=https://github.com/Tautellini][b]Tautellini[/b][/url] mod ]  ·  source, lock-data extractor & dev notes [color=#D4B06A]→[/color] [url=https://github.com/Tautellini/TautelliniMods]github.com/Tautellini/TautelliniMods[/url][/size][/center]
+[center][size=2]
 Thanks to all the helpers and for the feedback.
-
 Built on [url=https://github.com/UE4SS-RE/RE-UE4SS]UE4SS[/url]. Gothic 1 Remake by Alkimia Interactive and THQ Nordic.[/size][/center]
