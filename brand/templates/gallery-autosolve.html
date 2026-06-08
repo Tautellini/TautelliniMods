@@ -46,24 +46,32 @@
 
   <!-- copy -->
   <text x="132" y="480" class="sans ink1" font-size="42" font-weight="500">Hands-off lockpicking.</text>
-  <text x="132" y="548" class="sans ink2" font-size="28">Trigger it once and the lock walks itself open,</text>
-  <text x="132" y="584" class="sans ink2" font-size="28">piece by piece. No further input from you.</text>
 
-  <!-- badge -->
-  <text x="132" y="668" class="mono" font-size="26" letter-spacing="1">
-    <tspan class="acc">[</tspan><tspan class="ink1"> ZERO MOVES </tspan><tspan class="acc">]</tspan>
-    <tspan class="ink2" dx="20">  </tspan>
-    <tspan class="acc">[</tspan><tspan class="ink1"> ONE KEYPRESS </tspan><tspan class="acc">]</tspan>
-  </text>
+  <!-- F6: the next move, played for you -->
+  <rect x="132" y="548" width="210" height="66" fill="var(--bg-1)" class="s-line" style="stroke-width:2"/>
+  <rect x="136" y="552" width="202" height="4" fill="var(--accent)" fill-opacity="0.5"/>
+  <text x="237" y="596" class="mono acc" font-size="34" font-weight="700" text-anchor="middle">F6</text>
+  <text x="380" y="580" class="sans ink1" font-size="30">Plays the next move for you.</text>
+  <text x="380" y="608" class="mono ink2" font-size="22">one press, one move</text>
+
+  <!-- SHIFT + F6: full auto, toggleable -->
+  <rect x="132" y="664" width="210" height="66" fill="var(--bg-1)" class="s-line" style="stroke-width:2"/>
+  <rect x="136" y="668" width="202" height="4" fill="var(--accent)" fill-opacity="0.5"/>
+  <text x="237" y="710" class="mono acc" font-size="28" font-weight="700" text-anchor="middle">SHIFT + F6</text>
+  <text x="380" y="696" class="sans ink1" font-size="30">Full auto: clears the whole lock.</text>
+  <text x="380" y="724" class="mono ink2" font-size="22">toggle on or off, off by default</text>
   </g>
 
   <g id="visual">
   <!-- ===== auto-solved padlock, right ===== -->
   <circle cx="1420" cy="490" r="280" fill="url(#glowGrad)"/>
   <g transform="translate(-134,-100)">
-    <!-- shackle -->
-    <path d="M1501,528 L1501,461 A53,53 0 0 1 1607,461 L1607,528" fill="none"
-          stroke="url(#accentGrad)" stroke-width="15" stroke-linecap="round"/>
+    <!-- shackle, swung open: it is the AUTO SOLVER, so the lock is open. Pivots
+         at the left hole (1501,528); the free right leg lifts clear of the body. -->
+    <g transform="rotate(-42,1501,528)">
+      <path d="M1501,528 L1501,461 A53,53 0 0 1 1607,461 L1607,528" fill="none"
+            stroke="url(#accentGrad)" stroke-width="15" stroke-linecap="round"/>
+    </g>
     <!-- body -->
     <rect x="1454" y="520" width="200" height="174" rx="20" fill="var(--bg-2)" stroke="var(--accent)" stroke-width="3"/>
     <rect x="1466" y="532" width="176" height="150" rx="14" fill="none" stroke="var(--accent)" stroke-opacity="0.25" stroke-width="2"/>
