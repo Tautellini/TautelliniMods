@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;padding:0;background:#0a0806;}svg{display:block;}</style>
+</head>
+<body>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="38%" cy="40%" r="85%">
+      <stop offset="0%" stop-color="#2e2517"/>
+      <stop offset="55%" stop-color="#171208"/>
+      <stop offset="100%" stop-color="#080604"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="72%">
+      <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.75"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0d89c"/>
+      <stop offset="45%" stop-color="#d4b06a"/>
+      <stop offset="100%" stop-color="#9a763c"/>
+    </linearGradient>
+    <linearGradient id="bronzeBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8a7448"/>
+      <stop offset="45%" stop-color="#5d4b29"/>
+      <stop offset="100%" stop-color="#33270f"/>
+    </linearGradient>
+    <linearGradient id="divider" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d4b06a"/>
+      <stop offset="70%" stop-color="#7a6234" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#7a6234" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <!-- faint diagonal scratches -->
+  <g stroke="#c9ad72" stroke-opacity="0.05" stroke-width="2">
+    <line x1="-100" y1="340" x2="900" y2="-60"/>
+    <line x1="100" y1="1180" x2="1500" y2="240"/>
+    <line x1="700" y1="1200" x2="2000" y2="500"/>
+  </g>
+
+  <!-- shield graphic, right side (sits on the vertical center, like the header lock) -->
+  <g transform="translate(0,-40)">
+  <g filter="url(#softShadow)">
+    <!-- shield body -->
+    <path d="M 1345 322 C 1345 308 1356 300 1372 300 L 1718 300 C 1734 300 1745 308 1745 322
+             L 1745 520 C 1745 662 1640 742 1545 780 C 1450 742 1345 662 1345 520 Z"
+          fill="url(#bronzeBody)" stroke="#241b0c" stroke-width="6"/>
+    <!-- inner rim highlight -->
+    <path d="M 1361 334 C 1361 322 1370 316 1384 316 L 1706 316 C 1720 316 1729 322 1729 334
+             L 1729 516 C 1729 648 1632 722 1545 758 C 1458 722 1361 648 1361 516 Z"
+          fill="none" stroke="#d4b06a" stroke-opacity="0.5" stroke-width="3"/>
+    <!-- rim studs -->
+    <g fill="#3a2e16" stroke="#1c1408" stroke-width="2">
+      <circle cx="1392" cy="340" r="9"/>
+      <circle cx="1545" cy="322" r="9"/>
+      <circle cx="1698" cy="340" r="9"/>
+    </g>
+    <!-- checkmark -->
+    <g filter="url(#glow)">
+      <path d="M 1486 516 L 1532 566 L 1624 452" fill="none" stroke="url(#gold)"
+            stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+  <!-- sparks at the shield -->
+  <g fill="#f2d488" filter="url(#glow)">
+    <path d="M 1498 286 l 5 -16 5 16 16 5 -16 5 -5 16 -5 -16 -16 -5 Z" opacity="0.95"/>
+    <path d="M 1676 360 l 3.5 -11 3.5 11 11 3.5 -11 3.5 -3.5 11 -3.5 -11 -11 -3.5 Z" opacity="0.7"/>
+    <path d="M 1404 470 l 2.5 -8 2.5 8 8 2.5 -8 2.5 -2.5 8 -2.5 -8 -8 -2.5 Z" opacity="0.55"/>
+  </g>
+  </g>
+
+  <!-- text block, left side -->
+  <g font-family="Palatino Linotype, Georgia, serif">
+    <text x="164" y="352" font-size="34" letter-spacing="9" fill="#8d7b54">100% SAVE-SAFE</text>
+    <text x="158" y="506" font-size="128" font-weight="bold" letter-spacing="2"
+          fill="url(#gold)" filter="url(#softShadow)">Safe to use</text>
+    <rect x="164" y="556" width="880" height="4" fill="url(#divider)"/>
+    <text x="164" y="638" font-size="46" fill="#c2ad7e">No game files touched. No cheat flags.</text>
+    <text x="164" y="698" font-size="34" fill="#776747">Add or remove anytime. Your Steam achievements keep unlocking.</text>
+  </g>
+
+  <!-- feature strip -->
+  <g font-family="Palatino Linotype, Georgia, serif" font-size="36" letter-spacing="3">
+    <text x="164" y="960" fill="#9b8a60">NO FILE PATCHES
+      <tspan fill="#574a2e" dx="26">&#9679;</tspan>
+      <tspan dx="26">FULLY REVERSIBLE</tspan>
+      <tspan fill="#574a2e" dx="26">&#9679;</tspan>
+      <tspan dx="26" fill="#d4b06a">ACHIEVEMENTS INTACT</tspan>
+    </text>
+  </g>
+
+  <!-- vignette on top -->
+  <rect width="1920" height="1080" fill="url(#vignette)"/>
+</svg>
+</body>
+</html>

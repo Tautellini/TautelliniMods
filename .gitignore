@@ -8,3 +8,9 @@
 .vs/
 *.swp
 Thumbs.db
+
+# local LuaJIT test runtime (install per CONTRIBUTING.md, never committed)
+tools/luajit/
+
+# python tooling cache
+__pycache__/

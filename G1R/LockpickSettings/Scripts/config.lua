@@ -37,6 +37,10 @@ return {
     hintColorLeft  = { 0.10, 1.00, 0.15 },
     hintColorRight = { 0.15, 0.45, 1.00 },
 
+    -- Shown if the turn direction is ever not derivable (should not
+    -- happen; the mapping comes from the lock stage's fixed geometry).
+    hintColorNeutral = { 1.00, 0.95, 0.20 },
+
     -- Show the pieces connected to your currently SELECTED piece in
     -- purple: they will move along when you turn it. Selection is
     -- tracked from the game's own input events (keyboard and
