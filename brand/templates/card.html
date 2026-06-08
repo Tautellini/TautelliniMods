@@ -6,12 +6,25 @@
 <link rel="stylesheet" href="../themes/g1r.css">
 </head>
 <body>
+<!--
+  One feature card, content driven by query params so a single template renders
+  every feature. render.ps1 fills these per card:
+    ?t=NEXT-MOVE HINT   title (mono, accent rule under it)
+    ?b1=...&b2=...      two body lines (sans)
+    ?cap=F7            hotkey / stat cap; empty hides the cap and left-aligns the label
+    ?cl=...            cap label (sans)
+    ?cs=...            cap sub-label (mono, muted)
+  The base fill is --page (the Nexus page surface) so only the cut-corner panel
+  reads as a card floating on the description, not a dark box around it.
+  Bare (no query) it renders the reference NEXT-MOVE HINT card.
+-->
 <svg width="720" height="440" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg">
-  <rect width="720" height="440" fill="var(--bg-0)"/>
+  <rect width="720" height="440" fill="var(--page)"/>
 
-  <!-- cut-corner card panel (notch top-right + bottom-left) -->
+  <!-- cut-corner card panel (notch top-right + bottom-left).
+       Near-black on the lighter --page surface, so it reads as a distinct card. -->
   <path d="M60,50 L644,50 L660,66 L660,390 L76,390 L60,374 Z"
-        fill="var(--bg-2)" class="s-line" style="stroke-width:1.5"/>
+        fill="var(--bg-0)" class="s-line2" style="stroke-width:1.5"/>
 
   <!-- card corner brackets (accent) -->
   <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
@@ -20,21 +33,36 @@
   </g>
 
   <!-- title -->
-  <text x="96" y="118" class="mono ink0" font-size="34" font-weight="700">NEXT-MOVE HINT</text>
+  <text id="title" x="96" y="118" class="mono ink0" font-size="34" font-weight="700">NEXT-MOVE HINT</text>
   <rect x="98" y="138" width="120" height="3" fill="var(--accent)"/>
 
   <!-- body -->
-  <text x="96" y="192" class="sans ink1" font-size="24">Press the key and the next piece to move</text>
-  <text x="96" y="224" class="sans ink1" font-size="24">lights up. Replanned after every move.</text>
+  <text id="b1" x="96" y="192" class="sans ink1" font-size="24">The next piece to move lights up,</text>
+  <text id="b2" x="96" y="224" class="sans ink1" font-size="24">replanned after every move.</text>
 
-  <!-- hotkey cap + label -->
-  <g>
+  <!-- hotkey / stat cap + label -->
+  <g id="capbox">
     <rect x="96" y="270" width="86" height="70" fill="var(--bg-1)" class="s-line" style="stroke-width:2"/>
     <rect x="100" y="274" width="78" height="4" fill="var(--accent)" fill-opacity="0.5"/>
-    <text x="139" y="318" class="mono acc" font-size="34" font-weight="700" text-anchor="middle">F7</text>
+    <text id="cap" x="139" y="318" class="mono acc" font-size="34" font-weight="700" text-anchor="middle">F7</text>
   </g>
-  <text x="200" y="312" class="sans ink2" font-size="24">toggle anytime, even mid-pick</text>
-  <text x="200" y="344" class="mono ink2" font-size="20">off by default &#183; your call when to cheat</text>
+  <text id="cl" x="200" y="312" class="sans ink2" font-size="24">toggle anytime, even mid-pick</text>
+  <text id="cs" x="200" y="344" class="mono ink2" font-size="20">off by default &#183; your call when to cheat</text>
 </svg>
+<script>
+  var p = new URLSearchParams(location.search);
+  function set(id, k){ var v = p.get(k); if (v !== null) document.getElementById(id).textContent = v; }
+  set('title','t'); set('b1','b1'); set('b2','b2'); set('cl','cl'); set('cs','cs');
+  var cap = p.get('cap');
+  if (cap !== null) {
+    if (cap === '') {
+      document.getElementById('capbox').style.display = 'none';
+      document.getElementById('cl').setAttribute('x', '96');
+      document.getElementById('cs').setAttribute('x', '96');
+    } else {
+      document.getElementById('cap').textContent = cap;
+    }
+  }
+</script>
 </body>
 </html>

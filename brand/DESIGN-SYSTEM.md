@@ -67,11 +67,14 @@ one accent ramp that changes per game. Swapping a game is swapping the theme blo
 
 ```
 /* surfaces */
---bg-0:          #0a0a0c   /* page background, near-black */
+--bg-0:          #0a0a0c   /* near-black: hero / gallery banners, feature-card panels */
 --bg-1:          #121217   /* raised panel / strip */
---bg-2:          #191920   /* card */
---hairline:      #2a2a33   /* 1px rules, default bracket color */
---hairline-2:    #3a3a46   /* stronger divider */
+--bg-2:          #191920   /* card (on a near-black page) */
+--page:          #29292e   /* host page surface (Nexus description); see note below */
+--hairline:      #2a2a33   /* 1px rules, default bracket color (on near-black) */
+--hairline-2:    #3a3a46   /* stronger divider on near-black */
+--hairline-page: #5e5e6a   /* brackets / rules on the --page surface; the near-black
+                              hairlines vanish on that lighter grey */
 
 /* ink */
 --ink-0:         #ECECEF   /* primary text */
@@ -82,6 +85,22 @@ one accent ramp that changes per game. Swapping a game is swapping the theme blo
 --alert:         #E9A23B   /* warnings, honest caveats, "off by default" */
 --danger:        #FF6B6B   /* incompatibility, destructive, "do not" */
 ```
+
+**Banners vs. inline assets.** A full-bleed banner the host frames as one image
+(hero, gallery, the Nexus header) keeps the near-black `--bg-0` base. An asset
+embedded in the flowing description body (section-header strip, footer) bases on
+`--page` instead, so it merges into the host page rather than reading as a dark
+box on it; its brackets and rules use `--hairline-page`, since the near-black
+hairlines vanish on that lighter grey. A section strip carries no full border,
+only its corner brackets (in `--hairline-page`), kept bright enough to mark the
+strip on the grey. `--page` mirrors the Nexus description background; if a host
+differs, it is the one token to retune.
+
+A feature card (6c) is the exception that proves the rule: it bases on `--page`
+too, but keeps a near-black (`--bg-0`) panel so the panel still reads as a
+distinct card floating on the page. The LockpickSettings description writes its
+features as body text under one FEATURES strip rather than as cards; the card
+component stays available for feature grids that want the visual.
 
 ### 3b. Theme tokens (one block per game, only the accent changes)
 

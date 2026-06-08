@@ -6,6 +6,13 @@
   --bg-0:#0a0a0c; --bg-1:#121217; --bg-2:#191920;
   --hairline:#2a2a33; --hairline-2:#3a3a46;
 
+  /* host page surface: the bg an inline asset sits on (Nexus description ~#29292e).
+     Banners (hero, galleries) keep --bg-0; section strips and the footer use
+     --page so they merge into the page instead of reading as a dark box.
+     --hairline-page is the bracket/rule color on that lighter grey: the near-black
+     hairlines vanish on it, so on-page frames step up to this. */
+  --page:#29292e; --hairline-page:#5e5e6a;
+
   /* ink */
   --ink-0:#ECECEF; --ink-1:#A6A6B0; --ink-2:#6E6E7A;
 
@@ -36,3 +43,4 @@ svg{display:block;}
 .s-acc{stroke:var(--accent);fill:none;}
 .s-line{stroke:var(--hairline);fill:none;}
 .s-line2{stroke:var(--hairline-2);fill:none;}
+.s-line-page{stroke:var(--hairline-page);fill:none;}
