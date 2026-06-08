@@ -69,30 +69,32 @@
     </g>
   </g>
 
-  <!-- ===== three big feature cards ===== -->
-  <!-- card 1: AUTO SOLVE (checkmark in a circle) -->
+  <!-- ===== three big feature cards (two-line labels, large for the thumbnail) ===== -->
+  <!-- card 1: HIGHLIGHT MOVES (sparkle) -->
   <g transform="translate(96,0)">
     <path d="M0,530 L532,530 L552,550 L552,850 L20,850 L0,830 Z" fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
     <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
       <path d="M0,564 L0,530 L34,530"/>
       <path d="M518,850 L552,850 L552,816"/>
     </g>
-    <g fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="276" cy="640" r="42"/>
-      <path d="M255,641 L270,657 L299,625"/>
-    </g>
-    <text x="276" y="802" class="mono ink0" font-size="50" font-weight="700" text-anchor="middle">AUTO SOLVE</text>
+    <path d="M276,548 L287,581 L320,592 L287,603 L276,636 L265,603 L232,592 L265,581 Z"
+          fill="var(--accent)" filter="url(#softGlow)"/>
+    <text x="276" y="735" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">HIGHLIGHT</text>
+    <text x="276" y="810" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">MOVES</text>
   </g>
-  <!-- card 2: HIGHLIGHT (sparkle) -->
+  <!-- card 2: AUTO SOLVE (checkmark in a circle) -->
   <g transform="translate(684,0)">
     <path d="M0,530 L532,530 L552,550 L552,850 L20,850 L0,830 Z" fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
     <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
       <path d="M0,564 L0,530 L34,530"/>
       <path d="M518,850 L552,850 L552,816"/>
     </g>
-    <path d="M276,592 L290,628 L326,640 L290,652 L276,690 L262,652 L226,640 L262,628 Z"
-          fill="var(--accent)" filter="url(#softGlow)"/>
-    <text x="276" y="802" class="mono ink0" font-size="50" font-weight="700" text-anchor="middle">HIGHLIGHT</text>
+    <g fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="276" cy="592" r="38"/>
+      <path d="M258,593 L271,606 L296,578"/>
+    </g>
+    <text x="276" y="735" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">AUTO</text>
+    <text x="276" y="810" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">SOLVE</text>
   </g>
   <!-- card 3: ADJUST SETTINGS (sliders) -->
   <g transform="translate(1272,0)">
@@ -102,16 +104,17 @@
       <path d="M518,850 L552,850 L552,816"/>
     </g>
     <g stroke="var(--accent)" stroke-width="6" stroke-linecap="round">
-      <line x1="231" y1="612" x2="321" y2="612"/>
-      <line x1="231" y1="640" x2="321" y2="640"/>
-      <line x1="231" y1="668" x2="321" y2="668"/>
+      <line x1="234" y1="570" x2="318" y2="570"/>
+      <line x1="234" y1="592" x2="318" y2="592"/>
+      <line x1="234" y1="614" x2="318" y2="614"/>
     </g>
     <g fill="var(--accent)" stroke="var(--bg-2)" stroke-width="3">
-      <circle cx="262" cy="612" r="11"/>
-      <circle cx="296" cy="640" r="11"/>
-      <circle cx="248" cy="668" r="11"/>
+      <circle cx="262" cy="570" r="10"/>
+      <circle cx="296" cy="592" r="10"/>
+      <circle cx="250" cy="614" r="10"/>
     </g>
-    <text x="276" y="802" class="mono ink0" font-size="50" font-weight="700" text-anchor="middle">ADJUST SETTINGS</text>
+    <text x="276" y="735" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">ADJUST</text>
+    <text x="276" y="810" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">SETTINGS</text>
   </g>
 
   <!-- footer band -->
