@@ -198,14 +198,9 @@ $x.Add('  <installSteps order="Explicit">')
 # tick to confirm they will install UE4SS themselves before continuing.
 # SelectAtLeastOne forces the tick; the flag is unused (info-only, no install).
 $x.Add('    <installStep name="UE4SS required">')
-# Best-effort: hide this page if UE4SS is detected next to the game exe. This
-# uses fileDependency, which Vortex evaluates unreliably for a raw game file, so
-# the page may still show even when UE4SS is present. It only controls page
-# visibility, never the install (the mod is required), so it cannot break
-# anything: worst case is one extra acknowledgment tick.
-$x.Add('      <visible><dependencies operator="And">')
-$x.Add("        <fileDependency file=`"$Win64\ue4ss\UE4SS.dll`" state=`"Missing`"/>")
-$x.Add('      </dependencies></visible>')
+# Always shown: no detection (Vortex cannot evaluate the raw-game-file check
+# reliably). Every install acknowledges the UE4SS requirement once, which keeps
+# it simple and predictable, and guarantees nobody misses it.
 $x.Add('      <optionalFileGroups order="Explicit">')
 $x.Add('        <group name="UE4SS is required and is NOT included: install it yourself" type="SelectAtLeastOne">')
 $x.Add('          <plugins order="Explicit">')
