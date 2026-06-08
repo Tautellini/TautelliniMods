@@ -51,6 +51,20 @@ return {
     partnerColorSame     = { 0.55, 0.10, 1.00 },
     partnerColorOpposite = { 1.00, 0.15, 0.15 },
 
+    -- Auto-solve: let the mod drive the lock for you. The step hotkey
+    -- executes exactly the next solver move and stops; the full-auto
+    -- hotkey (the same key plus the modifier below) runs the whole route
+    -- to open, stops by itself the moment the lock opens, and is
+    -- cancelled by pressing it again. It moves as fast as each press is
+    -- honoured and re-plans once if a move is refused. Set a hotkey to ""
+    -- to disable it. Needs the next-move feature to be available.
+    autoSolveStepHotkey   = "F6",
+    autoSolveFullHotkey   = "F6",
+    -- Modifier held for full-auto so it does not collide with the step
+    -- key: "SHIFT", "CONTROL", "ALT", or "" for none (give full-auto its
+    -- own key then, or it will share the step key).
+    autoSolveFullModifier = "SHIFT",
+
     -- Log solver internals (moved sets, replans, calibration) to the
     -- UE4SS log. ALPHA DEFAULT: on, so bug reports arrive with a full solver
     -- trace already in UE4SS.log. The output is a few lines per lock plus one

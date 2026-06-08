@@ -24,6 +24,7 @@ local MODULES = {
     "tries.boost",
     "nextmove.solver", "nextmove.geometry", "nextmove.hint",
     "connections.connections",
+    "autosolve.driver",
 }
 
 local fail, absent = 0, 0

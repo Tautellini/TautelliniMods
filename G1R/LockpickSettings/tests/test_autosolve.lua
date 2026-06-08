@@ -1,0 +1,191 @@
+-- test_autosolve.lua  --  Auto-Solve driver decision logic (engine mocked).
+--
+-- The driver is engine-facing but names no UE4SS global: it reads a live-session
+-- table and presses through an injected engine. Here both are fakes. The fake
+-- engine APPLIES presses like the game (up/down move the clamped selection,
+-- left/right turn the selected piece), so the tick-driven state machine can be
+-- run to completion and asserted on. These pin the review fixes: the press
+-- direction is the exact inverse of the hint color mapping, an uncalibrated nudge
+-- that resolves either way is not a deviation, and a lock with no observable
+-- selection aborts honestly instead of mis-targeting.
+local function script_dir()
+    local src = debug.getinfo(1, "S").source
+    return src:match("^@(.*)[/\\][^/\\]*$") or "."
+end
+local DIR = script_dir()
+package.path = DIR .. "/../Scripts/?.lua;" .. DIR .. "/?.lua;" .. package.path
+
+local T = require("tinytest")
+local Driver = require("autosolve.driver")
+local hint = require("nextmove.hint")
+
+local function silent() end
+
+-- Build a fake live session plus a fake engine. gameMap is the world's true
+-- press-to-step sign; it defaults to the believed mapping (a consistent world),
+-- override it to model a lock whose real direction disagrees with the belief.
+local function makeWorld(opts)
+    local presses = {}
+    local s = {
+        pieceCount = opts.pieceCount,
+        rotStart = opts.rotStart,
+        steps = {},
+        sign = opts.sign or 1,
+        inputToAxis = opts.inputToAxis,
+        screenRight = opts.screenRight,
+        selectedRow = opts.selectedRow or 0,
+        selectedSig = opts.selectedSig,
+        stateUnknown = false,
+        hintGeometry = true,
+        stop = false,
+        flags = {},
+    }
+    for id = 0, s.pieceCount - 1 do s.steps[id] = 0 end
+    local function rot(id) return s.rotStart[id] + s.sign * (s.steps[id] or 0) end
+    s.solver = {
+        moveValid = function(_, st, x, d)
+            local r = st.rotStart[x] + st.sign * (st.steps[x] or 0) + d
+            return r >= -3 and r <= 3
+        end,
+        -- greedy single-piece descent: target the first off-center piece
+        plan = opts.plan or function(_, st)
+            for id = 0, st.pieceCount - 1 do
+                local r = st.rotStart[id] + st.sign * (st.steps[id] or 0)
+                if r ~= 0 then return { piece = id, dir = (r > 0) and -1 or 1 } end
+            end
+            return nil
+        end,
+    }
+    s.resyncSelection = function(self) return self.selectedRow end
+    local gameMap = opts.gameMap or (opts.inputToAxis or opts.screenRight or 1)
+    local engine = {
+        pressInput = function(_, which)
+            presses[#presses + 1] = which
+            if which == "up" then
+                s.selectedRow = math.min(s.pieceCount - 1, s.selectedRow + 1)
+            elseif which == "down" then
+                s.selectedRow = math.max(0, s.selectedRow - 1)
+            else
+                local p = (which == "right") and 1 or -1
+                -- rotation changes by p*gameMap*sign, so steps by p*gameMap
+                local id = s.selectedRow
+                s.steps[id] = (s.steps[id] or 0) + p * gameMap
+            end
+            return true
+        end,
+    }
+    return s, engine, presses, rot
+end
+
+local function newDriver(engine)
+    return Driver.new({ engine = engine, getTask = function() return {} end,
+        log = silent })
+end
+
+local function runToEnd(driver, s, cap)
+    cap = cap or 200
+    for _ = 1, cap do
+        if not driver:running() then break end
+        driver:step(s)
+    end
+end
+
+T.add("press direction is the exact inverse of the hint color mapping", function()
+    local d = Driver.new({ log = silent })
+    local palette = { hintLeft = "left", hintRight = "right", hintNeutral = "neutral" }
+    for _, sign in ipairs({ 1, -1 }) do
+        for _, m in ipairs({ 1, -1 }) do
+            for _, dir in ipairs({ 1, -1 }) do
+                local tag = " sign=" .. sign .. " m=" .. m .. " dir=" .. dir
+                local s1 = { sign = sign, inputToAxis = m, nextMove = { dir = dir } }
+                T.eq(d:pressDir(s1, { dir = dir }), hint.color(s1, palette),
+                    "inputToAxis" .. tag)
+                local s2 = { sign = sign, screenRight = m, nextMove = { dir = dir } }
+                T.eq(d:pressDir(s2, { dir = dir }), hint.color(s2, palette),
+                    "screenRight" .. tag)
+            end
+        end
+    end
+end)
+
+T.add("full-auto drives a single off-center piece to the goal", function()
+    local s, engine, presses, rot = makeWorld({
+        pieceCount = 1, rotStart = { [0] = 2 }, sign = 1, screenRight = 1,
+        selectedSig = true, selectedRow = 0,
+    })
+    local d = newDriver(engine)
+    d:toggleFull(s)
+    runToEnd(d, s)
+    T.ok(not d:running(), "disengaged on solve")
+    T.eq(rot(0), 0, "piece centered")
+    T.eq(#presses, 2, "two turns, rotation 2 to 0")
+    for _, p in ipairs(presses) do T.eq(p, "left", "all turns same direction") end
+end)
+
+T.add("full-auto selects the target piece before turning it", function()
+    local s, engine, presses, rot = makeWorld({
+        pieceCount = 3, rotStart = { [0] = 0, [1] = 0, [2] = 1 }, sign = 1,
+        screenRight = 1, selectedSig = true, selectedRow = 0,
+    })
+    local d = newDriver(engine)
+    d:toggleFull(s)
+    runToEnd(d, s)
+    T.ok(not d:running())
+    T.eq(rot(2), 0, "target piece centered")
+    local ups = 0
+    for _, p in ipairs(presses) do if p == "up" then ups = ups + 1 end end
+    T.ok(ups >= 2, "drove selection up to the target row")
+end)
+
+T.add("an uncalibrated nudge that resolves the opposite way is not a deviation", function()
+    -- piece off-center at rot 2; the planner offers nothing, and no mapping is
+    -- known so the nudge presses "right". The world resolves "right" NEGATIVE
+    -- (gameMap=-1), i.e. toward center. With the fix every nudge is accepted
+    -- (either sign counts) and the piece reaches 0; with the old code each nudge
+    -- reads as an "unexpected state" deviation and the run stops after two.
+    local logs = {}
+    local function rec(m) logs[#logs + 1] = m end
+    local s, engine, _, rot = makeWorld({
+        pieceCount = 1, rotStart = { [0] = 2 }, sign = 1,
+        selectedSig = true, selectedRow = 0, gameMap = -1,
+        plan = function() return nil end,
+    })
+    local d = Driver.new({ engine = engine, getTask = function() return {} end,
+        log = rec })
+    d:toggleFull(s)
+    runToEnd(d, s, 120)
+    T.ok(not d:running(), "disengaged")
+    T.eq(rot(0), 0, "nudges accepted both ways and reached center")
+    local sawDeviation = false
+    for _, m in ipairs(logs) do
+        if m:find("deviation", 1, true) then sawDeviation = true end
+    end
+    T.ok(not sawDeviation, "did not misclassify a nudge as a deviation")
+end)
+
+T.add("aborts honestly when selection is not observable (no glow)", function()
+    local s, engine, presses = makeWorld({
+        pieceCount = 2, rotStart = { [0] = 0, [1] = 1 }, sign = 1,
+        screenRight = 1, selectedSig = nil, selectedRow = 0,
+    })
+    local d = newDriver(engine)
+    d:armSingle(s)
+    runToEnd(d, s, 20)
+    T.ok(not d:running(), "disengaged")
+    T.eq(#presses, 0, "never pressed without a confirmable selection")
+end)
+
+T.add("single step makes exactly one move and stops", function()
+    local s, engine, presses, rot = makeWorld({
+        pieceCount = 1, rotStart = { [0] = 3 }, sign = 1, screenRight = 1,
+        selectedSig = true, selectedRow = 0,
+    })
+    local d = newDriver(engine)
+    d:armSingle(s)
+    runToEnd(d, s, 20)
+    T.ok(not d:running())
+    T.eq(#presses, 1, "one turn only")
+    T.eq(rot(0), 2, "moved one step toward center, not all the way")
+end)
+
+os.exit(T.run())

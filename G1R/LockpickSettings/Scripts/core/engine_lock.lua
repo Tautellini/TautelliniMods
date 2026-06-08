@@ -12,6 +12,7 @@ local ipairs = ipairs
 local string = string
 local os = os
 local pcall = pcall
+local tostring = tostring
 local FName = FName
 local StaticFindObject = StaticFindObject
 
@@ -107,6 +108,31 @@ function engine.readHighlight(mid)
     local ok = pcall(function() c = mid:K2_GetVectorParameterValue(FName("HighlightColor")) end)
     if ok and c then return c end
     return nil
+end
+
+-- The ONLY write that DRIVES the minigame: call one of the lockpick task's input
+-- UFunctions to move the selection (up/down) or turn the selected piece
+-- (left/right). Same functions the game's own input dispatch fires. An early
+-- LockProbe build moved the lock from a Lua call, but LuaModdingSurface.md
+-- records the behaviour as INPUT-STATE DEPENDENT: it moved pieces in one session
+-- and was inert in another, unresolved. The caller must therefore confirm each
+-- press from the measured state, never assume it landed. Every call is liveness
+-- checked on the LIVE task per call (never on a stale cache) and pcall-wrapped:
+-- pcall does not catch a native access violation, so the IsValid gate is the real
+-- guard. Returns true if the call dispatched (NOT that a piece moved), false
+-- otherwise. which is one of "up"/"down"/"left"/"right".
+function engine.pressInput(freshTask, which)
+    if not freshTask or not freshTask.obj then return false end
+    local ok = pcall(function()
+        local obj = freshTask.obj
+        if not obj:IsValid() then error("task not valid") end
+        if which == "up" then obj:UpPressed()
+        elseif which == "down" then obj:DownPressed()
+        elseif which == "left" then obj:LeftPressed()
+        elseif which == "right" then obj:RightPressed()
+        else error("unknown press '" .. tostring(which) .. "'") end
+    end)
+    return ok
 end
 
 return engine

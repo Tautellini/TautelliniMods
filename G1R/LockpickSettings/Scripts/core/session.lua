@@ -758,6 +758,19 @@ function Session:tick()
         s.nextMove = s.solver:plan(s)
     end
     s.tinter:retint(s)
+    -- auto-solver seam: when armed (main sets s.autopilot), advance the driver
+    -- ONE step per SETTLED tick (the early returns above mean this is only
+    -- reached when motion has settled and the lock is alive and not opened).
+    -- Nil = off, zero behaviour change. Its own pcall so a driver fault
+    -- disengages auto-solve without killing the session, which keeps running the
+    -- hint and connection display.
+    if s.autopilot then
+        local okA, errA = pcall(function() s.autopilot:step(s) end)
+        if not okA then
+            s.autopilot = nil
+            s.log("Auto-solve error, disengaged: " .. tostring(errA))
+        end
+    end
 end
 
 -- selection tracking for the connection display: main's Up/Down hook handlers
@@ -823,6 +836,16 @@ end
 -- re-assert the tints.
 function Session:onConnectionsToggled()
     self.tinter:retint(self)
+end
+
+-- auto-solver helper: re-read the selection from the glow (the GPU is the only
+-- selection truth) and return the current selected row. selSync is a no-op when
+-- the selected look is not distinctive (selectedSig nil), leaving the
+-- input-counted row in place. Read-only; the driver uses it to confirm a
+-- selection drive before turning a piece.
+function Session:resyncSelection()
+    pcall(function() selSync(self) end)
+    return self.selectedRow
 end
 
 return Session
