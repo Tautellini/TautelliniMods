@@ -30,6 +30,7 @@ $sizes = [ordered]@{
   "gallery-tries.html"       = @(1920, 1080)
   "gallery-safe.html"        = @(1920, 1080)
   "nexus-header.html"        = @(1300, 372)
+  "warning.html"             = @(1920, 1080)
 }
 
 if (-not $ChromePath) {

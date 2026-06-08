@@ -30,6 +30,7 @@ $KitSrc     = Join-Path $RepoRoot "G1R\shared\kit"
 $UE4SSSrc   = Join-Path $PSScriptRoot "ue4ss"
 $ReadmeSrc  = Join-Path $ModSrc "release\zip-readme.txt"
 $HeroSrc    = Join-Path $ModSrc "nexus-page\images\hero.png"
+$WarnSrc    = Join-Path $ModSrc "nexus-page\images\fomod-ue4ss-warning.png"
 $OutDir     = Join-Path $ModSrc "release\build"
 
 if (-not (Test-Path "$ScriptsSrc\main.lua")) { throw "mod not found at $ModSrc (need Scripts\main.lua)" }
@@ -139,6 +140,11 @@ if (Test-Path $HeroSrc) {
 } else {
     Write-Warning "hero image not found at $HeroSrc; the FOMOD wizard will show a broken image"
 }
+if (Test-Path $WarnSrc) {
+    Copy-Item $WarnSrc (Join-Path $fomod "images\warning.png") -Force
+} elseif ($haveUE4SS) {
+    Write-Warning "UE4SS warning image not found at $WarnSrc; the UE4SS page will show no image"
+}
 
 # mod payload (without config.lua) under mod\<Mod>
 Copy-ModPayload (Join-Path $s "mod") $false
@@ -201,6 +207,7 @@ if ($haveUE4SS) {
     $x.Add('          <plugins order="Explicit">')
     $x.Add('            <plugin name="Install the bundled UE4SS with this mod (NOT RECOMMENDED, read below)">')
     $x.Add('              <description>RECOMMENDED instead: cancel this install and get UE4SS yourself from   https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest   (the regular zip, not the zDEV one), install it next to the game exe, then run this installer again. Installing UE4SS separately keeps it even if you later remove this mod.   If you TICK this box, the bundled UE4SS is installed together with the mod, but your mod manager WILL REMOVE it when you uninstall this mod, which can break any other UE4SS mods you use.   If you leave this unticked and UE4SS is not present, nothing is installed.</description>')
+    if (Test-Path $WarnSrc) { $x.Add('              <image path="fomod\images\warning.png"/>') }
     $x.Add('              <conditionFlags><flag name="bundleUe4ss">on</flag></conditionFlags>')
     $x.Add('              <typeDescriptor><type name="Optional"/></typeDescriptor>')
     $x.Add('            </plugin>')
