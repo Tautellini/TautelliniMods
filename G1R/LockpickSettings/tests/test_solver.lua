@@ -28,8 +28,8 @@ local DIR = script_dir()
 package.path = DIR .. "/../Scripts/?.lua;" .. DIR .. "/?.lua;" .. package.path
 
 local T = require("tinytest")
-local Solver = require("solver")
-local LOCKS = require("lockgraphs")
+local Solver = require("nextmove.solver")
+local LOCKS = require("data.lockgraphs")
 
 -- ------------------------------------------------------------ test harness --
 -- Build the pure solver state from a start layout. Mirrors the solver-relevant

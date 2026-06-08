@@ -13,7 +13,7 @@ Your lockpick durability (failed attempts before the pick breaks) is raised from
 [*][b]Master:[/b] 6 -> 16 tries
 [/list]
 
-Every tier gets the same bonus, so learning the skill still matters. Both the bonus and the per-tier vanilla values are configurable.[/quote]
+Every tier gets the same bonus, so learning the skill still matters. The bonus is configurable.[/quote]
 
 [quote][size=4][b]💡 Next-Move Hint[/b] [i](optional, off by default)[/i][/size]
 
@@ -57,10 +57,11 @@ Note: experimental-latest is a moving tag. This mod is developed and tested agai
 [code]...\ue4ss\Mods\LockpickSettings\enabled.txt
 ...\ue4ss\Mods\LockpickSettings\Scripts\main.lua
 ...\ue4ss\Mods\LockpickSettings\Scripts\config.lua
-...\ue4ss\Mods\LockpickSettings\Scripts\lockgraphs.lua[/code]
+...\ue4ss\Mods\LockpickSettings\Scripts\  (core, nextmove, connections and other subfolders)
+...\ue4ss\Mods\LockpickSettings\shared\  (a small bundled helper library)[/code]
 The included enabled.txt activates the mod automatically; you do NOT need to edit mods.txt.
 [*]Start the game. [b]...\ue4ss\UE4SS.log[/b] should now contain:
-[code][LockpickSettings] Loaded: untrained 2->12, trained 4->14, master 6->16, next-move hint off (416 lock graphs, toggle: F7), connection display off, toggle: F8[/code]
+[code][LockpickSettings] Loaded 2.7.7-alpha (kit 1.0.0): untrained 2->12, trained 4->14, master 6->16, next-move hint off (416 lock graphs, toggle: F7), connection display off, toggle: F8[/code]
 [/list]
 
 [size=4][b]Configuration[/b][/size]
@@ -68,8 +69,7 @@ The included enabled.txt activates the mod automatically; you do NOT need to edi
 Edit [b]...\ue4ss\Mods\LockpickSettings\Scripts\config.lua[/b]:
 
 [list]
-[*][b]extraTries[/b]: the bonus added on top of the vanilla tries (default 10)
-[*][b]baseTries[/b]: the vanilla tries per skill tier; only touch these if a game patch changes them
+[*][b]extraTries[/b]: the bonus added on top of the vanilla tries (default 10). The vanilla per-tier values (2/4/6) are game constants in the code, not in config, so they become 12/14/16 by default
 [*][b]showNextMove[/b]: whether the next-move hint is active at game start (default false)
 [*][b]nextMoveHotkey[/b]: the key that toggles the hint ingame (default "F7", "" disables the hotkey)
 [*][b]hintColorLeft[/b] / [b]hintColorRight[/b]: the hint colors as {r, g, b}, encoding which way to turn the hinted lock (defaults: green = left, blue = right; set both equal for a directionless hint)
@@ -95,7 +95,7 @@ Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
 
 [list]
 [*][b]No log lines / mod not loading:[/b] check the folder layout (exactly as shown above, with enabled.txt directly inside the LockpickSettings folder).
-[*][b]"durability X not a known tier" in the log:[/b] a game patch changed the vanilla values; update baseTries in config.lua.
+[*][b]"durability X not a known tier" in the log:[/b] a game patch changed the vanilla values; update boost.BASE_TRIES in Scripts/tries/boost.lua.
 [*][b]"No graph data for lock" in the log:[/b] that lock is not in the shipped data (one lock in the game has none, and future patches may add locks); the hint stays off for it, everything else works.
 [*][b]Game hard-freezes when loading a save, or crashes/strange script errors during lockpicking:[/b] some UE4SS engine hooks can collide with this game's AngelScript layer and corrupt the process (the mod's own errors are caught and only disable the hint until the next lock; they never crash the game by themselves). The mod needs none of those hooks, so you can safely turn them off in ue4ss\UE4SS-settings.ini: set HookProcessInternal, HookProcessLocalScriptFunction, HookUObjectProcessEvent, HookCallFunctionByNameWithArguments and HookAActorTick to 0, and bUseUObjectArrayCache to false. Also check that your UE4SS build matches the tested one (see Requirements).
 [*][b]Access violation when quitting the game:[/b] known cosmetic UE4SS teardown issue, happens after everything has been saved. Harmless.

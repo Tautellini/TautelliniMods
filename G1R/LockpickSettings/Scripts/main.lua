@@ -1,12 +1,11 @@
 -- LockpickSettings for Gothic 1 Remake  --  thin orchestrator
 --
--- This file carries NO algorithm and NO measurement logic: it wires the
--- concern modules to the engine's events and owns ALL registration. The work
--- lives in: solver.lua (pure search), geometry.lua (pure anchor math),
--- session.lua (the live minigame), tinter.lua (HighlightColor writes),
--- engine.lua (the pcall-wrapped UE4SS boundary), boost.lua (the Extra-Tries
--- feature), num.lua/colors.lua (pure helpers), config.lua + lockgraphs.lua
--- (data). See CONTRIBUTING.md for the conventions.
+-- Carries NO algorithm and NO measurement logic: it self-adds the vendored
+-- shared kit, requires the mod modules, wires them to the engine's events, and
+-- owns ALL registration. The work lives in the shared kit (engine primitives,
+-- num, color, log) and the mod's modules: core/ (engine_lock, session, tinter),
+-- util/palette, data/lockgraphs, and the feature folders tries/, nextmove/
+-- (solver, geometry, hint), connections/. See CONTRIBUTING.md.
 --
 -- MINIGAME CANON (player-verified 2026-06-07, see README; when an observation
 -- contradicts these rules, the MEASUREMENT is wrong):
@@ -17,53 +16,65 @@
 --     partner would leave the rail, and a refusal COSTS DURABILITY
 --   * starts can equal the authored layout; breaks re-scramble
 --
--- Three features, configured in config.lua: (1) Extra tries (boost.lua);
--- (2) Next-move hint (solver + geometry + tinter); (3) Connection display
--- (tinter). Tracking always runs while a minigame is open; the hotkeys only
--- toggle the paint, so mid-lock activation is exact.
+-- Three features in config.lua: (1) Extra tries (tries/); (2) Next-move hint
+-- (nextmove/ + core); (3) Connection display (connections/ + core). Tracking
+-- always runs while a minigame is open; the hotkeys only toggle the paint.
 
 -- UE4SS mods share one Lua state: another mod overwriting a standard global
--- (seen in the wild: ipairs replaced by a table) must not break us. Capture
--- everything we rely on as locals, including the OOP primitives the class
--- files need.
+-- (seen: ipairs replaced by a table) must not break us. Capture as locals.
 local ipairs, pairs, tostring, tonumber = ipairs, pairs, tostring, tonumber
 local type, pcall, print, require, next = type, pcall, print, require, next
-local setmetatable, getmetatable, rawget = setmetatable, getmetatable, rawget
+local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local function log(msg)
-    print("[LockpickSettings] " .. tostring(msg) .. "\n")
-end
+local ModVersion = "2.7.7-alpha"
 
--- logged at load so support can spot stale installs instantly
-local ModVersion = "2.7-alpha6"
+-- ---------------------------------------------------- vendored shared kit --
+-- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
+-- vendors it from the one repo source), so each build is self-contained with no
+-- global Mods/shared dependency. That folder is not on UE4SS's default search
+-- path, so add it from this file's own location (the BPModLoaderMod pattern).
+local here = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")
+if here then
+    local modDir = here:match("^(.*)[/\\][^/\\]*$") -- the mod folder (parent of Scripts/)
+    if modDir then
+        package.path = modDir .. "/shared/?/?.lua;"
+            .. modDir .. "/shared/?.lua;" .. package.path
+    end
+end
 
 -- --------------------------------------------------------- hot reload reset --
--- CTRL+R re-runs this chunk. nil EVERY shipped module in BOTH caches BEFORE the
--- first require: nil-ing a parent does NOT nil its children, so a partial reset
--- would silently load stale children and ignore your edits. The
--- ue4ss_loaded_modules table is the custom-searcher cache on newer UE4SS builds.
+-- CTRL+R re-runs this chunk. nil EVERY module (the kit AND the mod's, by their
+-- exact require names) in package.loaded, and FULL-SWEEP ue4ss_loaded_modules
+-- (it is keyed by absolute path, so a bare-name nil there is a silent no-op).
+-- Do it BEFORE the first require so edits to any file take effect.
 local MODULES = {
-    "config", "lockgraphs", "num", "colors", "engine", "boost",
-    "solver", "geometry", "tinter", "session",
+    "kit", "config", "core.engine_lock", "core.session", "core.tinter",
+    "util.palette", "data.lockgraphs", "tries.boost",
+    "nextmove.solver", "nextmove.geometry", "nextmove.hint",
+    "connections.connections",
 }
-for _, m in ipairs(MODULES) do
-    package.loaded[m] = nil
+for _, m in ipairs(MODULES) do package.loaded[m] = nil end
+do
     local reg = rawget(_G, "ue4ss_loaded_modules")
-    if type(reg) == "table" then reg[m] = nil end
+    if type(reg) == "table" then
+        for k in pairs(reg) do reg[k] = nil end
+    end
 end
 
--- ----------------------------------------------------------------- modules --
--- each require pcall-wrapped; a broken child disables only the features that
--- depend on it (the mod never goes down over one file).
-local function tryRequire(name)
-    local ok, mod = pcall(require, name)
-    if not ok or type(mod) ~= "table" then
-        log("ERROR in " .. name .. ".lua (" .. tostring(mod) .. ")")
-        return nil
-    end
-    return mod
+-- the shared kit is the foundation: without it the mod cannot run
+local okKit, kit = pcall(require, "kit")
+if not okKit or type(kit) ~= "table" then
+    print("[LockpickSettings] FATAL: shared kit not found (" .. tostring(kit)
+        .. "). Re-deploy; the kit vendors under <Mod>/shared/.\n")
+    return
 end
+local log = kit.log.make("[LockpickSettings]")
+local Num = kit.num
+
+-- ----------------------------------------------------------------- modules --
+-- each require pcall-wrapped; a broken child disables only its feature.
+local function tryRequire(name) return kit.boot.tryRequire(name, log) end
 
 local okCfg, Config = pcall(require, "config")
 if not okCfg or type(Config) ~= "table" then
@@ -71,24 +82,24 @@ if not okCfg or type(Config) ~= "table" then
     Config = {}
 end
 
-local okGraphs, LockGraphs = pcall(require, "lockgraphs")
+local okGraphs, LockGraphs = pcall(require, "data.lockgraphs")
 if not okGraphs or type(LockGraphs) ~= "table" then
-    log("ERROR in lockgraphs.lua, next-move hint unavailable ("
+    log("ERROR in data/lockgraphs.lua, next-move hint unavailable ("
         .. tostring(LockGraphs) .. ")")
     LockGraphs, okGraphs = {}, false
 end
 
-local Num = tryRequire("num")
-local Colors = tryRequire("colors")
-local Engine = tryRequire("engine")
-local Boost = tryRequire("boost")
-local Solver = tryRequire("solver")
-local Geometry = tryRequire("geometry") -- required transitively by session too
-local Tinter = tryRequire("tinter")
-local Session = tryRequire("session")
+local Engine = tryRequire("core.engine_lock")
+local Palette = tryRequire("util.palette")
+local Boost = tryRequire("tries.boost")
+local Solver = tryRequire("nextmove.solver")
+local Geometry = tryRequire("nextmove.geometry") -- required transitively by session too
+local Hint = tryRequire("nextmove.hint")
+local Connections = tryRequire("connections.connections")
+local Tinter = tryRequire("core.tinter")
+local Session = tryRequire("core.session")
 
 -- ----------------------------------------------------------------- config --
-local BaseTries      = Config.baseTries or { untrained = 2, trained = 4, master = 6 }
 local ExtraTries     = tonumber(Config.extraTries) or 10
 local HotkeyName     = Config.nextMoveHotkey
 local ConnHotkeyName = Config.connectionsHotkey
@@ -101,31 +112,23 @@ local flags = {
     connections = Config.showConnections == true,
 }
 
--- the hint/connection features need the whole pure+engine chain plus the
--- graphs; boost only needs engine + num. A missing module disables exactly the
--- dependent feature.
-local NextMoveBroken = not (Num and Colors and Engine and Solver and Geometry
-    and Tinter and Session and okGraphs)
-local BoostBroken = not (Boost and Engine and Num)
+-- the hint/connection features need the whole engine+feature chain plus the
+-- graphs; boost only needs the engine (kit.num is always present).
+local NextMoveBroken = not (Engine and Palette and Solver and Geometry and Hint
+    and Connections and Tinter and Session and okGraphs)
+local BoostBroken = not (Boost and Engine)
 if NextMoveBroken then
     log("next-move hint and connection display unavailable (a required module "
         .. "failed to load)")
 end
 
--- value -> tier lookup tables, built once
-local Tiers = {} -- vanilla base -> { name, target }
-local Targets = {} -- boosted target -> tier name
-for name, base in pairs(BaseTries) do
-    local target = base + ExtraTries
-    Tiers[base] = { name = name, target = target }
-    Targets[target] = name
-end
-
--- the resolved palette (built once) and the shared collaborators
-local palette = Colors and Colors.build(Config) or nil
+-- the resolved palette (built once) and the shared collaborators. The Tinter is
+-- injected with the two PURE feature policies (the hint color and the partner
+-- tint map), so it stays a mechanism that knows no feature.
+local palette = Palette and Palette.build(Config) or nil
 local solverInstance = Solver and Solver.new({ log = log, debug = DebugSolver }) or nil
-local tinterInstance = (Tinter and palette and Engine and Num)
-    and Tinter.new(palette, Engine, Num) or nil
+local tinterInstance = (Tinter and palette and Engine and Hint and Connections)
+    and Tinter.new(palette, Engine, Num, Hint.color, Connections.partnerTints) or nil
 
 -- ----------------------------------------------------- live-session state --
 -- main owns the single live-session slot and the spawn caches the start flow
@@ -497,7 +500,7 @@ local okNotify, errNotify = pcall(NotifyOnNewObject, "/Script/G1R.AbilityTask_Lo
         end)
         if not BoostBroken then
             local ok, err = pcall(function()
-                Boost.apply(Tiers, Targets, Engine, Num, log)
+                Boost.apply(ExtraTries, Engine, Num, log)
             end)
             if not ok then log("Boost error: " .. tostring(err)) end
         end
@@ -514,8 +517,10 @@ end
 
 -- ----------------------------------------------------------------- banner --
 local loaded = {}
-for name, base in pairs(BaseTries) do
-    loaded[#loaded + 1] = string.format("%s %d->%d", name, base, base + ExtraTries)
+if Boost then
+    for name, base in pairs(Boost.BASE_TRIES) do
+        loaded[#loaded + 1] = string.format("%s %d->%d", name, base, base + ExtraTries)
+    end
 end
 local graphCount = 0
 for _ in pairs(LockGraphs) do graphCount = graphCount + 1 end
@@ -531,4 +536,5 @@ if not NextMoveBroken then
             and Key[ConnHotkeyName])
         and (", toggle: " .. ConnHotkeyName) or "")
 end
-log("Loaded " .. ModVersion .. ": " .. table.concat(loaded, ", ") .. hintInfo)
+log("Loaded " .. ModVersion .. " (kit " .. tostring(kit.version) .. "): "
+    .. table.concat(loaded, ", ") .. hintInfo)

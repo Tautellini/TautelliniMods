@@ -14,7 +14,7 @@ local DIR = script_dir()
 package.path = DIR .. "/../Scripts/?.lua;" .. DIR .. "/?.lua;" .. package.path
 
 local T = require("tinytest")
-local Geometry = require("geometry")
+local Geometry = require("nextmove.geometry")
 
 -- Synthesize a lock on a known frame: rail axis +X, rows spaced along Y, the
 -- bar column fixed at X = barX, each plate (slot) offset rot*step along the

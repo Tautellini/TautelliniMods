@@ -78,10 +78,10 @@ start, the keys only switch the highlights):
 
 Edit `Scripts/config.lua`, then restart the game or press CTRL+R ingame:
 
-- `baseTries`: vanilla tries per tier. Used to recognize the tier at
-  minigame start and as the base the bonus is added to. Only update these
-  if a game patch changes the vanilla values
-- `extraTries`: the bonus added on top of the base (default 10)
+- `extraTries`: the bonus added on top of the vanilla base (default 10).
+  The vanilla per-tier values (untrained 2, trained 4, master 6) are game
+  constants and live in the code (`Scripts/tries/boost.lua`, as
+  `boost.BASE_TRIES`), not in config, so 2/4/6 become 12/14/16 by default
 - `showNextMove`: next-move hint state at game start (default false)
 - `nextMoveHotkey`: key that toggles the hint ingame, takes effect
   immediately even mid-minigame (default `"F7"`, `""` disables)
@@ -111,10 +111,13 @@ From the repo root:
 powershell -File tools\deploy.ps1 -Mod LockpickSettings
 ```
 
-This copies `Scripts/` and the `enabled.txt` activation marker to
-`G1R\Binaries\Win64\ue4ss\Mods\LockpickSettings` (UE4SS starts any mod
-folder containing `enabled.txt`, no `mods.txt` entry needed). Requires
-a working UE4SS setup, see the G1R modding guide (`../README.md`).
+This copies `Scripts/` recursively (its `core/`, `util/`, `data/` and
+feature subfolders) plus the `enabled.txt` activation marker to
+`G1R\Binaries\Win64\ue4ss\Mods\LockpickSettings`, and vendors a private
+copy of the shared library (the kit) into `<Mod>/shared/kit/`, so the
+deployed mod is self-contained. UE4SS starts any mod folder containing
+`enabled.txt`, no `mods.txt` entry needed. Requires a working UE4SS
+setup, see the G1R modding guide (`../README.md`).
 
 ## How it works
 
@@ -126,7 +129,8 @@ a working UE4SS setup, see the G1R modding guide (`../README.md`).
   (idempotent, nothing can stack across sessions or saves), anything else
   is left untouched and logged
 - The next-move hint uses the connection graphs shipped in
-  `Scripts/lockgraphs.lua`, extracted offline from the game's compiled
+  `Scripts/data/lockgraphs.lua` (required by the dotted name
+  `data.lockgraphs`), extracted offline from the game's compiled
   AngelScript blob (`tools/extract_locks.py`); the running game exposes
   no readable graph, and the graph is the ONLY thing taken from mined
   data. Everything else is measured live, because mined rotations
@@ -137,18 +141,15 @@ a working UE4SS setup, see the G1R modding guide (`../README.md`).
   never failed), the rail axis from the slot cloud itself, the step
   size fitted by grid-snapping, and the rotations snapped ABSOLUTELY
   onto that grid every settle
-- The anchor (which slot column is the rail center) comes from, in
-  order: the lock's remembered open position (`learned-anchors.txt`,
-  written the moment a lock opens, location-validated so neighboring
-  locks can never borrow it; safe to delete, it relearns), the fixed
-  bar/latch part columns measured by float distance calls, part
-  location reads, else the most-centered fit. A guessed anchor hardens
-  by pure geometry (when the pin span leaves only one candidate, that
-  candidate is adopted as the truth) and by evidence (a pin leaving
-  the believed rail, the game refusing a move the model allows, a
-  planning dead end, a believed goal that does not open). Simulated
-  over all 416 mined graphs: the guess-only solver opened 54% of
-  attempts, the self-correcting one 100% (`tools/sim_anchor.py`)
+- The anchor (which rail column is the open center) is a DIRECT READ,
+  not a guess. Every piece's bar part sits on one fixed column for the
+  whole session, and that column IS the open column (measured 252/252
+  over a full solved session). The mod reads those bar part roots,
+  validates the column against the plate grid (it must put every piece
+  on an in-range integer position), and adopts it. If the read fails or
+  is ambiguous (no clear column, or two columns both fit), the mod
+  honestly disables the next-move hint for that lock instead of
+  guessing; the connection display still works there
 - Planning runs on an integer-encoded persistent greedy best-first
   search (states are base-7 numbers), sliced across ticks with a
   budget, under
@@ -179,20 +180,15 @@ Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[LockpickSettings]` lines:
   off, toggle: F8`
 - On each pick attempt: `Minigame: trained tier, tries 4 -> 14`
 - `durability X not a known tier, leaving it alone`: a game patch likely
-  changed the vanilla tier values; update `baseTries` in the config
+  changed the vanilla tier values; update `boost.BASE_TRIES` in
+  `Scripts/tries/boost.lua`
 - `live lock state not readable, next-move hint disabled for this
   lock`: the geometry derivation rejected the measured positions (rare;
   the connection display still works there)
-- `Solver: ..., start anchor shifted +1`: normal self-correction, not
-  an error; the scrambled start hid where the rail center is and the
-  first guess was off. Follow the new hints, the lock will open
-- `Solver: open position not determinable (<reason>), next-move hint
-  disabled (connection display unaffected)`: every anchor candidate
-  was ruled out; picking continues without hints for this lock
-- `Solver: open position of '...' learned, this lock anchors exactly
-  from now on`: normal learning at the moment a lock opens; the data
-  lands in `learned-anchors.txt` in the mod folder and is safe to
-  delete (it relearns on the next solve)
+- `Solver: pins measured centered but the lock did not open,
+  measurement distrusted, next-move hint disabled`: a measurement and
+  the minigame canon disagreed, so the hint stops for this lock rather
+  than fight it (connection display unaffected)
 - `Edge X->Y inactive this session, pruned`: the game removed that
   connection at runtime (skill mechanic); the solver learned it from
   your moves, normal behavior

@@ -1,9 +1,8 @@
--- check_load.lua  --  smoke check: every shipped module loads under bare
--- LuaJIT and returns a table. Catches syntax errors, missing trailing
--- returns, and engine globals referenced at LOAD time (which would crash
--- here). main.lua is excluded: it registers hooks/keybinds at load and only
--- runs inside UE4SS. Modules not yet created are reported as absent, so this
--- is usable mid-refactor.
+-- check_load.lua  --  smoke check: the shared kit and every shipped mod module
+-- loads under bare LuaJIT (dotted names) and returns a table. Catches syntax
+-- errors, missing trailing returns, dotted-require breakage, and engine globals
+-- referenced at LOAD time. main.lua is excluded (it self-injects paths and
+-- registers hooks; it only runs inside UE4SS).
 --
 -- Run from this directory:  ..\..\..\tools\luajit\luajit.exe check_load.lua
 
@@ -12,11 +11,19 @@ local function script_dir()
     return src:match("^@(.*)[/\\][^/\\]*$") or "."
 end
 local DIR = script_dir()
-package.path = DIR .. "/../Scripts/?.lua;" .. package.path
+-- mod modules resolve dotted under ../Scripts; the kit resolves folder-named
+-- under ../../shared (the single repo source, the same shape deploy vendors).
+package.path = DIR .. "/../Scripts/?.lua;"
+    .. DIR .. "/../../shared/?/?.lua;" .. package.path
 
 local MODULES = {
-    "config", "lockgraphs", "num", "colors", "engine", "boost",
-    "solver", "geometry", "tinter", "session",
+    "kit",
+    "config", "data.lockgraphs",
+    "util.palette",
+    "core.engine_lock", "core.session", "core.tinter",
+    "tries.boost",
+    "nextmove.solver", "nextmove.geometry", "nextmove.hint",
+    "connections.connections",
 }
 
 local fail, absent = 0, 0

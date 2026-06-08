@@ -28,7 +28,8 @@ Install:
    connection display off, toggle: F8
 
 Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the
-bonus, baseTries = vanilla tries per tier, showNextMove /
+bonus added on top of the vanilla 2/4/6, giving 12/14/16 by default;
+showNextMove /
 showConnections = the assists' state at game start, nextMoveHotkey /
 connectionsHotkey = the toggle keys, hintColorLeft / hintColorRight /
 partnerColorSame / partnerColorOpposite = the colors). Apply with a

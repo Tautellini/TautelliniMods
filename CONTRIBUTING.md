@@ -95,9 +95,9 @@ Rules:
 
 ### Modules: a plain table of functions, for stateless facades
 
-Stateless surfaces are modules, not classes: `engine` (the UE4SS access layer),
-`boost`, `num`, `colors`. They are a plain table of functions and hold no
-mutable instance state.
+Stateless surfaces are modules, not classes: the kit's `engine`, `num`, `color`,
+`log`, `boot`, and the mod's `core.engine_lock` adapter and `tries.boost`. They
+are a plain table of functions and hold no mutable instance state.
 
 ```lua
 local engine = {}
@@ -114,13 +114,14 @@ emerges across classes, factor a plain helper **module** and have both call it.
 
 ### The purity rule
 
-`Solver` and `Geometry` (and pure helpers like `num`) must name **zero** UE4SS
-globals, so the identical file loads under bare LuaJIT for tests.
+`Solver` and `Geometry` (and pure helpers like the kit's `num`) must name
+**zero** UE4SS globals, so the identical file loads under bare LuaJIT for tests.
 
-- **All** engine access goes through **one** file, `engine.lua`: `FindAllOf`,
-  `FName`, `K2_*` reads/writes, property reads/writes, `RegisterHook`,
-  `NotifyOnNewObject`, hooks, MPC reads. Every engine call in there is
-  `pcall`-wrapped.
+- **All** engine access goes through the kit's `engine.lua` primitives,
+  re-exported by the mod's `core/engine_lock.lua` adapter (where the domain
+  literals live): `FindAllOf`, `FName`, `K2_*` reads/writes, property
+  reads/writes, `RegisterHook`, `NotifyOnNewObject`, hooks, MPC reads. Every
+  engine call is `pcall`-wrapped.
 - The pure classes receive the engine layer and the logger as **injected
   dependencies** (`Solver.new{ log = ..., engine = ... }`). A pure file that
   writes `FindAllOf` or `print` directly is a bug: it cannot be tested and it
@@ -238,16 +239,72 @@ For a contributor coming from Kotlin or another OOP language. These bite.
 
 ### Layout
 
-- **All shipped Lua stays FLAT in `Scripts/`.** UE4SS's `package.path` does not
-  include subfolders, so every shipped module is `require`d by bare name
-  (`require("solver")`).
-- **`deploy.ps1` copies `Scripts/*` verbatim** into the game. Anything that must
-  not ship (tests, specs, docs) must **not** live under `Scripts/`.
-- **The require graph is a strict DAG**: pure leaves (`num`, `config`,
-  `lockgraphs`) feed mid-level modules (`engine`, `geometry`, `solver`,
-  `tinter`) feed `session` feeds `main.lua`. A **circular** require returns a
-  half-built table silently; there is no error, just wrong behavior. Keep it
-  acyclic.
+The per-mod `Scripts/` is **foldered**, and every module is `require`d by its
+**dotted** path. UE4SS puts the mod's own Scripts dir on `package.path` as
+`{Scripts}/?.lua`, and standard Lua maps the dots to slashes, so
+`require("nextmove.solver")` resolves `Scripts/nextmove/solver.lua`. (Proven
+locally under LuaJIT and consistent with UE4SS's own dotted-require `UEHelpers`;
+an in-game smoke test on this exact build is still pending but the evidence is
+strong.)
+
+- **Root holds only `main.lua` + `config.lua`.** Everything else lives in a
+  subfolder: `core/` (`engine_lock`, `session`, `tinter`), `util/` (`palette`),
+  `data/` (`lockgraphs`), and **one folder per feature**: `tries/` (`boost`),
+  `nextmove/` (`solver`, `geometry`, `hint`), `connections/` (`connections`).
+- **Dotted requires only.** `require("core.session")`,
+  `require("nextmove.solver")`, `require("util.palette")`,
+  `require("data.lockgraphs")`. **Never rely on `require("foo")` finding
+  `foo/init.lua`**: UE4SS adds only `?.lua`, so it is file-per-module, always.
+- **`deploy.ps1` copies `Scripts/` RECURSIVELY** into the game (the old
+  non-recursive copy silently dropped subfolders). Anything that must not ship
+  (tests, specs, docs) must **not** live under `Scripts/`.
+- **The require graph is a strict DAG**: pure leaves (the kit's `num`, plus
+  `config`, `data.lockgraphs`) feed mid-level modules (`core.engine_lock`,
+  `nextmove.geometry`, `nextmove.solver`, `core.tinter`) feed `core.session`
+  feeds `main.lua`. A **circular** require returns a half-built table silently;
+  there is no error, just wrong behavior. Keep it acyclic.
+
+### The shared kit and the generic-vs-mod boundary
+
+There is **one** shared library, the **kit**, with a single repo source at
+`G1R/shared/kit/`. Its umbrella `kit.lua` `loadfile`s its siblings and returns
+`{ version, log, num, color, engine, boot }`:
+
+- `version.lua` (the kit's semver), `log.lua` (`log.make("[Tag]")`),
+  `num.lua` (`lookup`, `colorDist2`), `color.lua` (`colorFrom` decoder),
+  `engine.lua` (the generic UE4SS primitives `liveInstances` + `readRootPos`,
+  the `pcall`-safe idiom, the banned-ops header), `boot.lua` (`tryRequire`).
+
+**The litmus for where code goes:** generic and reusable by any future G1R mod
+-> the kit. Mod-domain code stays in the mod. So the kit holds the engine
+primitives, num, color, log, boot; the mod keeps the engine **adapter**
+(`core/engine_lock.lua`, which holds the `MPC_Lockpicking`/`Slot_`/
+`HighlightColor`/`m_Lock` literals and re-exports the kit's
+`liveInstances`/`readRootPos` so call sites stay identical), the palette,
+session/tinter, the features, and the data. **The kit must NEVER hold a
+mod-domain literal**; the kit's own `tests/` includes a leak guard that greps
+every kit file for `Slot_`/`HighlightColor`/`m_Lock`/`MPC_`/`PlayerState` and
+fails the build on any hit.
+
+**Vendored, not global.** UE4SS also reserves `Mods/shared/` on every mod's
+path, but **we do not use it**. Instead `deploy.ps1` vendors a private copy of
+the kit under each `<Mod>/shared/kit/`, so every deployed mod and public ZIP is
+self-contained with no shared-folder dependency. `main.lua` self-adds its own
+`shared/` to `package.path` from its own file location (the BPModLoaderMod
+pattern), then `require("kit")` returns the umbrella.
+
+**Additive-API rule.** The single Lua state means **one** copy of a module name
+loads across all mods (first `require` wins). So the kit's API is
+**additive-only within a major version**: a breaking change renames it (`kit2`),
+and consumers may `assert kit.version` against their minimum.
+
+### Features are separately testable
+
+Each feature folder is exercised on its own seam: `tries` ->
+`boost.tierTables`; `nextmove` -> `solver` + `geometry` + `hint.color`;
+`connections` -> `connections.partnerTints`. The `Tinter` is a pure
+**mechanism**: it receives the hint-color and partner-tint policies **injected**
+and knows no feature.
 
 ### Hot reload (CTRL+R)
 
@@ -260,23 +317,36 @@ UE4SS docs (trust the project note in `G1R/README.md`):
 
 So three rules:
 
-1. **A single reset block at the very top of `main.lua`** nils every shipped
-   module in **both** `package.loaded` and the `ue4ss_loaded_modules` table,
-   **before the first require**. Nil-ing a parent does not nil its children, so
-   list every module explicitly or your edits to a leaf are silently ignored:
+0. **`main.lua` self-adds its own `shared/` to `package.path` first**, from its
+   own file location (the BPModLoaderMod pattern), so the vendored `require("kit")`
+   resolves. This runs before the reset block and the first require.
+
+1. **A single reset block near the top of `main.lua`** nils every module in
+   **both** `package.loaded` and the `ue4ss_loaded_modules` table, **before the
+   first require**. Two facts make this exact:
+
+   - `package.loaded` is keyed by the **require string**, so the reset `MODULES`
+     list must use the **dotted** names (plus `"kit"`). Nil-ing a parent does
+     not nil its children, so list every module explicitly or your edits to a
+     leaf are silently ignored.
+   - `ue4ss_loaded_modules` is keyed by **absolute file path**, not module name.
+     The old code nil-ed it by bare module name, which is a silent no-op. So do
+     a **FULL SWEEP** of it instead.
 
    ```lua
    local MODULES = {
-       "config", "lockgraphs", "num", "colors", "engine",
-       "boost", "solver", "geometry", "tinter", "session",
+       "kit", "config", "core.engine_lock", "core.session", "core.tinter",
+       "util.palette", "data.lockgraphs", "tries.boost",
+       "nextmove.solver", "nextmove.geometry", "nextmove.hint",
+       "connections.connections",
    }
-   for _, m in ipairs(MODULES) do
-       package.loaded[m] = nil
-       local reg = rawget(_G, "ue4ss_loaded_modules")
-       if type(reg) == "table" then reg[m] = nil end
+   for _, m in ipairs(MODULES) do package.loaded[m] = nil end
+   local reg = rawget(_G, "ue4ss_loaded_modules")
+   if type(reg) == "table" then
+       for k in pairs(reg) do reg[k] = nil end   -- full sweep: keyed by path
    end
    -- only NOW require the modules, each pcall-wrapped, degrading
-   -- per-feature on failure (a broken solver.lua must not kill the boost)
+   -- per-feature on failure (a broken nextmove/solver.lua must not kill boost)
    ```
 
 2. **All registration stays in `main.lua`'s tail**, never inside a required
@@ -321,16 +391,24 @@ changes nothing system-wide.
   in-repo file: it registers tests with `T.add(name, fn)`, fails by raising
   through the `T.*` asserts, and `os.exit(T.run())` returns the failure count.
   The only Lua the suite executes is our own code plus the shipped modules.
+- **The kit has its own gate**, separate from any mod:
+  `powershell -File G1R\shared\kit\tests\run.ps1` runs with **no mod present**.
+  It covers the kit modules and the domain-leak guard (the grep that fails the
+  build if any kit file holds a mod-domain literal). Keep the kit green on its
+  own before touching consumers.
 - Tests live in a **sibling `tests/` dir of the mod**, never under `Scripts/`
-  (deploy would ship them). The current suite: `tests/check_load.lua` (every
-  module loads and returns a table), `tests/test_solver.lua` (the real solver
-  over all 416 locks), `tests/test_geometry.lua` (synthetic anchor recovery).
-- Run it all with `powershell -File G1R\LockpickSettings\tests\run.ps1`. Exit
-  code is the number of failing suites.
-- The pure modules (`solver.lua`, `geometry.lua`, `num.lua`, `colors.lua`)
-  **do** ship and stay UE4SS-global-free, so the **identical file** loads under
-  both UE4SS and bare LuaJIT. The harness adjusts `package.path` to require them
-  from `../Scripts`.
+  (deploy would ship them). They reference modules by **dotted** name. The
+  current suite: `tests/check_load.lua` (the kit plus every shipped mod module
+  loads under dotted require and returns a table), `tests/test_solver.lua` (the
+  real solver over all 416 locks), `tests/test_geometry.lua` (synthetic anchor
+  recovery).
+- Run the mod suite with `powershell -File G1R\LockpickSettings\tests\run.ps1`.
+  Exit code is the number of failing suites.
+- The pure modules (`nextmove/solver.lua`, `nextmove/geometry.lua`, the kit's
+  `num.lua` and `color.lua`) **do** ship and stay UE4SS-global-free, so the
+  **identical file** loads under both UE4SS and bare LuaJIT. `check_load.lua`
+  adds both `../Scripts` (dotted mod modules) and `../../shared` (the kit path,
+  the same shape deploy vendors) to `package.path`.
 
 ### What to assert (behavioral parity, not "it runs")
 
@@ -377,7 +455,10 @@ Mirrors and extends the conventions in the repo `README.md` and `G1R/README.md`.
 - **Each mod gets a `SPEC.md`** (what and why) before non-trivial work. Once
   shipped, the mod's README becomes the source of truth and the spec is retired
   to git history.
-- **Deploy** with `powershell -File tools\deploy.ps1 -Mod LockpickSettings`.
+- **Deploy** with `powershell -File tools\deploy.ps1 -Mod LockpickSettings`, or
+  `-Mod All` to deploy every enabled mod. Deploy copies `Scripts/` recursively
+  and vendors the kit into `<Mod>\shared\kit\` (the `shared/` folder gets no
+  `enabled.txt`).
 - **Hot-reload** with CTRL+R in a running game (mind section 5). Prefer a full
   restart after deploying changes to keybinds or hooks, since those accumulate.
 - **Commit as you go.**

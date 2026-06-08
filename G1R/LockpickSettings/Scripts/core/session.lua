@@ -20,7 +20,7 @@ local ipairs, pairs = ipairs, pairs
 local tostring = tostring
 local math, table, os, string = math, table, os, string
 
-local Geometry = require("geometry")
+local Geometry = require("nextmove.geometry")
 
 local Session = {}
 Session.__index = Session

@@ -14,36 +14,18 @@ local ipairs, pairs = ipairs, pairs
 local Tinter = {}
 Tinter.__index = Tinter
 
--- palette: from colors.build(config); engine: the pcall-wrapped facade;
--- num: numeric helpers (colorDist2).
-function Tinter.new(palette, engine, num)
+-- palette: the resolved palette; engine: the pcall-wrapped facade; num: numeric
+-- helpers (colorDist2); hintColor(s, palette) and partnerTints(s, palette) are
+-- the injected PURE feature policies (nextmove.hint and connections), so the
+-- core tint MECHANISM never knows which feature wants what.
+function Tinter.new(palette, engine, num, hintColor, partnerTints)
     local self = setmetatable({}, Tinter)
     self.palette = palette
     self.engine = engine
     self.num = num
+    self.hintColor = hintColor
+    self.partnerTints = partnerTints
     return self
-end
-
--- the hint color encodes the SCREEN direction of the suggested move: green =
--- move the piece left, blue = move it right. The mapping comes from a measured
--- input-to-axis calibration when present, else the stage geometry; while
--- neither is known the neutral color marks the piece without gambling on a
--- direction (a refused move costs durability).
-function Tinter:hintColor(s)
-    local palette = self.palette
-    if not s.nextMove then return palette.hintNeutral end
-    local axisDir = (s.nextMove.dir or 1) * s.sign
-    if s.inputToAxis then
-        -- measured from observed moves: input * inputToAxis = piece axis
-        -- direction; overrides the geometric rule when present
-        local pressRight = axisDir * s.inputToAxis > 0
-        return pressRight and palette.hintRight or palette.hintLeft
-    end
-    if s.screenRight then
-        local pressRight = axisDir * s.screenRight > 0
-        return pressRight and palette.hintRight or palette.hintLeft
-    end
-    return palette.hintNeutral
 end
 
 -- unified tinting, re-asserted every tick (the game's move FX rewrites the
@@ -56,15 +38,15 @@ function Tinter:retint(s)
     local engine, num = self.engine, self.num
     local desired = {}
     if s.flags.connections then
-        for _, e in ipairs(s.edges[s.selectedRow] or {}) do
-            -- direction-coded: purple partners travel WITH the selected piece,
-            -- red partners travel AGAINST it
-            desired[e.b] = (e.dir == 1) and palette.partnerSame or palette.partnerOpp
+        -- the Connection Display feature supplies the partner tint map
+        for b, color in pairs(self.partnerTints(s, palette)) do
+            desired[b] = color
         end
     end
     local hintId = (s.flags.nextMove and s.nextMove) and s.nextMove.piece or nil
     if hintId then
-        desired[hintId] = self:hintColor(s)
+        -- the Next-Move feature supplies the hint color
+        desired[hintId] = self.hintColor(s, palette)
     end
     -- protection keys on the OBSERVED GLOW, never on the tracked selection:
     -- deferring writes/restores for the piece we THOUGHT was selected once
