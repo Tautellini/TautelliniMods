@@ -52,6 +52,9 @@ return {
     partnerColorOpposite = { 1.00, 0.15, 0.15 },
 
     -- Log solver internals (moved sets, replans, calibration) to the
-    -- UE4SS log. Leave false for normal play.
-    debugSolver = false,
+    -- UE4SS log. ALPHA DEFAULT: on, so bug reports arrive with a full solver
+    -- trace already in UE4SS.log. The output is a few lines per lock plus one
+    -- per settled move, not per-frame spam. Set to false for quiet play
+    -- (restart or CTRL+R).
+    debugSolver = true,
 }

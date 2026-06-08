@@ -95,7 +95,9 @@ Edit `Scripts/config.lua`, then restart the game or press CTRL+R ingame:
 - `partnerColorSame` / `partnerColorOpposite`: connected-pieces colors
   as `{r, g, b}`, by drag direction relative to the selected piece
   (defaults: purple = same, red = opposite)
-- `debugSolver`: log solver internals to the UE4SS log (default false)
+- `debugSolver`: log solver internals to the UE4SS log (default true
+  during the alpha, so bug reports carry a solver trace; set false for
+  quiet play)
 
 The hint tints the piece to move next green and replans after every
 move from the lock's live state. Mined lock data can contain

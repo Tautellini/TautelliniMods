@@ -495,7 +495,7 @@ function Session.start(ctx)
         derived = true
         if debug then
             local rr = {}
-            for id = 0, s.pieceCount - 1 do rr[#rr + 1] = s.rotStart[id] end
+            for id = 0, s.pieceCount - 1 do rr[#rr + 1] = tostring(s.rotStart[id]) end
             log("solver: live start rots [" .. table.concat(rr, ",")
                 .. "] (bar-anchored), screenRight=" .. tostring(s.screenRight))
         end

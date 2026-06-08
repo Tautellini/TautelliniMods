@@ -61,7 +61,7 @@ Note: experimental-latest is a moving tag. This mod is developed and tested agai
 ...\ue4ss\Mods\LockpickSettings\shared\  (a small bundled helper library)[/code]
 The included enabled.txt activates the mod automatically; you do NOT need to edit mods.txt.
 [*]Start the game. [b]...\ue4ss\UE4SS.log[/b] should now contain:
-[code][LockpickSettings] Loaded 2.7.7-alpha (kit 1.0.0): untrained 2->12, trained 4->14, master 6->16, next-move hint off (416 lock graphs, toggle: F7), connection display off, toggle: F8[/code]
+[code][LockpickSettings] Loaded 2.7.8-alpha (kit 1.0.0): untrained 2->12, trained 4->14, master 6->16, next-move hint off (416 lock graphs, toggle: F7), connection display off, toggle: F8[/code]
 [/list]
 
 [size=4][b]Configuration[/b][/size]
@@ -76,7 +76,7 @@ Edit [b]...\ue4ss\Mods\LockpickSettings\Scripts\config.lua[/b]:
 [*][b]showConnections[/b]: whether the connection display is active at game start (default false)
 [*][b]connectionsHotkey[/b]: the key that toggles the connection display (default "F8", "" disables)
 [*][b]partnerColorSame[/b] / [b]partnerColorOpposite[/b]: the connected-pieces colors as {r, g, b}, by drag direction relative to the selected piece (defaults: purple = same, red = opposite)
-[*][b]debugSolver[/b]: verbose solver logging for bug reports (default false)
+[*][b]debugSolver[/b]: verbose solver logging for bug reports. [b]On by default during the alpha[/b] so reports carry a full solver trace from UE4SS.log; set to false for quiet play
 [/list]
 
 Apply changes with a game restart or CTRL+R ingame (UE4SS hot reload).
