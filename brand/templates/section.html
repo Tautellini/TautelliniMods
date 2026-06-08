@@ -13,16 +13,14 @@
     ?t=NEXT-MOVE HINT   section title (mono, accent rule under it)
     ?note=OPTIONAL ...  right-side note (mono, --ink-2), empty to hide
   Bare (no query) it renders the reference NEXT-MOVE HINT strip.
-  The base fill is --page (the Nexus page surface) so the strip merges into the
-  description instead of reading as a dark box. Brackets use the stronger hairline
-  so they stay visible on that lighter grey.
+  The base fill is --bg-0 (near-black) with gold corner brackets, matching the
+  hero: the strip reads as a dark panel on the Nexus page, not a merged band.
 -->
 <svg width="1920" height="300" viewBox="0 0 1920 300" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1920" height="300" fill="var(--page)"/>
+  <rect width="1920" height="300" fill="var(--bg-0)"/>
 
-  <!-- corner brackets are the only frame (no full border): brighter
-       --hairline-page so the corners read on the merged page. -->
-  <g class="s-line-page" style="stroke-width:2.5;stroke-linecap:square">
+  <!-- gold corner brackets on near-black, matching the hero -->
+  <g class="s-acc" style="stroke-width:3;stroke-linecap:square">
     <path d="M40,80 L40,40 L84,40"/>
     <path d="M1836,40 L1880,40 L1880,84"/>
     <path d="M40,220 L40,260 L84,260"/>
