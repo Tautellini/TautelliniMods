@@ -146,8 +146,10 @@ if (Test-Path $WarnSrc) {
     Write-Warning "UE4SS warning image not found at $WarnSrc; the UE4SS page will show no image"
 }
 
-# mod payload (without config.lua) under mod\<Mod>
-Copy-ModPayload (Join-Path $s "mod") $false
+# mod payload WITH the default config.lua under mod\<Mod>; a chosen preset
+# overwrites config.lua below, and the mod is required-installed so it always
+# lands even if the optional config/UE4SS choices do nothing.
+Copy-ModPayload (Join-Path $s "mod") $true
 
 # config preset variants under configs\
 $configsDir = Join-Path $s "configs"
@@ -187,46 +189,27 @@ $x.Add('  <moduleImage path="fomod\images\hero.png" showImage="true" showFade="t
 # NOTE schema order on <config>: moduleName, moduleImage, moduleDependencies,
 # requiredInstallFiles, installSteps, conditionalFileInstalls. requiredInstallFiles
 # MUST precede installSteps or the FOMOD fails schema validation.
-if (-not $haveUE4SS) {
-    # without a bundled UE4SS there is nothing to gate on: install the mod outright
-    $x.Add('  <requiredInstallFiles>')
-    $x.Add("    <folder source=`"mod\$Mod`" destination=`"$ModDest`" priority=`"0`"/>")
-    $x.Add('  </requiredInstallFiles>')
-}
+# the mod ALWAYS installs. No conditional gating: Vortex does not reliably
+# evaluate fileDependency on a raw game file, which once left nothing deployed.
+$x.Add('  <requiredInstallFiles>')
+$x.Add("    <folder source=`"mod\$Mod`" destination=`"$ModDest`" priority=`"0`"/>")
+$x.Add('  </requiredInstallFiles>')
 $x.Add('  <installSteps order="Explicit">')
 if ($haveUE4SS) {
-    # When UE4SS is NOT detected: a prominent warning + a single opt-in checkbox.
-    # Nothing installs unless the box is ticked (the mod install is gated below),
-    # so the user must either already have UE4SS or knowingly accept the bundle.
-    $x.Add('    <installStep name="UE4SS required">')
-    $x.Add('      <visible><dependencies operator="And">')
-    $x.Add("        <fileDependency file=`"$Win64\ue4ss\UE4SS.dll`" state=`"Missing`"/>")
-    $x.Add('      </dependencies></visible>')
-    $x.Add('      <optionalFileGroups order="Explicit">')
-    $x.Add('        <group name="UE4SS required: tick to bundle it (NOT recommended), or cancel and install it yourself" type="SelectAtLeastOne">')
-    $x.Add('          <plugins order="Explicit">')
-    $x.Add('            <plugin name="Install the bundled UE4SS with this mod (NOT RECOMMENDED, read below)">')
-    $x.Add('              <description>RECOMMENDED instead: cancel this install and get UE4SS yourself from   https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest   (the regular zip, not the zDEV one), install it next to the game exe, then run this installer again. Installing UE4SS separately keeps it even if you later remove this mod.   If you TICK this box, the bundled UE4SS is installed together with the mod, but your mod manager WILL REMOVE it when you uninstall this mod, which can break any other UE4SS mods you use.   If you leave this unticked and UE4SS is not present, nothing is installed.</description>')
-    if (Test-Path $WarnSrc) { $x.Add('              <image path="fomod\images\warning.png"/>') }
-    $x.Add('              <conditionFlags><flag name="bundleUe4ss">on</flag></conditionFlags>')
-    $x.Add('              <typeDescriptor><type name="Optional"/></typeDescriptor>')
-    $x.Add('            </plugin>')
-    $x.Add('          </plugins>')
-    $x.Add('        </group>')
-    $x.Add('      </optionalFileGroups>')
-    $x.Add('    </installStep>')
-    # info-only page shown ONLY when UE4SS is already present
+    # ONE opt-in checkbox, always shown (no fileDependency auto-detect). When the
+    # box is ticked the plugin's OWN <files> install UE4SS directly: the most
+    # reliable FOMOD path, no flags and no raw-game-file checks. Untick = no
+    # UE4SS (you already have it, or will install it yourself). The mod is
+    # required and installs either way.
     $x.Add('    <installStep name="UE4SS">')
-    $x.Add('      <visible><dependencies operator="And">')
-    $x.Add("        <fileDependency file=`"$Win64\ue4ss\UE4SS.dll`" state=`"Active`"/>")
-    $x.Add('      </dependencies></visible>')
     $x.Add('      <optionalFileGroups order="Explicit">')
-    $x.Add('        <group name="UE4SS was detected" type="SelectAll">')
+    $x.Add('        <group name="UE4SS (this mod needs it, please read)" type="SelectAny">')
     $x.Add('          <plugins order="Explicit">')
-    $x.Add('            <plugin name="Your UE4SS install is left untouched">')
-    $x.Add('              <description>UE4SS was found next to the game executable, so the bundled copy is skipped and your existing UE4SS is not modified.</description>')
-    $x.Add('              <conditionFlags><flag name="ue4ssNotice">shown</flag></conditionFlags>')
-    $x.Add('              <typeDescriptor><type name="Required"/></typeDescriptor>')
+    $x.Add('            <plugin name="Install the bundled UE4SS too (tick ONLY if you do not already have UE4SS)">')
+    $x.Add('              <description>This mod needs UE4SS. RECOMMENDED: install UE4SS yourself from   https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest   (the regular zip, not zDEV), so it stays even if you remove this mod. Tick this box ONLY if you do not have UE4SS and want it bundled in: your mod manager WILL REMOVE the bundled UE4SS when you uninstall this mod, which can break other UE4SS mods. If you already have UE4SS, leave this unticked.</description>')
+    if (Test-Path $WarnSrc) { $x.Add('              <image path="fomod\images\warning.png"/>') }
+    $x.Add("              <files><folder source=`"ue4ss`" destination=`"$Win64`" priority=`"0`"/></files>")
+    $x.Add('              <typeDescriptor><type name="Optional"/></typeDescriptor>')
     $x.Add('            </plugin>')
     $x.Add('          </plugins>')
     $x.Add('        </group>')
@@ -266,20 +249,9 @@ $x.Add('    </installStep>')
 $x.Add('  </installSteps>')
 $x.Add('  <conditionalFileInstalls>')
 $x.Add('    <patterns>')
-# THE GATE: when UE4SS is bundled, the mod installs only if UE4SS is already
-# present OR the user ticked the bundle checkbox. Without a bundled UE4SS the
-# mod sits in requiredInstallFiles instead, so no gate is needed here.
-if ($haveUE4SS) {
-    $x.Add('      <pattern>')
-    $x.Add('        <dependencies operator="Or">')
-    $x.Add("          <fileDependency file=`"$Win64\ue4ss\UE4SS.dll`" state=`"Active`"/>")
-    $x.Add('          <flagDependency flag="bundleUe4ss" value="on"/>')
-    $x.Add('        </dependencies>')
-    $x.Add('        <files>')
-    $x.Add("          <folder source=`"mod\$Mod`" destination=`"$ModDest`" priority=`"0`"/>")
-    $x.Add('        </files>')
-    $x.Add('      </pattern>')
-}
+# the chosen tries/assist preset overwrites the default config.lua (priority 1).
+# Flag-only, no fileDependency. If the manager does not apply these option flags,
+# the default config that shipped with the mod simply stays, so it still works.
 foreach ($t in $triesOpts) { foreach ($h in $bools) { foreach ($c in $bools) {
     $hv = if ($h) { "on" } else { "" }
     $cv = if ($c) { "on" } else { "" }
@@ -289,30 +261,12 @@ foreach ($t in $triesOpts) { foreach ($h in $bools) { foreach ($c in $bools) {
     $x.Add("          <flagDependency flag=`"tries`" value=`"$t`"/>")
     $x.Add("          <flagDependency flag=`"hint`" value=`"$hv`"/>")
     $x.Add("          <flagDependency flag=`"conn`" value=`"$cv`"/>")
-    if ($haveUE4SS) {
-        $x.Add('          <dependencies operator="Or">')
-        $x.Add("            <fileDependency file=`"$Win64\ue4ss\UE4SS.dll`" state=`"Active`"/>")
-        $x.Add('            <flagDependency flag="bundleUe4ss" value="on"/>')
-        $x.Add('          </dependencies>')
-    }
     $x.Add('        </dependencies>')
     $x.Add('        <files>')
     $x.Add("          <file source=`"configs\$fname`" destination=`"$ModDest\Scripts\config.lua`" priority=`"1`"/>")
     $x.Add('        </files>')
     $x.Add('      </pattern>')
 } } }
-if ($haveUE4SS) {
-    # the bundled UE4SS installs only when it is missing AND the user opted in
-    $x.Add('      <pattern>')
-    $x.Add('        <dependencies operator="And">')
-    $x.Add("          <fileDependency file=`"$Win64\ue4ss\UE4SS.dll`" state=`"Missing`"/>")
-    $x.Add('          <flagDependency flag="bundleUe4ss" value="on"/>')
-    $x.Add('        </dependencies>')
-    $x.Add('        <files>')
-    $x.Add("          <folder source=`"ue4ss`" destination=`"$Win64`" priority=`"0`"/>")
-    $x.Add('        </files>')
-    $x.Add('      </pattern>')
-}
 $x.Add('    </patterns>')
 $x.Add('  </conditionalFileInstalls>')
 $x.Add('</config>')
