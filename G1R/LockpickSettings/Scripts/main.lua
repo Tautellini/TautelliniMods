@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "2.7.8-alpha"
+local ModVersion = "2.7.9-alpha"
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
@@ -52,7 +52,7 @@ local MODULES = {
     "kit", "config", "core.engine_lock", "core.session", "core.tinter",
     "util.palette", "data.lockgraphs", "tries.boost",
     "nextmove.solver", "nextmove.geometry", "nextmove.hint",
-    "connections.connections",
+    "connections.connections", "autosolve.driver",
 }
 for _, m in ipairs(MODULES) do package.loaded[m] = nil end
 do
@@ -98,12 +98,16 @@ local Hint = tryRequire("nextmove.hint")
 local Connections = tryRequire("connections.connections")
 local Tinter = tryRequire("core.tinter")
 local Session = tryRequire("core.session")
+local Driver = tryRequire("autosolve.driver")
 
 -- ----------------------------------------------------------------- config --
 local ExtraTries     = tonumber(Config.extraTries) or 10
 local HotkeyName     = Config.nextMoveHotkey
 local ConnHotkeyName = Config.connectionsHotkey
 local DebugSolver    = Config.debugSolver == true
+local AutoStepKey    = Config.autoSolveStepHotkey
+local AutoFullKey    = Config.autoSolveFullHotkey
+local AutoFullMod    = Config.autoSolveFullModifier
 
 -- the only mutable feature flags, shared BY REFERENCE into the Session and
 -- Tinter so a hotkey toggle propagates live
@@ -120,6 +124,12 @@ local BoostBroken = not (Boost and Engine)
 if NextMoveBroken then
     log("next-move hint and connection display unavailable (a required module "
         .. "failed to load)")
+end
+-- auto-solve rides the whole hint chain (solver, geometry, session, engine) plus
+-- the driver module; it is unavailable whenever the hint is.
+local AutoSolveBroken = NextMoveBroken or not Driver
+if not NextMoveBroken and not Driver then
+    log("auto-solve unavailable (autosolve/driver.lua failed to load)")
 end
 
 -- the resolved palette (built once) and the shared collaborators. The Tinter is
@@ -138,6 +148,17 @@ local FreshPieces = {} -- piece actors by spawn time, see the notify below
 local FreshAbility = nil -- the most recently spawned open/door ability
 local FreshTask = nil -- the CURRENT minigame task (notify-captured)
 local StartSnap = nil -- slot snapshot of the previous start attempt
+
+-- the auto-solver instance (main owns it, like the live session). It presses the
+-- CURRENT task through the main-owned FreshTask cache, liveness checked per call
+-- in the adapter. The hotkeys below arm it by setting liveSession.autopilot; the
+-- session tick then advances it one step per settle.
+local driver = (not AutoSolveBroken) and Driver.new({
+    engine = Engine,
+    getTask = function() return FreshTask end,
+    log = log,
+    debug = DebugSolver,
+}) or nil
 
 -- off the input-dispatch path, on the game thread
 local function schedule(ms, fn)
@@ -333,6 +354,59 @@ if type(ConnHotkeyName) == "string" and ConnHotkeyName ~= ""
     else
         log("ERROR: unknown connectionsHotkey '" .. ConnHotkeyName
             .. "', hotkey disabled")
+    end
+end
+
+-- ----------------------------------------------------------- auto-solve --
+-- F6 steps one solver move; Shift+F6 toggles full-auto (both configurable in
+-- config.lua). Same debounce-and-defer shape as the toggles: the handler only
+-- arms the driver on the game thread; the session tick does the work and only
+-- ever touches the live session.
+local ModifierKey = rawget(_G, "ModifierKey")
+local lastAutoStep, lastAutoFull = 0, 0
+if driver and type(AutoStepKey) == "string" and AutoStepKey ~= "" then
+    if Key[AutoStepKey] then
+        pcall(RegisterKeyBind, Key[AutoStepKey], function()
+            local now = os.clock()
+            if now - lastAutoStep < 0.3 then return end
+            lastAutoStep = now
+            ExecuteInGameThread(function()
+                pcall(function() driver:armSingle(liveSession) end)
+            end)
+        end)
+    else
+        log("ERROR: unknown autoSolveStepHotkey '" .. AutoStepKey
+            .. "', auto-solve step disabled")
+    end
+end
+if driver and type(AutoFullKey) == "string" and AutoFullKey ~= "" then
+    local mod = nil
+    if type(AutoFullMod) == "string" and AutoFullMod ~= "" then
+        mod = ModifierKey and ModifierKey[AutoFullMod]
+        if not mod then
+            log("ERROR: unknown autoSolveFullModifier '" .. AutoFullMod
+                .. "', full-auto registered without a modifier")
+        end
+    end
+    local handler = function()
+        local now = os.clock()
+        if now - lastAutoFull < 0.3 then return end
+        lastAutoFull = now
+        ExecuteInGameThread(function()
+            pcall(function() driver:toggleFull(liveSession) end)
+        end)
+    end
+    if Key[AutoFullKey] then
+        local ok
+        if mod then
+            ok = pcall(RegisterKeyBind, Key[AutoFullKey], { mod }, handler)
+        else
+            ok = pcall(RegisterKeyBind, Key[AutoFullKey], handler)
+        end
+        if not ok then log("ERROR: could not register full-auto hotkey") end
+    else
+        log("ERROR: unknown autoSolveFullHotkey '" .. AutoFullKey
+            .. "', full-auto disabled")
     end
 end
 
@@ -535,6 +609,22 @@ if not NextMoveBroken then
         (type(ConnHotkeyName) == "string" and ConnHotkeyName ~= ""
             and Key[ConnHotkeyName])
         and (", toggle: " .. ConnHotkeyName) or "")
+    if not AutoSolveBroken then
+        local autoKeys = {}
+        if type(AutoStepKey) == "string" and AutoStepKey ~= ""
+            and Key[AutoStepKey] then
+            autoKeys[#autoKeys + 1] = AutoStepKey .. " step"
+        end
+        if type(AutoFullKey) == "string" and AutoFullKey ~= ""
+            and Key[AutoFullKey] then
+            local pfx = (type(AutoFullMod) == "string" and AutoFullMod ~= "")
+                and (AutoFullMod .. "+") or ""
+            autoKeys[#autoKeys + 1] = pfx .. AutoFullKey .. " full-auto"
+        end
+        if #autoKeys > 0 then
+            hintInfo = hintInfo .. ", auto-solve: " .. table.concat(autoKeys, ", ")
+        end
+    end
 end
 log("Loaded " .. ModVersion .. " (kit " .. tostring(kit.version) .. "): "
     .. table.concat(loaded, ", ") .. hintInfo)
