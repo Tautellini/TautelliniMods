@@ -1,4 +1,5 @@
-[center][img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/hero.png[/img][/center]
+[img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/hero.png[/img]
+
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-features.png[/img]
 
 [size=4][b]More Tries[/b][/size]
@@ -18,6 +19,7 @@ The game runs Unreal Engine 5.4.3, newer than the stable 3.0.1 release, so grab 
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-install.png[/img]
+
 [list=1]
 [*]Extract the UE4SS zip into [b]...\Gothic 1 Remake\G1R\Binaries\Win64[/b], so dwmapi.dll sits next to G1R-Win64-Shipping.exe and a ue4ss folder appears beside it.[/*]
 [*]Extract the LockpickSettings zip from this page into [b]...\Win64\ue4ss\Mods[/b]:
@@ -34,6 +36,7 @@ The bundled enabled.txt activates the mod. You do not need to edit mods.txt.[/*]
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-config.png[/img]
 
 Edit [b]Scripts\config.lua[/b], apply with a game restart.
+
 [list]
 [*][b]extraTries[/b]: bonus on top of the vanilla tries (default 10)[/*]
 [*][b]showNextMove[/b] / [b]showConnections[/b]: whether each assist is active at startup (default false)[/*]
@@ -45,6 +48,7 @@ Edit [b]Scripts\config.lua[/b], apply with a game restart.
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-safety.png[/img]
+
 [list]
 [*]No game files are modified, nothing is patched on disk. Pure UE4SS Lua.[/*]
 [*]The tries boost is idempotent: already-raised values are recognized and never stack across sessions, saves or reloads.[/*]
@@ -53,6 +57,7 @@ Edit [b]Scripts\config.lua[/b], apply with a game restart.
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-troubleshooting.png[/img]
+
 [list]
 [*][b]No [LockpickSettings] lines in UE4SS.log:[/b] the folder layout is wrong; enabled.txt must sit directly inside the LockpickSettings folder, exactly as shown under Installation.[/*]
 [*][b]"durability X not a known tier":[/b] a game patch changed the vanilla values; update boost.BASE_TRIES in Scripts/tries/boost.lua.[/*]
