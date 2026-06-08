@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "2.7.9-alpha"
+local ModVersion = "3.0.0-alpha"
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
