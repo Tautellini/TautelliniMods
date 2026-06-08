@@ -1,0 +1,7 @@
+/* THEME: g1r "Aurum" (Gothic 1 Remake). The only per-game block. */
+:root{
+  --accent:#D4B06A;
+  --accent-hi:#F0D89C;
+  --accent-lo:#9A763C;
+  --accent-glow:rgba(212,176,106,0.14);
+}

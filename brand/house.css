@@ -1,0 +1,38 @@
+/* TautelliniMods house stylesheet. Import a theme file AFTER this one. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  /* surfaces */
+  --bg-0:#0a0a0c; --bg-1:#121217; --bg-2:#191920;
+  --hairline:#2a2a33; --hairline-2:#3a3a46;
+
+  /* ink */
+  --ink-0:#ECECEF; --ink-1:#A6A6B0; --ink-2:#6E6E7A;
+
+  /* shared semantics (never per-game) */
+  --alert:#E9A23B; --danger:#FF6B6B;
+
+  /* type */
+  --font-mono:"JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-sans:"Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+
+  /* geometry */
+  --radius:0px; --notch:14px; --bracket-len:40px; --bracket-w:3px;
+  --rule-w:1px; --pad:48px; --gutter:64px;
+}
+
+/* page reset for deterministic render-to-PNG */
+html,body{margin:0;padding:0;background:var(--bg-0);}
+svg{display:block;}
+
+/* text role helpers, set on <text> elements */
+.mono{font-family:var(--font-mono);}
+.sans{font-family:var(--font-sans);}
+.ink0{fill:var(--ink-0);} .ink1{fill:var(--ink-1);} .ink2{fill:var(--ink-2);}
+.acc{fill:var(--accent);}
+.alert{fill:var(--alert);} .danger{fill:var(--danger);}
+
+/* stroke helpers */
+.s-acc{stroke:var(--accent);fill:none;}
+.s-line{stroke:var(--hairline);fill:none;}
+.s-line2{stroke:var(--hairline-2);fill:none;}

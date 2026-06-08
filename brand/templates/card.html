@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../house.css">
+<link rel="stylesheet" href="../themes/g1r.css">
+</head>
+<body>
+<svg width="720" height="440" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg">
+  <rect width="720" height="440" fill="var(--bg-0)"/>
+
+  <!-- cut-corner card panel (notch top-right + bottom-left) -->
+  <path d="M60,50 L644,50 L660,66 L660,390 L76,390 L60,374 Z"
+        fill="var(--bg-2)" class="s-line" style="stroke-width:1.5"/>
+
+  <!-- card corner brackets (accent) -->
+  <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
+    <path d="M60,84 L60,50 L94,50"/>
+    <path d="M626,390 L660,390 L660,356"/>
+  </g>
+
+  <!-- title -->
+  <text x="96" y="118" class="mono ink0" font-size="34" font-weight="700">NEXT-MOVE HINT</text>
+  <rect x="98" y="138" width="120" height="3" fill="var(--accent)"/>
+
+  <!-- body -->
+  <text x="96" y="192" class="sans ink1" font-size="24">Press the key and the next piece to move</text>
+  <text x="96" y="224" class="sans ink1" font-size="24">lights up. Replanned after every move.</text>
+
+  <!-- hotkey cap + label -->
+  <g>
+    <rect x="96" y="270" width="86" height="70" fill="var(--bg-1)" class="s-line" style="stroke-width:2"/>
+    <rect x="100" y="274" width="78" height="4" fill="var(--accent)" fill-opacity="0.5"/>
+    <text x="139" y="318" class="mono acc" font-size="34" font-weight="700" text-anchor="middle">F7</text>
+  </g>
+  <text x="200" y="312" class="sans ink2" font-size="24">toggle anytime, even mid-pick</text>
+  <text x="200" y="344" class="mono ink2" font-size="20">off by default &#183; your call when to cheat</text>
+</svg>
+</body>
+</html>

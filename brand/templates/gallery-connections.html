@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../house.css">
+<link rel="stylesheet" href="../themes/g1r.css">
+<style>
+  /* in-game legend colors (functional, not brand chrome) */
+  .purple{fill:#c08aff} .red{fill:#ff7a7a}
+</style>
+</head>
+<body>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="shot"><rect x="1032" y="212" width="780" height="616"/></clipPath>
+  </defs>
+
+  <rect width="1920" height="1080" fill="var(--bg-0)"/>
+
+  <!-- frame corner brackets (accent) -->
+  <g class="s-acc" style="stroke-width:3;stroke-linecap:square">
+    <path d="M56,120 L56,56 L120,56"/>
+    <path d="M1800,56 L1864,56 L1864,120"/>
+    <path d="M56,960 L56,1024 L120,1024"/>
+    <path d="M1800,1024 L1864,1024 L1864,960"/>
+  </g>
+
+  <!-- eyebrow -->
+  <text x="132" y="180" class="mono" font-size="30" letter-spacing="8">
+    <tspan class="acc">[</tspan><tspan class="ink2"> LOCKPICKSETTINGS </tspan><tspan class="acc">]</tspan>
+  </text>
+
+  <!-- title -->
+  <text x="126" y="372" class="mono ink0" font-size="72" font-weight="700">CONNECTION DISPLAY</text>
+  <rect x="130" y="404" width="260" height="5" fill="var(--accent)"/>
+
+  <!-- legend, in-game colors -->
+  <rect x="132" y="510" width="40" height="40" rx="6" class="purple" stroke="#0a0a0c" stroke-width="2"/>
+  <text x="192" y="540" class="mono" font-size="34"><tspan class="purple" font-weight="700">PURPLE</tspan><tspan class="ink1"> = moves the same way</tspan></text>
+  <rect x="132" y="568" width="40" height="40" rx="6" class="red" stroke="#0a0a0c" stroke-width="2"/>
+  <text x="192" y="598" class="mono" font-size="34"><tspan class="red" font-weight="700">RED</tspan><tspan class="ink1"> = moves opposite</tspan></text>
+
+  <!-- description -->
+  <text x="132" y="678" class="sans ink2" font-size="28">Shows the authored layout. Connections the game removed</text>
+  <text x="132" y="714" class="sans ink2" font-size="28">prune themselves as your moves disprove them.</text>
+
+  <!-- hotkey cap -->
+  <rect x="132" y="784" width="86" height="70" fill="var(--bg-1)" class="s-line" style="stroke-width:2"/>
+  <rect x="136" y="788" width="78" height="4" fill="var(--accent)" fill-opacity="0.5"/>
+  <text x="175" y="832" class="mono acc" font-size="34" font-weight="700" text-anchor="middle">F8</text>
+  <text x="240" y="816" class="sans ink2" font-size="28">toggle anytime</text>
+  <text x="240" y="850" class="mono ink2" font-size="20">off by default</text>
+
+  <!-- ============ framed screenshot, right ============ -->
+  <rect x="1016" y="196" width="812" height="648" fill="var(--bg-1)" class="s-line" style="stroke-width:1.5"/>
+  <image href="../LockpickScreenshotConnections.png" x="1032" y="212" width="780" height="616"
+         preserveAspectRatio="xMidYMid slice" clip-path="url(#shot)"/>
+  <rect x="1032" y="212" width="780" height="616" fill="none" class="s-line2" style="stroke-width:1"/>
+  <!-- mat corner brackets (accent) -->
+  <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
+    <path d="M1016,236 L1016,196 L1056,196"/>
+    <path d="M1788,196 L1828,196 L1828,236"/>
+    <path d="M1016,804 L1016,844 L1056,844"/>
+    <path d="M1788,844 L1828,844 L1828,804"/>
+  </g>
+</svg>
+</body>
+</html>
