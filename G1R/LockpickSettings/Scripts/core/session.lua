@@ -528,6 +528,16 @@ function Session:tick()
     local alive = false
     pcall(function()
         alive = s.lifeActor:IsValid() and s.scene:IsValid()
+        -- the minigame is only live while its TASK is. An OPENED lock's piece
+        -- and scene actors LINGER for minutes, which used to keep the session
+        -- (and main's liveSession) alive long after the lock was finished, so
+        -- auto-solve could be re-armed while standing at an already-open chest
+        -- and then press a dead task. The task dies when the minigame ends, so
+        -- treat its death as the end. On a CONFIRMED open the opened-epilogue
+        -- below already drives teardown, so only gate on the task off that path.
+        if alive and not s.opened and s.task and s.task.obj then
+            alive = s.task.obj:IsValid()
+        end
     end)
     if not alive then
         -- backstop: if the success hooks missed (unknown ability variant), a

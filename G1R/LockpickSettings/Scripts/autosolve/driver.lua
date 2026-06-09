@@ -94,6 +94,10 @@ function Driver:armSingle(s)
         self.log("Auto-solve: no active lock")
         return
     end
+    if s.stop or s.opened then
+        self.log("Auto-solve: no active lock")
+        return
+    end
     self:reset()
     self.mode = "single"
     self.phase = "idle"
@@ -115,6 +119,10 @@ function Driver:toggleFull(s)
         return
     end
     if not s then
+        self.log("Auto-solve: no active lock")
+        return
+    end
+    if s.stop or s.opened then
         self.log("Auto-solve: no active lock")
         return
     end
@@ -142,6 +150,15 @@ function Driver:step(s)
         return
     end
     if s.stop then self:reset() return end
+    -- AUTHORITATIVE open signal beats the measured goal: the game has confirmed
+    -- the lock opened, so disengage NOW even if the final pin's glide has not yet
+    -- measured centered. Pressing past this point drives a task that is being torn
+    -- down while its scene/pieces linger, a native AV pcall cannot catch. This is
+    -- the belt to the getTask braces in main (which already refuses the press).
+    if s.opened then
+        self:finish(s, "lock solved", true)
+        return
+    end
     -- usability: the planner needs the bar-anchored frame. stateUnknown or a
     -- missing frame means there is nothing safe to plan against.
     if s.stateUnknown or not s.hintGeometry then
@@ -258,6 +275,20 @@ end
 -- glow follows the game's own handler, not the UE4SS hook, so this does not
 -- depend on a Lua-initiated press re-entering the input hook. Capped at the piece
 -- count, and re-checked next tick in case any press was dropped.
+-- press the live task; a FAILED dispatch means the minigame input is no longer
+-- reachable (the lock closed, was exited, or the task is gone), so stop the run at
+-- once rather than press again or wait out deviations. main's getTask returns nil
+-- the instant the session is stopping/opened, so this is the driver side of the
+-- same guard: we never keep pressing a task that is tearing down.
+function Driver:press(s, which)
+    local ok = self.engine.pressInput(self.getTask(), which)
+    if not ok then
+        self:finish(s, "minigame input no longer reachable (lock closed or exited)",
+            false)
+    end
+    return ok
+end
+
 function Driver:driveSelection(s)
     local cur = s.selectedRow
     local need = self.target - cur
@@ -265,7 +296,7 @@ function Driver:driveSelection(s)
     local which = need > 0 and "up" or "down"
     local count = math.min(math.abs(need), s.pieceCount)
     for _ = 1, count do
-        self.engine.pressInput(self.getTask(), which)
+        if not self:press(s, which) then return end
     end
     self.selectTicks = self.selectTicks + 1
 end
@@ -292,7 +323,7 @@ function Driver:issueMove(s)
     self.preRot = self:rot(s, self.target) -- freshest reading before the press
     self.moveTicks = 0
     self.phase = "moving"
-    self.engine.pressInput(self.getTask(), self.dirPress)
+    self:press(s, self.dirPress)
 end
 
 -- a turn animates, so the session early-returns during motion and only steps us

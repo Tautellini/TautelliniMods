@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.2"
+local ModVersion = "3.0.3"
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
@@ -153,9 +153,18 @@ local StartSnap = nil -- slot snapshot of the previous start attempt
 -- CURRENT task through the main-owned FreshTask cache, liveness checked per call
 -- in the adapter. The hotkeys below arm it by setting liveSession.autopilot; the
 -- session tick then advances it one step per settle.
+-- the press target: the CURRENT task, but ONLY while a live session is running
+-- and the lock has NOT begun opening. After the open signal the task is being
+-- torn down while the scene/pieces still linger, and pressing its input UFunction
+-- then dereferences freed sub-objects (a native AV pcall cannot catch). Returning
+-- nil here makes engine.pressInput a safe no-op the instant the lock solves.
 local driver = (not AutoSolveBroken) and Driver.new({
     engine = Engine,
-    getTask = function() return FreshTask end,
+    getTask = function()
+        local s = liveSession
+        if not s or s.stop or s.opened then return nil end
+        return s.task
+    end,
     log = log,
     debug = DebugSolver,
 }) or nil
@@ -284,6 +293,12 @@ local function tryStart(attempt)
         return -- reason == "fail": already logged
     end
     local s = session
+    -- bind THIS minigame's task to the session. The task dies when the minigame
+    -- ends, even though an opened lock's piece/scene actors LINGER for minutes;
+    -- session.tick uses this as the authoritative "still in the minigame" signal,
+    -- so the session (and liveSession) is torn down promptly instead of lingering
+    -- and letting auto-solve be re-armed at an already-finished lock.
+    s.task = FreshTask
     -- main owns the live slot; the onStop closure frees it when this session
     -- ends, only if it is still the live one
     s.onStop = function() if liveSession == s then liveSession = nil end end
@@ -295,7 +310,17 @@ local function tryStart(attempt)
     -- one lean poll tick (2.5x/s, cached references only): a session that is no
     -- longer the live one, or stopped, returns true and the loop ends
     LoopAsync(400, function()
-        if liveSession ~= s or s.stop then return true end
+        if liveSession ~= s or s.stop then
+            -- one reliable end-of-session line on EVERY teardown path (solved and
+            -- looted, exited, evicted, world change). The driver's own "lock
+            -- solved" line is not guaranteed on a fast solve (the session can halt
+            -- before the driver's next step), so this is the authoritative "it is
+            -- off now" confirmation. Pairs with the start banner. Fires once: the
+            -- loop stops the moment it returns true.
+            log("Lockpick session ended for '" .. tostring(s.lockName)
+                .. "': tracking, hint and auto-solve off")
+            return true
+        end
         ExecuteInGameThread(function()
             local ok, err = pcall(function() s:tick() end)
             if not ok then
@@ -474,6 +499,22 @@ if not NextMoveBroken then
     end)
     tryHook("/Script/G1R.AbilityTask_LockPick:RightPressed", function()
         pcall(onMovePress, 1)
+    end)
+    -- BackPressed CANCELS the minigame (the player exiting). Stop the session and
+    -- any auto-solve run NOW, before the task tears down, so nothing presses a
+    -- dying task. The task-liveness gate in session.tick is the backstop for exit
+    -- paths that do not route through BackPressed; this is the immediate one.
+    tryHook("/Script/G1R.AbilityTask_LockPick:BackPressed", function()
+        pcall(function()
+            local s = liveSession
+            if not s or s.stop then return end
+            if driver and driver:running() then
+                driver:finish(s, "minigame exited by player", false)
+            end
+            s.stop = true
+            liveSession = nil
+            if DebugSolver then log("solver: BackPressed exit, session stopped") end
+        end)
     end)
     -- the open signal: combined with aligned pins at session death it marks a
     -- TRUE open position
