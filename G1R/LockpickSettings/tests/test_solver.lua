@@ -29,7 +29,10 @@ package.path = DIR .. "/../Scripts/?.lua;" .. DIR .. "/?.lua;" .. package.path
 
 local T = require("tinytest")
 local Solver = require("nextmove.solver")
-local LOCKS = require("data.lockgraphs")
+-- the mod no longer ships a bundled dump (it decodes the graph live from the game
+-- cache); the tests pin the solver against the repo's reference graphs, the same
+-- file the Python sims parse and what the live decoder reproduces byte-for-byte.
+local LOCKS = assert(loadfile(DIR .. "/../../reference/lock-graphs.lua"))()
 
 -- ------------------------------------------------------------ test harness --
 -- Build the pure solver state from a start layout. Mirrors the solver-relevant

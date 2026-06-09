@@ -4,7 +4,7 @@
 -- shared kit, requires the mod modules, wires them to the engine's events, and
 -- owns ALL registration. The work lives in the shared kit (engine primitives,
 -- num, color, log) and the mod's modules: core/ (engine_lock, session, tinter),
--- util/palette, data/lockgraphs, and the feature folders tries/, nextmove/
+-- util/palette, data/livegraphs, and the feature folders tries/, nextmove/
 -- (solver, geometry, hint), connections/. See CONTRIBUTING.md.
 --
 -- MINIGAME CANON (player-verified 2026-06-07, see README; when an observation
@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.3"
+local ModVersion = "3.0.4"
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
@@ -50,7 +50,7 @@ end
 -- Do it BEFORE the first require so edits to any file take effect.
 local MODULES = {
     "kit", "config", "core.engine_lock", "core.session", "core.tinter",
-    "util.palette", "data.lockgraphs", "data.livegraphs", "tries.boost",
+    "util.palette", "data.livegraphs", "tries.boost",
     "nextmove.solver", "nextmove.geometry", "nextmove.hint",
     "connections.connections", "autosolve.driver",
 }
@@ -82,11 +82,13 @@ if not okCfg or type(Config) ~= "table" then
     Config = {}
 end
 
--- Lock graphs. PREFER decoding the game's OWN PrecompiledScript_Shipping.Cache
--- at runtime (no bundled dump; adapts to layout-changing mods and game patches),
--- self-cached for resilience. FALL BACK to the vendored data.lockgraphs if the
--- live read is unavailable. (Phase 1 of TECH-DEBT Approach A: the bundled dump is
--- still shipped as the last-resort fallback; a later phase drops it.)
+-- Lock graphs: decode the game's OWN PrecompiledScript_Shipping.Cache at runtime
+-- (TECH-DEBT Approach A). The mod ships NO lock data; it reads the game's file,
+-- which adapts to any mod that changes layouts via AngelScript source and to game
+-- patches. data.livegraphs prefers a live decode and falls back to its own
+-- self-written cache; if both are unreadable there is nothing to plan against, so
+-- the hint and connection display disable for the session (the durability boost
+-- is unaffected).
 local LockGraphs, okGraphs, graphSource = {}, false, "none"
 local okLive, Live = pcall(require, "data.livegraphs")
 if okLive and type(Live) == "table" and ModDir then
@@ -102,14 +104,9 @@ if okLive and type(Live) == "table" and ModDir then
     end
 end
 if not okGraphs then
-    local okB, Bundled = pcall(require, "data.lockgraphs")
-    if okB and type(Bundled) == "table" and next(Bundled) then
-        LockGraphs, okGraphs, graphSource = Bundled, true, "bundled"
-    else
-        log("ERROR: no lock graphs available (live decode and bundled both "
-            .. "failed), next-move hint unavailable")
-        LockGraphs, okGraphs = {}, false
-    end
+    log("ERROR: could not read the lock graphs from the game cache "
+        .. "(PrecompiledScript_Shipping.Cache) or a local cache; next-move hint "
+        .. "and connection display off")
 end
 
 local Engine = tryRequire("core.engine_lock")

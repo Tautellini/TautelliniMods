@@ -31,7 +31,7 @@ import random
 import re
 from collections import deque
 
-LUA_GRAPHS = r"C:\dev\TautelliniMods\G1R\LockpickSettings\Scripts\lockgraphs.lua"
+LUA_GRAPHS = r"C:\dev\TautelliniMods\G1R\reference\lock-graphs.lua"
 SEED = 0x10C4
 ATTEMPTS_PER_LOCK = 6
 BFS_CAP = 400_000

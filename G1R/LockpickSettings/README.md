@@ -130,12 +130,15 @@ setup, see the G1R modding guide (`../README.md`).
   value gets raised, an already-raised value is recognized and left alone
   (idempotent, nothing can stack across sessions or saves), anything else
   is left untouched and logged
-- The next-move hint uses the connection graphs shipped in
-  `Scripts/data/lockgraphs.lua` (required by the dotted name
-  `data.lockgraphs`), extracted offline from the game's compiled
-  AngelScript blob (`tools/extract_locks.py`); the running game exposes
-  no readable graph, and the graph is the ONLY thing taken from mined
-  data. Everything else is measured live, because mined rotations
+- The next-move hint uses the lock connection graphs decoded at load from
+  the game's OWN compiled AngelScript cache
+  (`G1R/Script/PrecompiledScript_Shipping.Cache`) by `data/livegraphs.lua`,
+  entirely in-process; the mod ships NO lock data of its own, so it adapts to
+  any mod that changes layouts via AngelScript source and to game patches. A
+  self-written cache covers a temporarily unreadable file. The running game
+  exposes no readable graph at runtime, so the cache file is the source; the
+  graph is the ONLY thing taken from the game's data. Everything else is
+  measured live, because mined rotations
   cannot be trusted for the current state (a break re-scrambles, and a
   save reload can even swap a chest's entire lock config: the game
   assigns random locks per save-state): piece positions come from the
@@ -178,8 +181,9 @@ setup, see the G1R modding guide (`../README.md`).
 Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[LockpickSettings]` lines:
 
 - On game start: `Loaded: untrained 2->12, trained 4->14, master 6->16,
-  next-move hint off (416 lock graphs, toggle: F7), connection display
-  off, toggle: F8`
+  next-move hint off (416 lock graphs from live, toggle: F7), connection
+  display off, toggle: F8` (`from live` = decoded from the game cache;
+  `from cache` = the self-written fallback)
 - On each pick attempt: `Minigame: trained tier, tries 4 -> 14`
 - `durability X not a known tier, leaving it alone`: a game patch likely
   changed the vanilla tier values; update `boost.BASE_TRIES` in

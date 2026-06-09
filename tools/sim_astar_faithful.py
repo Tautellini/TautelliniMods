@@ -24,7 +24,7 @@ from collections import deque
 from pathlib import Path
 
 GRAPHS = Path(__file__).resolve().parent.parent / \
-    "G1R/LockpickSettings/Scripts/data/lockgraphs.lua"
+    "G1R/reference/lock-graphs.lua"
 
 
 def parse_graphs(path):
