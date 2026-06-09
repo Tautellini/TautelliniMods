@@ -35,12 +35,12 @@ local ModVersion = "3.0.3"
 -- global Mods/shared dependency. That folder is not on UE4SS's default search
 -- path, so add it from this file's own location (the BPModLoaderMod pattern).
 local here = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")
-if here then
-    local modDir = here:match("^(.*)[/\\][^/\\]*$") -- the mod folder (parent of Scripts/)
-    if modDir then
-        package.path = modDir .. "/shared/?/?.lua;"
-            .. modDir .. "/shared/?.lua;" .. package.path
-    end
+-- the mod folder (parent of Scripts/). Also used below to locate the game's own
+-- PrecompiledScript_Shipping.Cache for the live graph decode.
+local ModDir = here and here:match("^(.*)[/\\][^/\\]*$") or nil
+if ModDir then
+    package.path = ModDir .. "/shared/?/?.lua;"
+        .. ModDir .. "/shared/?.lua;" .. package.path
 end
 
 -- --------------------------------------------------------- hot reload reset --
@@ -50,7 +50,7 @@ end
 -- Do it BEFORE the first require so edits to any file take effect.
 local MODULES = {
     "kit", "config", "core.engine_lock", "core.session", "core.tinter",
-    "util.palette", "data.lockgraphs", "tries.boost",
+    "util.palette", "data.lockgraphs", "data.livegraphs", "tries.boost",
     "nextmove.solver", "nextmove.geometry", "nextmove.hint",
     "connections.connections", "autosolve.driver",
 }
@@ -82,11 +82,34 @@ if not okCfg or type(Config) ~= "table" then
     Config = {}
 end
 
-local okGraphs, LockGraphs = pcall(require, "data.lockgraphs")
-if not okGraphs or type(LockGraphs) ~= "table" then
-    log("ERROR in data/lockgraphs.lua, next-move hint unavailable ("
-        .. tostring(LockGraphs) .. ")")
-    LockGraphs, okGraphs = {}, false
+-- Lock graphs. PREFER decoding the game's OWN PrecompiledScript_Shipping.Cache
+-- at runtime (no bundled dump; adapts to layout-changing mods and game patches),
+-- self-cached for resilience. FALL BACK to the vendored data.lockgraphs if the
+-- live read is unavailable. (Phase 1 of TECH-DEBT Approach A: the bundled dump is
+-- still shipped as the last-resort fallback; a later phase drops it.)
+local LockGraphs, okGraphs, graphSource = {}, false, "none"
+local okLive, Live = pcall(require, "data.livegraphs")
+if okLive and type(Live) == "table" and ModDir then
+    local ok2, g, src = pcall(function()
+        return Live.load({
+            cachePath = ModDir
+                .. "/../../../../../Script/PrecompiledScript_Shipping.Cache",
+            cacheFile = ModDir .. "/livegraphs.cache.lua",
+        })
+    end)
+    if ok2 and type(g) == "table" and next(g) then
+        LockGraphs, okGraphs, graphSource = g, true, src or "live"
+    end
+end
+if not okGraphs then
+    local okB, Bundled = pcall(require, "data.lockgraphs")
+    if okB and type(Bundled) == "table" and next(Bundled) then
+        LockGraphs, okGraphs, graphSource = Bundled, true, "bundled"
+    else
+        log("ERROR: no lock graphs available (live decode and bundled both "
+            .. "failed), next-move hint unavailable")
+        LockGraphs, okGraphs = {}, false
+    end
 end
 
 local Engine = tryRequire("core.engine_lock")
@@ -641,8 +664,8 @@ local graphCount = 0
 for _ in pairs(LockGraphs) do graphCount = graphCount + 1 end
 local hintInfo = ", next-move hint unavailable"
 if not NextMoveBroken then
-    hintInfo = string.format(", next-move hint %s (%d lock graphs%s)",
-        flags.nextMove and "on" or "off", graphCount,
+    hintInfo = string.format(", next-move hint %s (%d lock graphs from %s%s)",
+        flags.nextMove and "on" or "off", graphCount, graphSource,
         (type(HotkeyName) == "string" and HotkeyName ~= "" and Key[HotkeyName])
         and (", toggle: " .. HotkeyName) or "")
     hintInfo = hintInfo .. string.format(", connection display %s%s",

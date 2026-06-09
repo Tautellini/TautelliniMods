@@ -18,7 +18,7 @@ package.path = DIR .. "/../Scripts/?.lua;"
 
 local MODULES = {
     "kit",
-    "config", "data.lockgraphs",
+    "config", "data.lockgraphs", "data.livegraphs",
     "util.palette",
     "core.engine_lock", "core.session", "core.tinter",
     "tries.boost",
