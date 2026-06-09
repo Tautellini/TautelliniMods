@@ -27,7 +27,18 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.4"
+local ModVersion = "3.0.5"
+
+-- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
+-- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
+-- unchanged), while FAST auto-solve ticks EVERY wake so the route runs as fast as
+-- moves are honoured. POLL_MS is the one tuning knob, and the re-entrancy guard in
+-- the poll self-throttles to the tick's real cost, so a low value is safe ("as
+-- fast as the tick allows"). Shipped at 25ms: a buffer over the ~16ms (one 60fps
+-- frame) that play-tested clean, for headroom on varied hardware. Lower it for
+-- snappier, raise it if play hitches.
+local POLL_MS = 25
+local POLL_NORMAL_EVERY = math.max(1, math.floor(400 / POLL_MS + 0.5)) -- ~400ms normal
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
@@ -128,6 +139,7 @@ local DebugSolver    = Config.debugSolver == true
 local AutoStepKey    = Config.autoSolveStepHotkey
 local AutoFullKey    = Config.autoSolveFullHotkey
 local AutoFullMod    = Config.autoSolveFullModifier
+local AutoFastMod    = Config.autoSolveFastModifier
 
 -- the only mutable feature flags, shared BY REFERENCE into the Session and
 -- Tinter so a hotkey toggle propagates live
@@ -327,9 +339,13 @@ local function tryStart(attempt)
     log(string.format("Next-move hint: %s, %d pieces, %d connections, first hint: %s",
         lockName, s.pieceCount, #graph.connections,
         s.nextMove and ("piece " .. s.nextMove.piece) or "none"))
-    -- one lean poll tick (2.5x/s, cached references only): a session that is no
-    -- longer the live one, or stopped, returns true and the loop ends
-    LoopAsync(400, function()
+    -- the session poll. The worker wakes every POLL_MS but only does game-thread
+    -- work (the tick, cached references only) every POLL_NORMAL_EVERY wakes in
+    -- normal play (~400ms, as before); while FAST auto-solve is engaged it ticks
+    -- EVERY wake so the route executes as fast as moves are honoured. A session
+    -- that is no longer the live one, or stopped, returns true and the loop ends.
+    local pollWakes = 0
+    LoopAsync(POLL_MS, function()
         if liveSession ~= s or s.stop then
             -- one reliable end-of-session line on EVERY teardown path (solved and
             -- looted, exited, evicted, world change). The driver's own "lock
@@ -341,8 +357,21 @@ local function tryStart(attempt)
                 .. "': tracking, hint and auto-solve off")
             return true
         end
+        pollWakes = pollWakes + 1
+        local ap = s.autopilot
+        local fast = ap and ap.mode == "fast"
+        if not fast and (pollWakes % POLL_NORMAL_EVERY) ~= 0 then
+            return false -- normal cadence: no game-thread work this wake
+        end
+        -- re-entrancy guard: at the aggressive fast cadence a wake can arrive
+        -- before the previous tick finished on the game thread. Skip it so ticks
+        -- never queue or backlog; the effective rate self-throttles to the tick's
+        -- real cost (so POLL_MS can be set very low safely).
+        if s.ticking then return false end
+        s.ticking = true
         ExecuteInGameThread(function()
             local ok, err = pcall(function() s:tick() end)
+            s.ticking = false
             if not ok then
                 s.stop = true
                 if liveSession == s then liveSession = nil end
@@ -452,6 +481,28 @@ if driver and type(AutoFullKey) == "string" and AutoFullKey ~= "" then
     else
         log("ERROR: unknown autoSolveFullHotkey '" .. AutoFullKey
             .. "', full-auto disabled")
+    end
+end
+-- Ctrl+F6 (configurable modifier): FAST full-auto. Same key as full-auto, with
+-- autoSolveFastModifier; arms the driver's fast mode (the session then ticks every
+-- poll wake while it runs).
+local lastAutoFast = 0
+if driver and type(AutoFullKey) == "string" and AutoFullKey ~= ""
+    and type(AutoFastMod) == "string" and AutoFastMod ~= "" and Key[AutoFullKey] then
+    local fmod = ModifierKey and ModifierKey[AutoFastMod]
+    if not fmod then
+        log("ERROR: unknown autoSolveFastModifier '" .. AutoFastMod
+            .. "', fast-auto disabled")
+    else
+        local ok = pcall(RegisterKeyBind, Key[AutoFullKey], { fmod }, function()
+            local now = os.clock()
+            if now - lastAutoFast < 0.3 then return end
+            lastAutoFast = now
+            ExecuteInGameThread(function()
+                pcall(function() driver:toggleFast(liveSession) end)
+            end)
+        end)
+        if not ok then log("ERROR: could not register fast-auto hotkey") end
     end
 end
 
@@ -681,6 +732,9 @@ if not NextMoveBroken then
             local pfx = (type(AutoFullMod) == "string" and AutoFullMod ~= "")
                 and (AutoFullMod .. "+") or ""
             autoKeys[#autoKeys + 1] = pfx .. AutoFullKey .. " full-auto"
+            if type(AutoFastMod) == "string" and AutoFastMod ~= "" then
+                autoKeys[#autoKeys + 1] = AutoFastMod .. "+" .. AutoFullKey .. " fast"
+            end
         end
         if #autoKeys > 0 then
             hintInfo = hintInfo .. ", auto-solve: " .. table.concat(autoKeys, ", ")

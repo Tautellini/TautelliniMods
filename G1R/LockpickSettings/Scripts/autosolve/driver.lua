@@ -33,6 +33,9 @@ local CYCLE_LIMIT = 3      -- stop full-auto if any state recurs this many times
                            -- a correct route never revisits a state, so this
                            -- means the route is oscillating because the live
                            -- lock's connections disagree with the model
+local FAST_INTERP = 1000.0 -- fast mode cranks the scene's piece interpolation
+                           -- speed to this so moves SNAP instead of glide
+                           -- (baseline 20); restored to the original on stop
 
 local Driver = {}
 Driver.__index = Driver
@@ -66,6 +69,7 @@ function Driver:reset()
     self.moveTicks = 0
     self.nudges = 0
     self.deviations = 0
+    self.origInterp = nil -- scene interpolation speed to restore (fast mode only)
 end
 
 function Driver:running()
@@ -132,6 +136,38 @@ function Driver:toggleFull(s)
     self.boundSession = s
     self:engage(s)
     self.log("Auto-solve: full-auto started")
+end
+
+-- Ctrl+F6: toggle FAST full-auto. Same route, replan-on-divergence and durability
+-- safety as Shift+F6 (the state machine treats "fast" exactly like "full"), with
+-- two additions: it collapses the move animation (cranks the scene interpolation
+-- speed, restored on stop) and main drives the session on a tight poll, so the
+-- route executes as fast as moves are honoured. A second press cancels; a
+-- successful open disengages on its own.
+function Driver:toggleFast(s)
+    self:freshen(s)
+    if self.mode == "fast" then
+        self:finish(s, "cancelled", false)
+        return
+    end
+    if self.mode == "single" or self.mode == "full" then
+        self.log("Auto-solve already running, fast-auto ignored")
+        return
+    end
+    if not s or s.stop or s.opened then
+        self.log("Auto-solve: no active lock")
+        return
+    end
+    self:reset()
+    self.mode = "fast"
+    self.phase = "idle"
+    self.boundSession = s
+    -- collapse the glide so the tight poll never fires mid-animation; the written
+    -- value sticks (probe-confirmed) and finish restores the original.
+    self.origInterp = self.engine.getSceneInterp(s.scene)
+    self.engine.setSceneInterp(s.scene, FAST_INTERP)
+    self:engage(s)
+    self.log("Auto-solve: FAST full-auto started")
 end
 
 -- arm the session: the session tick will call step() once per settle. The
@@ -420,6 +456,11 @@ end
 
 -- end the run, clear the seam, log one line (success or stop)
 function Driver:finish(s, why, success)
+    -- restore the move animation if fast mode cranked the interpolation speed
+    -- (no-op for single/full, which never set origInterp)
+    if self.origInterp ~= nil and s and s.scene then
+        self.engine.setSceneInterp(s.scene, self.origInterp)
+    end
     if s then s.autopilot = nil end
     self:reset()
     if success then

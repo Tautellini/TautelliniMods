@@ -101,6 +101,24 @@ function engine.writeColor(e, color)
     end
 end
 
+-- read / write the lock scene's piece-move interpolation speed, a reflected float
+-- on GothicLockSceneActor (baseline 20, m_UseConstantInterpolationSpeed = true).
+-- Cranking it collapses the move glide to a near-instant SNAP (the fast auto-solve
+-- lever; probe-confirmed the written value sticks, the game does not re-assert it).
+-- Per-minigame scene actor, so it never leaks across locks; fast mode restores the
+-- original on stop. getSceneInterp returns the number or nil; setSceneInterp
+-- returns ok.
+function engine.getSceneInterp(scene)
+    local v
+    local ok = pcall(function() v = scene.m_LockPieceInterpolationSpeed end)
+    if ok then return v end
+    return nil
+end
+
+function engine.setSceneInterp(scene, value)
+    return (pcall(function() scene.m_LockPieceInterpolationSpeed = value end))
+end
+
 -- read the current HighlightColor off a single MID, or nil. Used to observe the
 -- game's selected-glow signature and to tell our own paint apart from it.
 function engine.readHighlight(mid)

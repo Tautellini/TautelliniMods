@@ -64,6 +64,11 @@ return {
     -- key: "SHIFT", "CONTROL", "ALT", or "" for none (give full-auto its
     -- own key then, or it will share the step key).
     autoSolveFullModifier = "SHIFT",
+    -- Modifier for FAST full-auto (Ctrl+F6 by default), on the full-auto key.
+    -- Same route, replan and durability safety as full-auto, but it collapses the
+    -- move animation and drives the route on a tight cadence, so it solves much
+    -- faster. "" disables the fast bind.
+    autoSolveFastModifier = "CONTROL",
 
     -- Log solver internals (moved sets, replans, calibration) to the
     -- UE4SS log. ALPHA DEFAULT: on, so bug reports arrive with a full solver

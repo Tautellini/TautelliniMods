@@ -15,7 +15,9 @@ LockpickSettings for Gothic 1 Remake
    you; press Shift+F6 to run full auto and clear the whole lock,
    stopping by itself the moment it opens (Shift+F6 again cancels). It
    moves as fast as each press is honored and re-plans if a move is
-   refused. Needs the next-move feature; both keys are configurable.
+   refused. Ctrl+F6 is an EXPERIMENTAL "super fast" mode that solves
+   almost instantly. Auto-solve still earns the lockpicking achievement.
+   Needs the next-move feature; the keys are configurable.
 
 Requires UE4SS, experimental build (the game runs UE 5.4.3):
 https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest
@@ -28,9 +30,10 @@ Install:
    The included enabled.txt activates the mod automatically;
    no mods.txt editing is needed.
 3. Start the game. ...\ue4ss\UE4SS.log should show:
-   [LockpickSettings] Loaded 3.0.4 (kit 1.0.0): untrained 2->12, trained 4->14,
+   [LockpickSettings] Loaded 3.0.5 (kit 1.0.0): untrained 2->12, trained 4->14,
    master 6->16, next-move hint off (416 lock graphs from live, toggle: F7),
-   connection display off, toggle: F8, auto-solve: F6 step, SHIFT+F6 full-auto
+   connection display off, toggle: F8, auto-solve: F6 step, SHIFT+F6 full-auto,
+   CONTROL+F6 fast
 
 Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the
 bonus added on top of the vanilla 2/4/6, giving 12/14/16 by default;
