@@ -168,6 +168,20 @@ from `main.lua`'s own location, region-limited read, optional load-time slicing)
 decide the fallback when the file is unreadable (disable the hint vs. keep a
 vendored snapshot), and keep the Python and Lua decoders as cross-check oracles.
 
+**Field update (2026-06-09, shipped 3.0.6).** The live decode works for most
+players but FAILS for some (logged `could not read the lock graphs from the game
+cache`). The per-user root cause is still being gathered: 3.0.6 makes that error
+self-diagnosing (it now logs the resolved `cachePath`, whether the file opened at
+all, and the specific reason), so a failing log shows file-problem
+(missing/permission/wrong path, e.g. a different distribution) vs decode-problem (a
+game build whose bytecode the calibration does not match). The deferred fallback
+decision above is now settled: KEEP A VENDORED SNAPSHOT.
+`data/lockgraphs_fallback.lua` (byte-faithful to a verified live decode, 416
+graphs) loads only when the live decode AND the self-written cache both fail. Load
+order is live -> self-cache -> bundled fallback, so working players and
+layout-mod players are unaffected (live still preferred); a failing-decode player
+on a divergent layout is unsupported until the bundle is refreshed (accepted).
+
 The separate "wild calculations for piece positions" concern is item 5 (read each
 piece's `m_RuntimeRootComponent` rotation directly instead of the MPC-slot snap
 math); a distinct track, tackled after the graph is live.

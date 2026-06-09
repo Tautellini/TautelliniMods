@@ -292,6 +292,19 @@ function M.load(opts)
             return cached, "cache"
         end
     end
+    -- Last resort: the bundled fallback shipped with the mod. Used only when the
+    -- live decode AND the self-written cache both fail (a build/distribution where
+    -- the .Cache is unreadable or does not decode). Correct for the vanilla layout;
+    -- a divergent layout there is simply unsupported until the bundle is refreshed.
+    if opts.fallbackPath then
+        local ok, bundled = pcall(function()
+            local chunk = loadfile(opts.fallbackPath)
+            return chunk and chunk()
+        end)
+        if ok and type(bundled) == "table" and next(bundled) then
+            return bundled, "fallback"
+        end
+    end
     return nil, "none (" .. tostring(err) .. ")"
 end
 

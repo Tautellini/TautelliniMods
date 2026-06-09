@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.5"
+local ModVersion = "3.0.6"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -101,23 +101,39 @@ end
 -- the hint and connection display disable for the session (the durability boost
 -- is unaffected).
 local LockGraphs, okGraphs, graphSource = {}, false, "none"
+local cachePath = ModDir
+    and (ModDir .. "/../../../../../Script/PrecompiledScript_Shipping.Cache") or nil
+local graphErr = "not attempted"
 local okLive, Live = pcall(require, "data.livegraphs")
-if okLive and type(Live) == "table" and ModDir then
+if not okLive then
+    graphErr = "require data.livegraphs failed: " .. tostring(Live)
+elseif type(Live) ~= "table" or not ModDir then
+    graphErr = "no Live module or ModDir"
+else
     local ok2, g, src = pcall(function()
         return Live.load({
-            cachePath = ModDir
-                .. "/../../../../../Script/PrecompiledScript_Shipping.Cache",
+            cachePath = cachePath,
             cacheFile = ModDir .. "/livegraphs.cache.lua",
+            fallbackPath = ModDir .. "/Scripts/data/lockgraphs_fallback.lua",
         })
     end)
     if ok2 and type(g) == "table" and next(g) then
         LockGraphs, okGraphs, graphSource = g, true, src or "live"
+    else
+        graphErr = ok2 and tostring(src) or ("crash: " .. tostring(g))
     end
 end
 if not okGraphs then
-    log("ERROR: could not read the lock graphs from the game cache "
-        .. "(PrecompiledScript_Shipping.Cache) or a local cache; next-move hint "
-        .. "and connection display off")
+    -- Self-diagnosing error: report WHY (file vs decode) plus the resolved path and
+    -- whether the file is even openable, so a failing user's log pinpoints the cause.
+    local fileStat = "open FAILED (missing / permission / wrong path)"
+    pcall(function()
+        local fh = cachePath and io.open(cachePath, "rb")
+        if fh then local n = fh:seek("end"); fh:close(); fileStat = tostring(n) .. " bytes, readable" end
+    end)
+    log("ERROR: lock graphs unavailable; next-move hint and connection display off. "
+        .. "reason=[" .. tostring(graphErr) .. "] cachePath=[" .. tostring(cachePath)
+        .. "] file=[" .. fileStat .. "]")
 end
 
 local Engine = tryRequire("core.engine_lock")
