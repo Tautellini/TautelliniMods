@@ -165,8 +165,20 @@ function Driver:stepIdle(s)
         self:beginMove(s, move)
         return
     end
-    -- no move yet: the search runs across ticks, so a couple of empty ticks is
-    -- normal. Wait up to WAIT_TICKS for a real move before nudging.
+    -- The solver searches in budget slices across ticks; a hard lock (a long
+    -- route, or a replan forced when a move reveals a pruned edge) can need many
+    -- ticks. While it is STILL SEARCHING, wait patiently and do NOT nudge:
+    -- nudging perturbs the state and restarts the search, which is what made
+    -- hard locks give up with "no solvable move found" while the hint, having no
+    -- timeout, still found the move. The solver always concludes on its own (a
+    -- route, or a no-route latch that finishes the plan), so this cannot wait
+    -- forever.
+    if s.plan and not s.plan.finished then
+        self.waitTicks = 0
+        return
+    end
+    -- the search has CONCLUDED with no move (no route under the believed model),
+    -- or there is no plan: genuinely stuck. Wait a brief grace, then nudge.
     self.waitTicks = self.waitTicks + 1
     if self.waitTicks < WAIT_TICKS then return end
     -- waited long enough: make a "possible" move to progress and let direction

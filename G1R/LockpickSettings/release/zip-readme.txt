@@ -28,7 +28,7 @@ Install:
    The included enabled.txt activates the mod automatically;
    no mods.txt editing is needed.
 3. Start the game. ...\ue4ss\UE4SS.log should show:
-   [LockpickSettings] Loaded 3.0.0-alpha (kit 1.0.0): untrained 2->12, trained 4->14,
+   [LockpickSettings] Loaded 3.0.1 (kit 1.0.0): untrained 2->12, trained 4->14,
    master 6->16, next-move hint off (416 lock graphs, toggle: F7),
    connection display off, toggle: F8, auto-solve: F6 step, SHIFT+F6 full-auto
 
@@ -39,9 +39,10 @@ showConnections = the assists' state at game start, nextMoveHotkey /
 connectionsHotkey = the toggle keys, autoSolveStepHotkey /
 autoSolveFullHotkey / autoSolveFullModifier = the auto-solve keys,
 hintColorLeft / hintColorRight /
-partnerColorSame / partnerColorOpposite = the colors). During this
-alpha, debugSolver defaults to on so bug reports include a full solver
-trace in UE4SS.log; set debugSolver = false for quiet play. Apply
+partnerColorSame / partnerColorOpposite = the colors). debugSolver
+defaults to on so bug reports include a full solver trace in
+UE4SS.log; set debugSolver = false for quiet play (it will likely
+default to off in a later release). Apply
 changes with a game restart or CTRL+R. Both
 assists can be toggled at any time, even mid-pick: the mod follows
 every lock from its start, the keys only switch the highlights.

@@ -163,6 +163,23 @@ T.add("an uncalibrated nudge that resolves the opposite way is not a deviation",
     T.ok(not sawDeviation, "did not misclassify a nudge as a deviation")
 end)
 
+T.add("waits while the solver is still searching, does not give up or nudge", function()
+    -- a hard lock: plan() returns nil but leaves an UNFINISHED search on s.plan
+    -- (the solver runs in budget slices across ticks). The driver must wait, not
+    -- time out and nudge. Regression for "no solvable move found" firing on a
+    -- solvable-but-slow lock while the hint still showed a move.
+    local s, engine, presses = makeWorld({
+        pieceCount = 1, rotStart = { [0] = 2 }, sign = 1, screenRight = 1,
+        selectedSig = true, selectedRow = 0,
+        plan = function(_, st) st.plan = { finished = false } return nil end,
+    })
+    local d = newDriver(engine)
+    d:toggleFull(s)
+    for _ = 1, 50 do if d:running() then d:step(s) end end
+    T.ok(d:running(), "still engaged after 50 searching ticks (did not give up)")
+    T.eq(#presses, 0, "did not nudge while the solver was still searching")
+end)
+
 T.add("aborts honestly when selection is not observable (no glow)", function()
     local s, engine, presses = makeWorld({
         pieceCount = 2, rotStart = { [0] = 0, [1] = 1 }, sign = 1,
