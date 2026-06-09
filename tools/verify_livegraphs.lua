@@ -1,4 +1,4 @@
--- verify_livegraphs.lua  --  offline check that Scripts/data/livegraphs.lua,
+-- verify_livegraphs.lua  --  offline check that tools/livegraphs.lua,
 -- WITH auto-calibrated pointers and the region fast-path, decodes the game's
 -- .Cache into the same graphs the committed reference holds. Emits data lines in
 -- extract_locks.py format for diffing against G1R/reference/lock-graphs.lua.
@@ -7,8 +7,8 @@
 --   tools\luajit\luajit.exe tools\verify_livegraphs.lua > out.txt
 --   then diff out.txt against the data lines of reference/lock-graphs.lua
 
-package.path = "G1R/LockpickSettings/Scripts/?.lua;" .. package.path
-local M = require("data.livegraphs")
+package.path = "tools/?.lua;" .. package.path
+local M = require("livegraphs")
 
 local CACHE =
     [[C:\Program Files (x86)\Steam\steamapps\common\Gothic 1 Remake\G1R\Script\PrecompiledScript_Shipping.Cache]]

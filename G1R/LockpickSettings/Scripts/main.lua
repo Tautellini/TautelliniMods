@@ -4,7 +4,7 @@
 -- shared kit, requires the mod modules, wires them to the engine's events, and
 -- owns ALL registration. The work lives in the shared kit (engine primitives,
 -- num, color, log) and the mod's modules: core/ (engine_lock, session, tinter),
--- util/palette, data/livegraphs, and the feature folders tries/, nextmove/
+-- util/palette, data/lockgraphs, and the feature folders tries/, nextmove/
 -- (solver, geometry, hint), connections/. See CONTRIBUTING.md.
 --
 -- MINIGAME CANON (player-verified 2026-06-07, see README; when an observation
@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.7"
+local ModVersion = "3.0.8"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -46,8 +46,8 @@ local POLL_NORMAL_EVERY = math.max(1, math.floor(400 / POLL_MS + 0.5)) -- ~400ms
 -- global Mods/shared dependency. That folder is not on UE4SS's default search
 -- path, so add it from this file's own location (the BPModLoaderMod pattern).
 local here = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")
--- the mod folder (parent of Scripts/). Also used below to locate the game's own
--- PrecompiledScript_Shipping.Cache for the live graph decode.
+-- the mod folder (parent of Scripts/), used to add the vendored shared/ kit to
+-- package.path.
 local ModDir = here and here:match("^(.*)[/\\][^/\\]*$") or nil
 if ModDir then
     package.path = ModDir .. "/shared/?/?.lua;"
@@ -61,7 +61,7 @@ end
 -- Do it BEFORE the first require so edits to any file take effect.
 local MODULES = {
     "kit", "config", "core.engine_lock", "core.session", "core.tinter",
-    "util.palette", "data.livegraphs", "tries.boost",
+    "util.palette", "data.lockgraphs", "tries.boost",
     "nextmove.solver", "nextmove.geometry", "nextmove.hint",
     "connections.connections", "autosolve.driver",
 }
@@ -93,48 +93,21 @@ if not okCfg or type(Config) ~= "table" then
     Config = {}
 end
 
--- Lock graphs: decode the game's OWN PrecompiledScript_Shipping.Cache at runtime
--- (TECH-DEBT Approach A). The mod ships NO lock data; it reads the game's file,
--- which adapts to any mod that changes layouts via AngelScript source and to game
--- patches. data.livegraphs prefers a live decode and falls back to its own
--- self-written cache; if both are unreadable there is nothing to plan against, so
--- the hint and connection display disable for the session (the durability boost
--- is unaffected).
+-- Lock graphs: the mod SHIPS the connection-graph data (data/lockgraphs.lua) and
+-- reads it directly as the state of truth. We maintain it ourselves: this means the
+-- mod is NOT automatically compatible with a new game version, nor with other mods
+-- that change lock layouts. On a game update, regenerate the shipped data with the
+-- dev-side decoder of the game's PrecompiledScript_Shipping.Cache
+-- (tools/livegraphs.lua + tools/verify_livegraphs.lua). If the data ever fails to
+-- load there is nothing to plan against, so the hint and connection display disable
+-- for the session (the durability boost is unaffected).
 local LockGraphs, okGraphs, graphSource = {}, false, "none"
-local cachePath = ModDir
-    and (ModDir .. "/../../../../../Script/PrecompiledScript_Shipping.Cache") or nil
-local graphErr = "not attempted"
-local okLive, Live = pcall(require, "data.livegraphs")
-if not okLive then
-    graphErr = "require data.livegraphs failed: " .. tostring(Live)
-elseif type(Live) ~= "table" or not ModDir then
-    graphErr = "no Live module or ModDir"
+local okData, Data = pcall(require, "data.lockgraphs")
+if okData and type(Data) == "table" and next(Data) then
+    LockGraphs, okGraphs, graphSource = Data, true, "bundled"
 else
-    local ok2, g, src = pcall(function()
-        return Live.load({
-            cachePath = cachePath,
-            cacheFile = ModDir .. "/livegraphs.cache.lua",
-            fallbackPath = ModDir .. "/Scripts/data/lockgraphs_fallback.lua",
-            forceFallback = Config.forceFallbackGraphs == true,
-        })
-    end)
-    if ok2 and type(g) == "table" and next(g) then
-        LockGraphs, okGraphs, graphSource = g, true, src or "live"
-    else
-        graphErr = ok2 and tostring(src) or ("crash: " .. tostring(g))
-    end
-end
-if not okGraphs then
-    -- Self-diagnosing error: report WHY (file vs decode) plus the resolved path and
-    -- whether the file is even openable, so a failing user's log pinpoints the cause.
-    local fileStat = "open FAILED (missing / permission / wrong path)"
-    pcall(function()
-        local fh = cachePath and io.open(cachePath, "rb")
-        if fh then local n = fh:seek("end"); fh:close(); fileStat = tostring(n) .. " bytes, readable" end
-    end)
-    log("ERROR: lock graphs unavailable; next-move hint and connection display off. "
-        .. "reason=[" .. tostring(graphErr) .. "] cachePath=[" .. tostring(cachePath)
-        .. "] file=[" .. fileStat .. "]")
+    log("ERROR: bundled lock graphs (data/lockgraphs.lua) failed to load; next-move "
+        .. "hint and connection display off (" .. tostring(Data) .. ")")
 end
 
 local Engine = tryRequire("core.engine_lock")

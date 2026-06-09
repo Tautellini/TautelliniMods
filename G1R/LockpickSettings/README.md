@@ -130,15 +130,15 @@ setup, see the G1R modding guide (`../README.md`).
   value gets raised, an already-raised value is recognized and left alone
   (idempotent, nothing can stack across sessions or saves), anything else
   is left untouched and logged
-- The next-move hint uses the lock connection graphs decoded at load from
-  the game's OWN compiled AngelScript cache
-  (`G1R/Script/PrecompiledScript_Shipping.Cache`) by `data/livegraphs.lua`,
-  entirely in-process; the mod ships NO lock data of its own, so it adapts to
-  any mod that changes layouts via AngelScript source and to game patches. A
-  self-written cache covers a temporarily unreadable file. The running game
-  exposes no readable graph at runtime, so the cache file is the source; the
-  graph is the ONLY thing taken from the game's data. Everything else is
-  measured live, because mined rotations
+- The next-move hint uses the lock connection graphs the mod SHIPS in
+  `data/lockgraphs.lua` (the state of truth, read at load). Decoding them live
+  from the game's compiled AngelScript cache
+  (`G1R/Script/PrecompiledScript_Shipping.Cache`) was tried but failed for too
+  many players, so the data is bundled and maintained: the mod is not
+  automatically compatible with a new game version or with other lock-layout
+  mods, and the shipped data is regenerated on a game update with the dev tool
+  `tools/livegraphs.lua`. The graph is the ONLY thing taken from the game's
+  data. Everything else is measured live, because mined rotations
   cannot be trusted for the current state (a break re-scrambles, and a
   save reload can even swap a chest's entire lock config: the game
   assigns random locks per save-state): piece positions come from the

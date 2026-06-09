@@ -1,5 +1,8 @@
--- livegraphs.lua  --  decode the lock connection graph from the GAME'S OWN data
--- at runtime, so the mod ships no bundled lock dump (TECH-DEBT Approach A).
+-- livegraphs.lua  --  DEV TOOL (not shipped). Decode the lock connection graph
+-- from the game's own PrecompiledScript_Shipping.Cache. The mod no longer reads
+-- live data at runtime (too unreliable across builds); it ships
+-- Scripts/data/lockgraphs.lua as the state of truth, and this tool REGENERATES
+-- that file on a game update (decode + serialize). See tools/verify_livegraphs.lua.
 --
 -- The graph is reflected nowhere and the build calls are not hookable (see
 -- TECH-DEBT items 1 and 2); the only place it lives that Lua can reach is the

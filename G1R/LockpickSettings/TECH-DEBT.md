@@ -182,6 +182,17 @@ order is live -> self-cache -> bundled fallback, so working players and
 layout-mod players are unaffected (live still preferred); a failing-decode player
 on a divergent layout is unsupported until the bundle is refreshed (accepted).
 
+**Reversal (2026-06-09, shipped 3.0.8).** The live decode kept failing for too many
+players (multiple on Steam/Windows, where neither a path nor permission story fits),
+so the layered approach was abandoned: **the mod no longer reads live data at all.**
+It ships `data/lockgraphs.lua` as the sole source of truth and reads it directly,
+and we maintain it. The in-process decoder moved out of the shipped mod to
+`tools/livegraphs.lua` (a dev/regen tool, kept because it is the cleanest way to
+regenerate the shipped data on a game update). Accepted: the mod is NOT
+automatically compatible with a new game version or with other lock-layout mods;
+both require a refreshed `data/lockgraphs.lua`. The live-decode work remains
+recorded above and in the tool, in case the approach is ever revisited.
+
 The separate "wild calculations for piece positions" concern is item 5 (read each
 piece's `m_RuntimeRootComponent` rotation directly instead of the MPC-slot snap
-math); a distinct track, tackled after the graph is live.
+math); a distinct track, independent of where the graph comes from.

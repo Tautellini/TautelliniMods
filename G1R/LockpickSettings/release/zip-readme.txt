@@ -30,15 +30,14 @@ Install:
    The included enabled.txt activates the mod automatically;
    no mods.txt editing is needed.
 3. Start the game. ...\ue4ss\UE4SS.log should show:
-   [LockpickSettings] Loaded 3.0.7 (kit 1.0.0): untrained 2->12, trained 4->14,
-   master 6->16, next-move hint off (416 lock graphs from live, toggle: F7),
+   [LockpickSettings] Loaded 3.0.8 (kit 1.0.0): untrained 2->12, trained 4->14,
+   master 6->16, next-move hint off (416 lock graphs from bundled, toggle: F7),
    connection display off, toggle: F8, auto-solve: F6 step, SHIFT+F6 full-auto,
    CONTROL+F6 fast
-   The lock graphs are read live from the game ("from live"). If your build
-   cannot be read, the mod falls back to a bundled set ("from fallback" or
-   "from cache") so the hint and auto-solve still work. (Advanced: set
-   forceFallbackGraphs = true in config.lua to force that bundled set, e.g. to
-   test it; leave it false for normal play.)
+   The lock graphs ship with the mod ("from bundled"). This makes the mod
+   independent of the game build at runtime, but it is NOT automatically
+   compatible with a new game version or with other mods that change lock
+   layouts; those need a mod update.
 
 Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the
 bonus added on top of the vanilla 2/4/6, giving 12/14/16 by default;

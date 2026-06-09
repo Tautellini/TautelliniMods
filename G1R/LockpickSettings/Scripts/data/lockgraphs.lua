@@ -1,14 +1,16 @@
--- lockgraphs_fallback.lua: BUNDLED last-resort lock graphs (vanilla layout).
+-- lockgraphs.lua: the SHIPPED lock connection-graph data, the mod's state of truth.
 --
--- Loaded by data/livegraphs.lua ONLY when the live decode of the game's
--- PrecompiledScript_Shipping.Cache AND the self-written cache both fail (a build or
--- distribution where that file is unreadable or does not decode). The live decode
--- is always preferred, so this never overrides correct live data and never breaks
--- compatibility with layout-changing mods on systems where the decode works.
+-- The mod reads this directly (require "data.lockgraphs"); it does NOT read the
+-- game's live data at runtime. Consequence we accept: this is NOT automatically
+-- compatible with a new game version, nor with other mods that change lock layouts.
+-- We maintain it.
 --
--- Byte-faithful to a verified live decode (416 graphs). REGENERATE when the game's
--- vanilla layout changes: copy a successful run's <Mod>/livegraphs.cache.lua over
--- this file (or re-run tools/extract_locks.py). Pure data: returns
+-- REGENERATE on a game update (or to match a layout change): decode the game's
+-- PrecompiledScript_Shipping.Cache with the dev tool and write its output here:
+--   tools/luajit/luajit.exe tools/verify_livegraphs.lua   (emits the body lines)
+-- then wrap them in `return { ... }`; cross-check against reference/lock-graphs.lua.
+--
+-- 416 graphs, byte-faithful to a verified decode. Pure data: returns
 -- { [lockName] = { pieces = {{id,rot}...}, connections = {{a,b,dir}...} } }.
 
 return {

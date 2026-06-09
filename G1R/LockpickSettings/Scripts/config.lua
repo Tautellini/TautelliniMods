@@ -76,11 +76,4 @@ return {
     -- per settled move, not per-frame spam. Set to false for quiet play
     -- (restart or CTRL+R).
     debugSolver = true,
-
-    -- DEBUG: force the lock graphs to load from the bundled fallback snapshot
-    -- (data/lockgraphs_fallback.lua), skipping the live decode of the game's
-    -- .Cache and the self-written cache. Use this to test the fallback behaviour
-    -- on a machine where the live decode works. Leave false for normal play (the
-    -- live decode is preferred); the startup banner reads "from fallback" when on.
-    forceFallbackGraphs = false,
 }
