@@ -58,7 +58,7 @@ $InvestigationHooks = @(
     'HookUStructLink'
 )
 # our own dev probes; removed from the live folder in smoke so only the mod runs
-$OurProbes = @('LockBuildProbe', 'LockProbe')
+$OurProbes = @('LockBuildProbe', 'LockProbe', 'AnimSpeedProbe')
 
 $DevModsTxt = @'
 ActorDumperMod : 1
