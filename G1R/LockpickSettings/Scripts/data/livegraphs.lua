@@ -273,29 +273,37 @@ end
 -- Returns graphs, source where source is "live" | "cache" | "none".
 function M.load(opts)
     opts = opts or {}
-    local graphs, err = M.decode(opts.cachePath)
-    if graphs then
+    -- forceFallback (debug, from config): skip the live decode + self-cache and load
+    -- the bundled snapshot directly, to exercise the fallback path on a machine
+    -- where the live decode works fine.
+    local err = "forced fallback (debug)"
+    if not opts.forceFallback then
+        local graphs
+        graphs, err = M.decode(opts.cachePath)
+        if graphs then
+            if opts.cacheFile then
+                pcall(function()
+                    local fh = io.open(opts.cacheFile, "wb")
+                    if fh then fh:write(serialize(graphs)); fh:close() end
+                end)
+            end
+            return graphs, "live"
+        end
         if opts.cacheFile then
-            pcall(function()
-                local fh = io.open(opts.cacheFile, "wb")
-                if fh then fh:write(serialize(graphs)); fh:close() end
+            local ok, cached = pcall(function()
+                local chunk = loadfile(opts.cacheFile)
+                return chunk and chunk()
             end)
-        end
-        return graphs, "live"
-    end
-    if opts.cacheFile then
-        local ok, cached = pcall(function()
-            local chunk = loadfile(opts.cacheFile)
-            return chunk and chunk()
-        end)
-        if ok and type(cached) == "table" and next(cached) then
-            return cached, "cache"
+            if ok and type(cached) == "table" and next(cached) then
+                return cached, "cache"
+            end
         end
     end
-    -- Last resort: the bundled fallback shipped with the mod. Used only when the
-    -- live decode AND the self-written cache both fail (a build/distribution where
-    -- the .Cache is unreadable or does not decode). Correct for the vanilla layout;
-    -- a divergent layout there is simply unsupported until the bundle is refreshed.
+    -- Last resort: the bundled fallback shipped with the mod. Used when the live
+    -- decode AND the self-written cache both fail (a build/distribution where the
+    -- .Cache is unreadable or does not decode), or when forceFallback is set.
+    -- Correct for the vanilla layout; a divergent layout there is simply
+    -- unsupported until the bundle is refreshed.
     if opts.fallbackPath then
         local ok, bundled = pcall(function()
             local chunk = loadfile(opts.fallbackPath)

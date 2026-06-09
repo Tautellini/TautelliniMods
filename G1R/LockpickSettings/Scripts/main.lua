@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.6"
+local ModVersion = "3.0.7"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -115,6 +115,7 @@ else
             cachePath = cachePath,
             cacheFile = ModDir .. "/livegraphs.cache.lua",
             fallbackPath = ModDir .. "/Scripts/data/lockgraphs_fallback.lua",
+            forceFallback = Config.forceFallbackGraphs == true,
         })
     end)
     if ok2 and type(g) == "table" and next(g) then
