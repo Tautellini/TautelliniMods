@@ -54,12 +54,27 @@ relies on what the game actually holds instead of workaround calculations.
 So "fully live" comes down to getting the connections from the game. What to
 investigate and fact-check next:
 
-1. **Exhaustively rule out a reflected accessor.** We checked the obvious lock
-   classes. Next: grep the dump for any property or function whose type is
-   `LockConnections`/`LockOneConnection` (by struct address), any getter-shaped
-   function (`Get*Connection*`, `Get*LockData*`) across ALL classes, and the
-   per-lock AS subclasses' members (only spot-checked so far). Goal: a definitive
-   yes/no on "nothing reflected returns the graph".
+1. **Exhaustively rule out a reflected accessor. RESOLVED (full
+   `UE4SS_ObjectDump.txt`, 62 MB, 2026-06-09): nothing reflected returns the
+   graph.** Searched the complete dump, not just the distilled `reference/`
+   files:
+   - The `LockConnections` (struct addr `12273A480`) and `LockOneConnection`
+     (`12273A3C0`) ScriptStructs are referenced by ZERO property, return value or
+     parameter anywhere in the dump (no `[ss:]` points at either). They are orphan
+     types: defined, never wired to anything readable.
+   - `GothicLockConfig`'s entire surface is one `NameProperty` (`m_UniqueName`)
+     plus the two write-only natives `AddPiece(ID, Rotation)` and
+     `AddConnection(ID, connectedId, Direction)`. All int params, no struct
+     return.
+   - The 341 named `*_Lock` AS subclasses and the 70 `Test_Lock_Difficulty_*`
+     subclasses carry NO own reflected members; the graph lives only in their
+     `__InitDefaults` bytecode (the offline extractor's source).
+   - No getter-shaped function (`Get*Connection*`, `Get*LockData*`) exists on any
+     G1R or lock class; the only dump matches are unrelated engine subsystems
+     (Interchange, OnlineSubsystem, Niagara).
+   So a reflected READ of the connection graph is conclusively ruled out. The one
+   remaining way to get connections from the running game directly is to CAPTURE
+   them at build time, which is item 2.
 
 2. **Re-test hookability of the build calls.** Hooking `AddConnection` saw zero
    calls (AS bypass). Before concluding it is unobservable, fact-check the
@@ -67,6 +82,27 @@ investigate and fact-check next:
    `HookProcessInternal` / `HookCallFunctionByNameWithArguments` (both enabled in
    `UE4SS-settings.ini`) see AS-native calls? If any do, we can capture the exact
    connections at lock-build time, which is the ideal source.
+
+   **RESOLVED (in-game run 2026-06-09): not capturable either.** Confirmed
+   `HookProcessInternal`, `HookProcessLocalScriptFunction` and
+   `HookCallFunctionByNameWithArguments` are all `= 1` in this build's
+   `UE4SS-settings.ini`. The dev-only mod `G1R/LockBuildProbe` armed every
+   Lua-level capture seam at once (a `RegisterHook` on both `AddPiece` and
+   `AddConnection`, which with those three flags on also tests the alternate
+   dispatch points, plus a name-based `RegisterCustomEvent` on each) and counted
+   every fire. Read-only: it never calls the write-only natives. Result across a
+   fresh launch: all four seams armed OK at boot, four seconds BEFORE the first
+   world load, yet two world loads, a minigame start and a manual check all
+   reported `AddPiece=0 AddConnection=0` on every seam. The arm-before-instance
+   timing rules out a missed window, so no UFunction-dispatch seam UE4SS can hook
+   sees these calls. The zero is equally consistent with the AS-native bypass and
+   with the calls running at AS module load (CDO init) before any Lua arms;
+   neither reopens a Lua capture path, so the distinction is moot.
+
+   **Conclusion (items 1 + 2): connections cannot be read OR captured from the
+   running game.** The offline `lockgraphs.lua` export stays the only source for
+   the graph. The realistic path is items 3 to 6 below: keep the export as a
+   prior, add live learning and an audit so the runtime stops fully trusting it.
 
 3. **Quantify mapping-by-observation.** Connections are inferable by moving a
    piece and watching the drag set and its directions (the solver already prunes
@@ -97,9 +133,41 @@ investigate and fact-check next:
    would show how widespread the `BT_Chest_02_Lock` class of error is, and whether
    a per-lock data fix or a self-correcting learner is the better cure.
 
-**Likely outcome.** Items 1 and 2 decide whether the connections can ever be read
-or captured directly. If both are no (the current evidence leans that way), items
-3 to 6 are the realistic path: keep the export as a prior, but add live learning
-and an audit so the runtime no longer fully trusts it. That, with TD-1, gets us to
-"mostly live and self-correcting" rather than "fully live", which is probably the
-honest ceiling given the engine.
+## Decision (2026-06-09): source the graph live from the game's own `.Cache`
+
+Items 1 and 2 are both resolved no: the connection graph cannot be read (not
+reflected) or captured (the build calls bypass every hookable dispatch point).
+This session also closed the rest of the pure-Lua surface: the runtime lock
+classes (scene actor, piece actors, subsystem) hold no adjacency in any shape;
+`DebugConsoleCommands` and `GothicInputMarvinCheatManager` have zero reflected
+members in the shipping build; and the Hazelight `AngelscriptCode` libraries
+expose no generic "read an AS property / call an AS function by name" bridge, with
+no AS debug-server class present. So the graph exists at runtime only in (a) the
+game's compiled script cache file and (b) the instanced lock's AngelScript-private
+memory, neither reachable by Lua reflection or hooks.
+
+The chosen direction is NOT the move-learning of items 3 and 4 (rejected: it costs
+durability and is unreliable). It is to **drop the bundled `data/lockgraphs.lua`
+and decode the graph in-process from the game's own
+`PrecompiledScript_Shipping.Cache` at runtime**, so the mod ships no lock data and
+adapts to any mod that changes layouts via AS source plus to game patches.
+
+**Proven (2026-06-09).** `tools/decode_locks.lua` is a faithful LuaJIT port of
+`tools/extract_locks.py`. Run on the game's `.Cache`, it reproduces all 416 lock
+graphs BYTE-IDENTICAL to the shipped `data/lockgraphs.lua` (verified by diff).
+This confirms the decode runs entirely in the UE4SS runtime (LuaJIT), with no
+Python and no external process. The whole-file read took ~6 s but is pure I/O on
+122 MB; all lock data sits in 37.7M-42.2M, so the mod reads only that ~4.5 MB
+slice (sub-second). The two native pointers are hardcoded in the proof; the
+shipping port should auto-calibrate them per build for patch-robustness.
+
+Remaining to ship (Approach A): confirm UE4SS Lua exposes file IO (one-line
+in-game check), add a `.Cache`-reading data-source module that returns the same
+`{ [name] = {pieces, connections} }` table the mod already consumes (path derived
+from `main.lua`'s own location, region-limited read, optional load-time slicing),
+decide the fallback when the file is unreadable (disable the hint vs. keep a
+vendored snapshot), and keep the Python and Lua decoders as cross-check oracles.
+
+The separate "wild calculations for piece positions" concern is item 5 (read each
+piece's `m_RuntimeRootComponent` rotation directly instead of the MPC-slot snap
+math); a distinct track, tackled after the graph is live.

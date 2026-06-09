@@ -1,0 +1,143 @@
+# Live Lock Graphs (no bundled dump)
+
+Spec for sourcing the lock connection graph from the game's OWN data at runtime,
+so the mod ships zero lock data. Written 2026-06-09 after the TECH-DEBT items 1
+and 2 investigation closed every read/capture path and a feasibility proof
+landed. Companion: `../TECH-DEBT.md` (the decision record), `decode_locks.lua`
+proof, `../../reference/blob-format-notes.md` (the cache format).
+
+## Goal
+
+Drop the bundled `Scripts/data/lockgraphs.lua` and derive the connection graph
+in-process from the game's `PrecompiledScript_Shipping.Cache`. The mod then
+carries no lock data, adapts to any mod that changes layouts via AngelScript
+source (which recompiles that cache) and to game patches, and the user does
+nothing but install the mod.
+
+## Why this and not the alternatives (settled, do not re-litigate)
+
+- The graph is NOT reflected: no property, return value or parameter anywhere has
+  the `LockConnections`/`LockOneConnection` type (item 1, full object dump).
+- The build calls are NOT hookable: `RegisterHook` and `RegisterCustomEvent` on
+  `AddPiece`/`AddConnection` never fire (item 2, in-game), and no runtime lock
+  class, debug/cheat command, or AngelScript library exposes the data.
+- Move-learning is rejected (costs durability, unreliable).
+- So the graph lives only in (a) the game's compiled script cache file and (b)
+  AS-private memory. (a) is reachable from pure Lua; (b) needs native code. We
+  take (a).
+
+## Proven
+
+`tools/decode_locks.lua` is a faithful LuaJIT port of `tools/extract_locks.py`.
+Run on the game's cache it reproduces all 416 lock graphs BYTE-IDENTICAL to the
+shipped `data/lockgraphs.lua` (diff verified, only CRLF vs LF differed). So the
+decode runs entirely in the UE4SS runtime (LuaJIT), no Python, no external
+process. Whole-file read was ~6 s but is pure I/O on 122 MB; all lock data sits
+in the 37.7M-42.2M region, so the shipping read takes a ~4.5 MB slice and is
+sub-second.
+
+## Decisions
+
+- **Source priority: live decode, then self-populating cache, then disable.** On
+  every load, decode live from the game cache; on success, also write the result
+  to a cache file in the mod's own folder. If the live decode fails (file
+  missing, unreadable, or a patch broke the format), load that written cache. If
+  neither is available, the next-move hint and connection display disable for the
+  session with one loud log line (the durability boost is unaffected). The live
+  decode refreshes the cache on every success, so the cache cannot go stale
+  against a patch while the game file is readable.
+- **Auto-calibrated native pointers (patch-robust).** Do NOT hardcode the two
+  `asCScriptFunction*` pointers. Find them per build: histogram the `CALLSYS`
+  targets that sit behind a `PshVPtr` and N contiguous `PshC4`; the target whose
+  calls overwhelmingly have 2 consts is `AddPiece`, the one with 3 is
+  `AddConnection`. Require two distinct targets with healthy counts or fail loud.
+- **Region fast-path, whole-file fallback.** Read the 37.7M-42.2M slice first
+  (sub-second). If it yields too few locks (a patch moved the script section),
+  re-read the whole file and re-scan once, then cache. Log which path ran.
+- **Cache file path derived from `main.lua`'s own location** (the existing
+  `here`/`modDir` pattern), not a hardcoded user path. The game cache is at
+  `<modDir>/../../../../../Script/PrecompiledScript_Shipping.Cache`.
+
+## Architecture
+
+### New: `Scripts/data/livegraphs.lua` (pure, stdlib only)
+
+No UE4SS globals (loads under bare LuaJIT, like the solver). Uses only
+`io`/`string`/`table`/`math`/`loadfile`. API:
+
+- `livegraphs.decode(cachePath) -> graphs | nil, err` -- region-then-whole read,
+  auto-calibrate the pointers, scan descriptors, decode each lock's
+  `__InitDefaults` window (the proof's logic). Returns
+  `{ [name] = { pieces = { {id=, rot=}, ... }, connections = { {a=, b=, dir=}, ... } } }`,
+  the exact shape `core/session.lua` consumes (`graph.pieces[i].id/.rot`,
+  `graph.connections[i].a/.b/.dir`, `#graph.pieces`).
+- `livegraphs.load{ cachePath, cacheFile } -> graphs, source` -- runs `decode`,
+  refreshes `cacheFile` on success (best-effort, `pcall`; Program Files may be
+  write-protected, in which case caching is skipped and live decode still works),
+  falls back to loading `cacheFile`, else returns nil. `source` is
+  `"live"`/`"cache"`/`"none"` for the banner line.
+
+### `Scripts/main.lua`
+
+- Compute `cachePath` and `cacheFile` from `modDir`.
+- Replace `require("data.lockgraphs")` with `livegraphs.load{...}`; set
+  `LockGraphs` from the result; log the source. Keep the same `okGraphs` gate
+  feeding `NextMoveBroken`.
+- Add `"data.livegraphs"` to the hot-reload `MODULES` reset list.
+
+### Dev-side (the bundled file's other consumers)
+
+The mod stops shipping the data, but these dev tools must keep working by reading
+the repo-kept `reference/lock-graphs.lua` (identical data, regenerated by
+`extract_locks.py`):
+
+- `tools/sim_planner.py`, `tools/sim_astar_faithful.py`, `tools/sim_variants.py`
+  point at `Scripts/data/lockgraphs.lua` -> repoint to `reference/lock-graphs.lua`.
+- `tools/sim_anchor.py` points at a stale pre-folder path
+  (`Scripts/lockgraphs.lua`) -> fix to `reference/lock-graphs.lua`.
+- `tests/test_solver.lua` and `tests/check_load.lua` use `require("data.lockgraphs")`
+  -> load `reference/lock-graphs.lua` directly (dev-side `loadfile`).
+
+## Staged rollout
+
+**Phase 1 (add + verify, nothing removed):**
+1. Add `data/livegraphs.lua`; verify offline that it reproduces
+   `reference/lock-graphs.lua` (a `tools/verify_livegraphs.lua` harness diffs it),
+   including that auto-calibration finds the same two pointers.
+2. Wire `main.lua` to PREFER live/cache and FALL BACK to the still-bundled
+   `data.lockgraphs`, logging the source. Add to the reset block and
+   `check_load.lua`.
+3. In-game smoke test (the only step needing the player): confirm Lua file IO is
+   available on this build, the cache path resolves, and a real minigame's graph
+   comes from the live decode (the banner/log line proves the source).
+
+**Phase 2 (go pure, once Phase 1 is confirmed):**
+4. Delete `Scripts/data/lockgraphs.lua` so `deploy.ps1` ships no lock data.
+5. Repoint the three sims, fix `sim_anchor.py`, and switch the two tests to
+   `reference/lock-graphs.lua`.
+6. Final fallback is live -> self-cache -> disable (no bundled file).
+
+## Risk / open items
+
+- **Lua file IO availability.** Near-certain on this UE4SS build (full LuaJIT
+  stdlib; mods read files routinely; the mod already uses `os.clock`). Confirmed
+  by the Phase 1 smoke test; handled with a graceful fall-back if absent.
+- **Cache write permission** under Program Files. Best-effort write; if it fails,
+  no cache resilience but live decode still works every load (sub-second).
+- **Solver/geometry untouched.** This only changes the graph SOURCE, not the
+  graph contents (proven identical), so MOVE-AND-PRESERVE holds and no
+  `tools/sim_planner.py` regression is expected.
+- **Does not cover** a mod that injects connections purely at runtime (no cache
+  change). Exotic; the escalation is the documented Approach B (native C++
+  detour), not in scope here.
+
+## Done criteria
+
+- The mod loads its graph from the game's own cache with no bundled data file,
+  logging `graph source: live` (or `cache`).
+- The offline harness shows `livegraphs.decode` reproduces all 416 reference
+  graphs, with auto-calibrated pointers.
+- A real lock plays identically to before (same hints/route), confirming the
+  source swap is behavior-neutral.
+- No crash across load, save-load, and hot reload. Sims and Lua tests still pass
+  against `reference/lock-graphs.lua`.
