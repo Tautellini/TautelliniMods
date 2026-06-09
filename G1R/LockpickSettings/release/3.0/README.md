@@ -4,7 +4,8 @@ Notes for the 3.0 line. 3.0 adds **auto-solve** (F6 plays the next move, Shift+F
 runs full auto to open) on top of the 2.x extra tries, next-move hint, and
 connection display. 3.0.1 drops the `-alpha` suffix and fixes auto-solve giving
 up on hard locks (it now waits through long solver searches instead of timing
-out and nudging).
+out and nudging). 3.0.2 stops auto-solve from looping forever on a lock whose
+connection model disagrees with the live lock (it detects the cycle and stops).
 
 ## Builds
 

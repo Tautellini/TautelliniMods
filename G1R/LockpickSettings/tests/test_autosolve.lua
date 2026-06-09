@@ -180,6 +180,32 @@ T.add("waits while the solver is still searching, does not give up or nudge", fu
     T.eq(#presses, 0, "did not nudge while the solver was still searching")
 end)
 
+T.add("stops when the route cycles without progress (model mismatch)", function()
+    -- a lock whose model oscillates: the move always lands as asked, but the
+    -- planner keeps pushing the same piece back and forth and never reaches the
+    -- goal (piece 1 is never targeted). The driver must detect the cycle and
+    -- stop, not press forever. Regression for the BT_Chest_02_Lock endless loop.
+    local logs = {}
+    local function rec(m) logs[#logs + 1] = m end
+    local s, engine = makeWorld({
+        pieceCount = 2, rotStart = { [0] = 1, [1] = 2 }, sign = 1, screenRight = 1,
+        selectedSig = true, selectedRow = 0,
+        plan = function(_, st)
+            local r0 = st.rotStart[0] + st.sign * (st.steps[0] or 0)
+            if r0 > 0 then return { piece = 0, dir = -1 } end
+            return { piece = 0, dir = 1 } -- piece 1 stays off-center: never solves
+        end,
+    })
+    local d = Driver.new({ engine = engine, getTask = function() return {} end,
+        log = rec })
+    d:toggleFull(s)
+    runToEnd(d, s, 300)
+    T.ok(not d:running(), "disengaged instead of looping forever")
+    local cyc = false
+    for _, m in ipairs(logs) do if m:find("cycling", 1, true) then cyc = true end end
+    T.ok(cyc, "stopped with a cycling / no-progress reason")
+end)
+
 T.add("aborts honestly when selection is not observable (no glow)", function()
     local s, engine, presses = makeWorld({
         pieceCount = 2, rotStart = { [0] = 0, [1] = 1 }, sign = 1,

@@ -20,6 +20,7 @@
 
 local setmetatable = setmetatable
 local math = math
+local table = table
 
 -- Tuning. Settled ticks are ~400ms, so these are in tick units unless noted.
 local WAIT_TICKS = 8       -- wait this long for a plan before nudging (~3s)
@@ -28,6 +29,10 @@ local NUDGE_MAX_SINGLE = 1 -- one exploratory move at most for a single F6
 local SELECT_TICKS = 4     -- give selection this many ticks to reach the target
 local MOVE_GRACE = 2       -- settled checks showing no change before "no effect"
 local DEVIATION_MAX = 2    -- consecutive deviations that stop a full-auto run
+local CYCLE_LIMIT = 3      -- stop full-auto if any state recurs this many times:
+                           -- a correct route never revisits a state, so this
+                           -- means the route is oscillating because the live
+                           -- lock's connections disagree with the model
 
 local Driver = {}
 Driver.__index = Driver
@@ -55,6 +60,7 @@ function Driver:reset()
     self.dirPress = nil   -- "left"/"right" for the turn
     self.boundSession = nil -- the session this run belongs to
     self.everMoved = false -- has any issued press ever moved a piece this run
+    self.visits = {}      -- state-key -> times reached, for cycle detection
     self.waitTicks = 0
     self.selectTicks = 0
     self.moveTicks = 0
@@ -301,8 +307,17 @@ function Driver:stepMoving(s)
         -- must land on the predicted rotation; anything else is a deviation.
         if self.move.nudge or cur == self.preRot + self.move.dir then
             self.deviations = 0
-            if not self.move.nudge and self.mode == "single" then
+            if self.move.nudge then
+                self.phase, self.move = "idle", nil
+            elseif self.mode == "single" then
                 self:finish(s, "move done", true)
+            elseif self:cycling(s) then
+                -- the move landed as asked, but we have now reached this exact
+                -- arrangement several times: the route is oscillating because the
+                -- live lock's connections disagree with the model. Stop instead
+                -- of pressing forever.
+                self:finish(s, "cycling without progress (this lock's "
+                    .. "connections do not match the model)", false)
             else
                 self.phase, self.move = "idle", nil
             end
@@ -355,6 +370,21 @@ function Driver:atGoal(s)
         if self:rot(s, id) ~= 0 then return false end
     end
     return true
+end
+
+-- a string key for the current rotation arrangement, for cycle detection
+function Driver:stateKey(s)
+    local t = {}
+    for id = 0, s.pieceCount - 1 do t[#t + 1] = self:rot(s, id) end
+    return table.concat(t, ",")
+end
+
+-- record reaching the current arrangement; true once it has recurred enough
+-- times to call it a cycle (the route keeps undoing itself)
+function Driver:cycling(s)
+    local key = self:stateKey(s)
+    self.visits[key] = (self.visits[key] or 0) + 1
+    return self.visits[key] >= CYCLE_LIMIT
 end
 
 -- end the run, clear the seam, log one line (success or stop)
