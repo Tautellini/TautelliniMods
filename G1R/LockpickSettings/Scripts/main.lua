@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.8"
+local ModVersion = "3.0.9"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -315,6 +315,23 @@ local function tryStart(attempt)
         return -- reason == "fail": already logged
     end
     local s = session
+    -- Stale re-entry guard. When the pieces came ONLY from the world-wide
+    -- FindAllOf last resort (no fresh spawns AND an empty subsystem) and the live
+    -- geometry could not be derived, this is almost certainly the CONTAMINATED
+    -- actor cloud of an already-finished minigame (re-opening a chest that was
+    -- handled earlier): the same OC_Chest..._Lock whose later entries all logged
+    -- "FindAllOf, N piece actors / no fixed column fits the plate grid". Such a
+    -- session offers no hint, no auto-solve and an unreliable connection display,
+    -- yet it would poll these half-dead UObjects every tick for as long as it
+    -- lingers. That per-tick access on a being-destroyed actor set is exactly the
+    -- native access-violation surface pcall cannot catch (user-reported-logs/1: a
+    -- null UObject read inside UE4SS at minigame teardown). Do not track it.
+    if s.stateUnknown and actorSrc:find("FindAllOf", 1, true) then
+        log("Skipping tracking for '" .. lockName .. "': no fresh pieces and no "
+            .. "readable geometry (stale actors from an earlier minigame); "
+            .. "avoids polling half-dead objects")
+        return
+    end
     -- bind THIS minigame's task to the session. The task dies when the minigame
     -- ends, even though an opened lock's piece/scene actors LINGER for minutes;
     -- session.tick uses this as the authoritative "still in the minigame" signal,
