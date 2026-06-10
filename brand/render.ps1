@@ -79,10 +79,10 @@ $arrow = [char]0x2192   # right arrow
 # The three features live in the FEATURES collapsible as cards (below), not as strips.
 $sections = [ordered]@{
   "features"        = @("01", "FEATURES",            "")
-  "requirements"    = @("02", "REQUIREMENTS",        "UE4SS EXPERIMENTAL")
-  "install"         = @("03", "INSTALLATION",        "TWO ARCHIVES")
-  "config"          = @("04", "CONFIGURATION",       "CONFIG.LUA")
-  "safety"          = @("05", "SAFETY",              "READ-ONLY $dot SAVE-SAFE")
+  "install"         = @("02", "INSTALLATION",        "TWO ARCHIVES")
+  "config"          = @("03", "CONFIGURATION",       "CONFIG.LUA")
+  "safety"          = @("04", "SAFETY",              "READ-ONLY $dot SAVE-SAFE")
+  "compatibility"   = @("05", "COMPATIBILITY",       "OTHER UE4SS MODS")
   "troubleshooting" = @("06", "TROUBLESHOOTING",     "")
 }
 if (-not $Only -or ($Only -contains "section.html")) {
