@@ -42,8 +42,8 @@
 
   <!-- copy -->
   <text x="132" y="472" class="sans ink1" font-size="42" font-weight="500">More moves before your pick breaks.</text>
-  <text x="132" y="540" class="sans ink2" font-size="28">Durability climbs by <tspan class="acc" font-weight="700">+10</tspan> at every Picklock</text>
-  <text x="132" y="576" class="sans ink2" font-size="28">tier, so leveling the skill still pays off.</text>
+  <text x="132" y="540" class="sans ink2" font-size="28">A separate bonus for each Picklock tier:</text>
+  <text x="132" y="576" class="sans ink2" font-size="28"><tspan class="acc" font-weight="700">+5 / +10 / +20</tspan> by default (untrained / trained / master).</text>
 
   </g>
 
@@ -52,23 +52,25 @@
   <!-- glow -->
   <circle cx="1470" cy="500" r="300" fill="url(#glowGrad)"/>
 
-  <!-- bars -->
+  <!-- bars (vanilla base vs boosted total, per tier; heights scale 20px / try,
+       baseline y=720). The boosted bars rise per tier (7 / 14 / 26) to show the
+       independent per-tier bonus, not one shared value. -->
   <g>
-    <!-- Untrained -->
-    <rect x="1157" y="675" width="52" height="45"  fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
-    <rect x="1227" y="450" width="52" height="270" fill="url(#accentGrad)"/>
-    <text x="1183" y="661" class="mono ink2" font-size="26" text-anchor="middle">2</text>
-    <text x="1253" y="434" class="mono acc"  font-size="30" text-anchor="middle" font-weight="700">12</text>
-    <!-- Trained -->
-    <rect x="1389" y="630" width="52" height="90"  fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
-    <rect x="1459" y="405" width="52" height="315" fill="url(#accentGrad)"/>
-    <text x="1415" y="616" class="mono ink2" font-size="26" text-anchor="middle">4</text>
-    <text x="1485" y="389" class="mono acc"  font-size="30" text-anchor="middle" font-weight="700">14</text>
-    <!-- Master -->
-    <rect x="1621" y="585" width="52" height="135" fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
-    <rect x="1691" y="360" width="52" height="360" fill="url(#accentGrad)"/>
-    <text x="1647" y="571" class="mono ink2" font-size="26" text-anchor="middle">6</text>
-    <text x="1717" y="344" class="mono acc"  font-size="30" text-anchor="middle" font-weight="700">16</text>
+    <!-- Untrained: 2 -> 7 -->
+    <rect x="1157" y="680" width="52" height="40"  fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
+    <rect x="1227" y="580" width="52" height="140" fill="url(#accentGrad)"/>
+    <text x="1183" y="666" class="mono ink2" font-size="26" text-anchor="middle">2</text>
+    <text x="1253" y="566" class="mono acc"  font-size="30" text-anchor="middle" font-weight="700">7</text>
+    <!-- Trained: 4 -> 14 -->
+    <rect x="1389" y="640" width="52" height="80"  fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
+    <rect x="1459" y="440" width="52" height="280" fill="url(#accentGrad)"/>
+    <text x="1415" y="626" class="mono ink2" font-size="26" text-anchor="middle">4</text>
+    <text x="1485" y="426" class="mono acc"  font-size="30" text-anchor="middle" font-weight="700">14</text>
+    <!-- Master: 6 -> 26 -->
+    <rect x="1621" y="600" width="52" height="120" fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
+    <rect x="1691" y="200" width="52" height="520" fill="url(#accentGrad)"/>
+    <text x="1647" y="586" class="mono ink2" font-size="26" text-anchor="middle">6</text>
+    <text x="1717" y="186" class="mono acc"  font-size="30" text-anchor="middle" font-weight="700">26</text>
   </g>
 
   <!-- baseline -->
