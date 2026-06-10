@@ -30,8 +30,8 @@ Install:
    The included enabled.txt activates the mod automatically;
    no mods.txt editing is needed.
 3. Start the game. ...\ue4ss\UE4SS.log should show:
-   [LockpickSettings] Loaded 3.0.9 (kit 1.0.0): untrained 2->12, trained 4->14,
-   master 6->16, next-move hint off (416 lock graphs from bundled, toggle: F7),
+   [LockpickSettings] Loaded 3.0.10 (kit 1.0.0): untrained 2->7, trained 4->14,
+   master 6->26, next-move hint off (416 lock graphs from bundled, toggle: F7),
    connection display off, toggle: F8, auto-solve: F6 step, SHIFT+F6 full-auto,
    CONTROL+F6 fast
    The lock graphs ship with the mod ("from bundled"). This makes the mod

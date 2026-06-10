@@ -2,13 +2,15 @@
 -- Apply edits with a game restart, or CTRL+R ingame (UE4SS hot reload).
 
 return {
-    -- Extra tries added on top of the vanilla per-tier durability
-    -- (untrained 2, trained 4, master 6), giving 12/14/16 by default.
-    -- Keep it large enough that a boosted value can never collide with
-    -- another tier's vanilla base. The vanilla base values themselves are
-    -- game constants and live in the code (boost.lua), not here, because
-    -- changing them would break tier detection.
-    extraTries = 10,
+    -- Extra lockpick durability added on top of the vanilla per-tier value
+    -- (untrained 2, trained 4, master 6), as a per-tier table:
+    --        extraTries = { untrained = 5, trained = 10, master = 20 }
+    --     giving 7 / 14 / 26. A tier left out (or set to 0) stays vanilla.
+    -- Keep each tier's boosted TOTAL clear of the other tiers' vanilla bases
+    -- (2 / 4 / 6) and of each other, so the tier stays detectable; a colliding
+    -- tier is skipped with a log line and left vanilla. The vanilla bases are
+    -- game constants and live in boost.lua, not here.
+    extraTries = { untrained = 5, trained = 10, master = 20 },
 
     -- Next-move hint: the piece you should move next is tinted,
     -- recomputed after every move from the lock's live state. Works

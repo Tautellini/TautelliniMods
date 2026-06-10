@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.9"
+local ModVersion = "3.0.10"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -122,7 +122,12 @@ local Session = tryRequire("core.session")
 local Driver = tryRequire("autosolve.driver")
 
 -- ----------------------------------------------------------------- config --
-local ExtraTries     = tonumber(Config.extraTries) or 10
+-- extraTries is a per-tier table { untrained, trained, master }; fall back to a
+-- sensible default only when the config is missing or malformed (not a table).
+local ExtraTries     = Config.extraTries
+if type(ExtraTries) ~= "table" then
+    ExtraTries = { untrained = 5, trained = 10, master = 20 }
+end
 local HotkeyName     = Config.nextMoveHotkey
 local ConnHotkeyName = Config.connectionsHotkey
 local DebugSolver    = Config.debugSolver == true
@@ -711,8 +716,11 @@ end
 -- ----------------------------------------------------------------- banner --
 local loaded = {}
 if Boost then
+    -- the plan resolves each tier to the value it will actually be left at
+    -- (the boosted total, or the vanilla base when that tier is 0 or skipped)
+    local effective = Boost.plan(ExtraTries).effective
     for name, base in pairs(Boost.BASE_TRIES) do
-        loaded[#loaded + 1] = string.format("%s %d->%d", name, base, base + ExtraTries)
+        loaded[#loaded + 1] = string.format("%s %d->%d", name, base, effective[name])
     end
 end
 local graphCount = 0

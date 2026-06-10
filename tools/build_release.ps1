@@ -65,7 +65,18 @@ function Copy-ModPayload([string]$parent, [bool]$withConfig) {
     $dest = Join-Path $parent $Mod
     New-Item -ItemType Directory -Force (Join-Path $dest "Scripts") | Out-Null
     Copy-Item "$ScriptsSrc\*" (Join-Path $dest "Scripts") -Recurse -Force
-    if (-not $withConfig) { Remove-Item (Join-Path $dest "Scripts\config.lua") -Force }
+    if (-not $withConfig) {
+        Remove-Item (Join-Path $dest "Scripts\config.lua") -Force
+    } else {
+        # Release builds ship with debugSolver OFF. It is left ON in the source
+        # config.lua so dev/bug-report logs are verbose; we flip only the STAGED
+        # copy here (the source is never touched). debugSolver logs synchronously
+        # on the game thread, so it adds latency during lock interactions.
+        $cfgPath = Join-Path $dest "Scripts\config.lua"
+        $cfg = [regex]::Replace((Get-Content $cfgPath -Raw),
+            'debugSolver\s*=\s*(?:true|false)', 'debugSolver = false')
+        [System.IO.File]::WriteAllText($cfgPath, $cfg, (New-Object System.Text.UTF8Encoding($false)))
+    }
     New-Item -ItemType Directory -Force (Join-Path $dest "shared\kit") | Out-Null
     Copy-Item (Get-ChildItem -File "$KitSrc\*.lua") -Destination (Join-Path $dest "shared\kit") -Force
     if (Test-Path "$ModSrc\enabled.txt") { Copy-Item "$ModSrc\enabled.txt" $dest -Force }
@@ -98,14 +109,22 @@ function Zip([string]$stageDir, [string]$zipName) {
     Write-Host ("  {0,-40} {1,10:N0} bytes" -f $zipName, (Get-Item $zip).Length)
 }
 
-# the installer-exposed config options (everything else stays in config.lua)
-$triesOpts = 5, 10, 15, 20
+# the installer-exposed config options (everything else stays in config.lua).
+# extraTries is a per-tier table, so the installer offers named per-tier presets.
+# base tries are 2/4/6 for untrained/trained/master; u/t/m are the bonuses added.
+$triesPresets = @(
+    [ordered]@{ key = "light";    label = "Light";    u = 3;  t = 6;  m = 10 }
+    [ordered]@{ key = "default";  label = "Default";  u = 5;  t = 10; m = 20 }
+    [ordered]@{ key = "generous"; label = "Generous"; u = 10; t = 20; m = 30 }
+)
 $bools = @($false, $true)
 
 # Generate a config.lua variant by substituting the exposed values in the base.
-function New-ConfigVariant([string]$baseText, [int]$tries, [bool]$hint, [bool]$conn) {
+# The tries preset (u/t/m) replaces the whole per-tier extraTries table.
+function New-ConfigVariant([string]$baseText, $preset, [bool]$hint, [bool]$conn) {
     $t = $baseText
-    $t = [regex]::Replace($t, 'extraTries\s*=\s*\d+', "extraTries = $tries")
+    $tbl = "{ untrained = $($preset.u), trained = $($preset.t), master = $($preset.m) }"
+    $t = [regex]::Replace($t, 'extraTries\s*=\s*\{[^}]*\}', "extraTries = $tbl")
     $t = [regex]::Replace($t, 'showNextMove\s*=\s*(?:true|false)', "showNextMove = " + $hint.ToString().ToLower())
     $t = [regex]::Replace($t, 'showConnections\s*=\s*(?:true|false)', "showConnections = " + $conn.ToString().ToLower())
     return $t
@@ -154,10 +173,12 @@ Copy-ModPayload (Join-Path $s "mod") $true
 # config preset variants under configs\
 $configsDir = Join-Path $s "configs"
 New-Item -ItemType Directory -Force $configsDir | Out-Null
-$baseConfig = Get-Content "$ScriptsSrc\config.lua" -Raw
-foreach ($t in $triesOpts) { foreach ($h in $bools) { foreach ($c in $bools) {
-    $fname = "config_t${t}_h$([int]$h)_c$([int]$c).lua"
-    Write-Lua (Join-Path $configsDir $fname) (New-ConfigVariant $baseConfig $t $h $c)
+# FOMOD config variants also ship with debugSolver off (matches Copy-ModPayload)
+$baseConfig = [regex]::Replace((Get-Content "$ScriptsSrc\config.lua" -Raw),
+    'debugSolver\s*=\s*(?:true|false)', 'debugSolver = false')
+foreach ($p in $triesPresets) { foreach ($h in $bools) { foreach ($c in $bools) {
+    $fname = "config_$($p.key)_h$([int]$h)_c$([int]$c).lua"
+    Write-Lua (Join-Path $configsDir $fname) (New-ConfigVariant $baseConfig $p $h $c)
 } } }
 
 # the Vortex FOMOD does NOT bundle UE4SS: mod managers cannot deploy the UE4SS
@@ -217,13 +238,14 @@ $x.Add('      </optionalFileGroups>')
 $x.Add('    </installStep>')
 $x.Add("    <installStep name=`"Configure $Mod`">")
 $x.Add('      <optionalFileGroups order="Explicit">')
-$x.Add('        <group name="Extra lockpick tries" type="SelectExactlyOne">')
+$x.Add('        <group name="Extra lockpick tries (per skill tier)" type="SelectExactlyOne">')
 $x.Add('          <plugins order="Explicit">')
-foreach ($t in $triesOpts) {
-    $type = if ($t -eq 10) { "Recommended" } else { "Optional" }
-    $x.Add("            <plugin name=`"+$t tries`">")
-    $x.Add("              <description>Durability rises to $($t+2) / $($t+4) / $($t+6) tries (untrained / trained / master).</description>")
-    $x.Add("              <conditionFlags><flag name=`"tries`">$t</flag></conditionFlags>")
+foreach ($p in $triesPresets) {
+    $type = if ($p.key -eq "default") { "Recommended" } else { "Optional" }
+    $tot = "$(2 + $p.u) / $(4 + $p.t) / $(6 + $p.m)"
+    $x.Add("            <plugin name=`"$($p.label)  (+$($p.u) / +$($p.t) / +$($p.m))`">")
+    $x.Add("              <description>Durability rises to $tot tries (untrained / trained / master).</description>")
+    $x.Add("              <conditionFlags><flag name=`"tries`">$($p.key)</flag></conditionFlags>")
     $x.Add("              <typeDescriptor><type name=`"$type`"/></typeDescriptor>")
     $x.Add('            </plugin>')
 }
@@ -251,13 +273,13 @@ $x.Add('    <patterns>')
 # the chosen tries/assist preset overwrites the default config.lua (priority 1).
 # Flag-only, no fileDependency. If the manager does not apply these option flags,
 # the default config that shipped with the mod simply stays, so it still works.
-foreach ($t in $triesOpts) { foreach ($h in $bools) { foreach ($c in $bools) {
+foreach ($p in $triesPresets) { foreach ($h in $bools) { foreach ($c in $bools) {
     $hv = if ($h) { "on" } else { "" }
     $cv = if ($c) { "on" } else { "" }
-    $fname = "config_t${t}_h$([int]$h)_c$([int]$c).lua"
+    $fname = "config_$($p.key)_h$([int]$h)_c$([int]$c).lua"
     $x.Add('      <pattern>')
     $x.Add('        <dependencies operator="And">')
-    $x.Add("          <flagDependency flag=`"tries`" value=`"$t`"/>")
+    $x.Add("          <flagDependency flag=`"tries`" value=`"$($p.key)`"/>")
     $x.Add("          <flagDependency flag=`"hint`" value=`"$hv`"/>")
     $x.Add("          <flagDependency flag=`"conn`" value=`"$cv`"/>")
     $x.Add('        </dependencies>')
