@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../house.css">
+<link rel="stylesheet" href="../../themes/wetterwerk.css">
+</head>
+<body>
+<!--
+  One section-divider strip, content driven by query params so a single template
+  renders every section. render-wetterwerk.ps1 fills these per section:
+    ?i=02               index chip, shown as [ 02 ]
+    ?t=WEATHER CONTROL  section title (mono, accent rule under it)
+    ?note=OPTIONAL ...  right-side note (mono, --ink-2), empty to hide
+  The base fill is --bg-0 (near-black) with accent corner brackets, matching the
+  hero: the strip reads as a dark panel on the Nexus page, not a merged band.
+-->
+<svg width="1920" height="300" viewBox="0 0 1920 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1920" height="300" fill="var(--bg-0)"/>
+
+  <!-- accent corner brackets on near-black, matching the hero -->
+  <g class="s-acc" style="stroke-width:3;stroke-linecap:square">
+    <path d="M40,80 L40,40 L84,40"/>
+    <path d="M1836,40 L1880,40 L1880,84"/>
+    <path d="M40,220 L40,260 L84,260"/>
+    <path d="M1836,260 L1880,260 L1880,220"/>
+  </g>
+
+  <!-- index chip -->
+  <text id="chip" x="112" y="118" class="mono acc" font-size="30" letter-spacing="2">[ 01 ]</text>
+
+  <!-- section title -->
+  <text id="title" x="110" y="200" class="mono ink0" font-size="64" font-weight="700">WEATHER CONTROL</text>
+  <rect x="114" y="224" width="300" height="4" fill="var(--accent)"/>
+
+  <!-- right-side note -->
+  <text id="note" x="1808" y="200" class="mono ink2" font-size="30" text-anchor="end">ULTRA DYNAMIC SKY</text>
+</svg>
+<script>
+  var p = new URLSearchParams(location.search);
+  var i = p.get('i');    if (i    !== null) document.getElementById('chip').textContent  = '[ ' + i + ' ]';
+  var t = p.get('t');    if (t    !== null) document.getElementById('title').textContent = t;
+  var n = p.get('note'); if (n    !== null) document.getElementById('note').textContent  = n;
+</script>
+</body>
+</html>

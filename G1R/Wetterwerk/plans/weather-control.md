@@ -129,3 +129,71 @@ Out (v1):
 
 Findings recorded in memory `g1r-weather-control`. Dev probe: `G1R/WeatherProbe`
 (throwaway, currently still deployed, F2 cycles weather).
+
+---
+
+## v1 UI pivot: C++ ImGui per-mod tab (decided 2026-06-11)
+
+The sections above assume a v1 "UE4SS ImGui menu via `RegisterImGuiTab`" from Lua.
+Building the mod disproved that assumption against the real platform, so the UI
+plan changed. The control DESIGN above (find the controller, `SetCurrentWeather
+Immediate`, the Hold watchdog that re-asserts on drift, the preset name parse, the
+atmosphere knobs) is unchanged; only the front-end and the language changed.
+
+### What the platform actually supports (verified 2026-06-11)
+- The live UE4SS is **v4.0.0-rc1**. It exposes **no Lua ImGui / GUI-tab API**.
+  `RegisterImGuiTab` is absent from the DLL exports, the documented Lua
+  global-functions list, AND the changelog ("Expose ImGui to C++ mods"). Triple
+  confirmed. No UE4SS version restores a *Lua* ImGui menu (it has always been C++
+  only; only nonstandard forks add Lua ImGui). Recorded in memory
+  `g1r-ue4ss-v4-no-lua-imgui`.
+- The only way to add an ImGui tab is a **C++ mod** (`register_tab` /
+  `add_gui_tab`, see `Docs/guides/creating-gui-tabs-with-c++-mod.md`).
+
+### The decision
+- **Ship Wetterwerk as a C++ UE4SS mod with its own ImGui tab (Option B, per-mod
+  tabs).** Not a shared menu mod, and not a C++/Lua bridge: for a single mod the
+  whole thing is C++, so the tab's buttons call the weather control directly.
+- **Unified open/close is free.** UE4SS has exactly ONE GUI console window;
+  every `register_tab` tab lives in it. So multiple Tautellini C++ mods each
+  registering their own tab all appear in that one window, opened and closed
+  together. No shared component is needed to get "one trigger shows/hides them
+  all"; it is inherent to UE4SS.
+- **Frame-Generation caveat is render-mode dependent, and the default likely
+  dodges it.** This install runs `RenderMode = ExternalThread`, `GraphicsAPI =
+  opengl`, where the GUI console is a SEPARATE OpenGL window (per the install
+  guide), not a D3D-Present overlay, so the FG present-hook freeze probably does
+  not apply. The on-game overlay render modes (`EngineTick` /
+  `GameViewportClientTick`) are where FG risk returns. Confirm in-game.
+- **ABI fragility is the real cost.** The C++ dll is bound to UE4SS's ABI (and the
+  exact bundled ImGui version). A UE4SS update can require a recompile and a
+  re-ship; an ABI mismatch is a hard crash, not a graceful Lua degrade. Build
+  against the matching UE4SS release.
+
+### Status of the Lua scaffold (`Scripts/`, `tests/`)
+Superseded for shipping, kept as REFERENCE. It is a tested, working statement of
+the weather API surface and the control logic (the C++ mirrors it 1:1: engine
+adapter -> `WeatherControl`, the Hold watchdog, the preset parse, the atmosphere
+catalog). Do not deploy it as the product; the C++ tab is the product.
+
+### Where the C++ mod lives
+`G1R/Wetterwerk/cpp/` (CMake project + `dllmain.cpp` + `WeatherControl.*`), built
+in Visual Studio 2022 against the RE-UE4SS source. See `cpp/BUILD.md` for the full
+setup. Installs as `Mods/Wetterwerk/dlls/main.dll` + `enabled.txt`.
+
+### Revised done criteria (v1)
+- Build `main.dll` in VS2022; drop it in `Mods/Wetterwerk/dlls/`, enable the GUI
+  console, open the **Wetterwerk** tab, pick a preset -> the sky changes; toggle
+  Hold -> the game stops changing the weather.
+- Multiple Tautellini C++ tabs share the one GUI window (open/close together).
+- Pure standalone, no extra mod required.
+- Confirm: the GUI console show/hide behavior on this build, and whether the
+  default `ExternalThread + opengl` render mode avoids the FG freeze.
+
+### What stays open (unchanged probes, now confirmed in C++)
+The index->name map (count is a `presetCountFallback` until the live list length is
+read in C++), the lock lever (Hold sets the flags AND runs the drift watchdog, so
+it holds regardless), and atmosphere-write persistence (C++ v1 ships the read-only
+readout; writable sliders are the follow-up). The riskiest C++ specifics to verify
+on first compile are the `FindAllOf` signature and the weather UFunction parameter
+layouts (use the Live View "Find functions" panel to confirm the signatures).

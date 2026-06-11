@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../house.css">
+<link rel="stylesheet" href="../../themes/wetterwerk.css">
+</head>
+<body>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   style="stop-color:var(--accent-hi)"/>
+      <stop offset="0.5" style="stop-color:var(--accent)"/>
+      <stop offset="1"   style="stop-color:var(--accent-lo)"/>
+    </linearGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0"   style="stop-color:var(--accent);stop-opacity:0.20"/>
+      <stop offset="0.6" style="stop-color:var(--accent);stop-opacity:0.06"/>
+      <stop offset="1"   style="stop-color:var(--accent);stop-opacity:0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- page -->
+  <rect width="1920" height="1080" fill="var(--bg-0)"/>
+
+  <!-- frame corner brackets (accent) -->
+  <g class="s-acc" style="stroke-width:3;stroke-linecap:square">
+    <path d="M56,120 L56,56 L120,56"/>
+    <path d="M1800,56 L1864,56 L1864,120"/>
+    <path d="M56,960 L56,1024 L120,1024"/>
+    <path d="M1800,1024 L1864,1024 L1864,960"/>
+  </g>
+
+  <!-- eyebrow -->
+  <text x="132" y="150" class="mono" font-size="30" letter-spacing="8">
+    <tspan class="acc">[</tspan><tspan class="ink2"> GOTHIC 1 REMAKE </tspan><tspan class="acc">]</tspan>
+  </text>
+
+  <!-- title (bigger, for the small browse thumbnail) -->
+  <text x="126" y="312" class="mono" font-size="124" font-weight="700" letter-spacing="-1">
+    <tspan class="ink0">Wetter</tspan><tspan class="acc">werk</tspan>
+  </text>
+  <rect x="130" y="348" width="372" height="6" fill="url(#accentGrad)"/>
+
+  <!-- subtitle -->
+  <text x="132" y="428" class="sans ink1" font-size="44" font-weight="500">Command the weather over the Colony.</text>
+
+  <!-- ===== compact sun + cloud, upper right ===== -->
+  <g transform="translate(1486,250)">
+    <circle cx="0" cy="0" r="200" fill="url(#glowGrad)"/>
+    <!-- sun -->
+    <g transform="translate(-44,-40)">
+      <g stroke="url(#accentGrad)" stroke-width="6" stroke-linecap="round">
+        <line x1="0"   y1="-78" x2="0"   y2="-100"/>
+        <line x1="55"  y1="-55" x2="71"  y2="-71"/>
+        <line x1="78"  y1="0"   x2="100" y2="0"/>
+        <line x1="-55" y1="-55" x2="-71" y2="-71"/>
+        <line x1="-78" y1="0"   x2="-100" y2="0"/>
+      </g>
+      <circle cx="0" cy="0" r="58" fill="url(#accentGrad)" filter="url(#softGlow)"/>
+    </g>
+    <!-- cloud -->
+    <g transform="translate(-86,-20) scale(10)">
+      <path d="M19.35,10.04 C18.67,6.59 15.64,4 12,4 C9.11,4 6.6,5.64 5.35,8.04
+               C2.34,8.36 0,10.91 0,14 C0,17.31 2.69,20 6,20 L19,20
+               C21.76,20 24,17.76 24,15 C24,12.36 21.95,10.22 19.35,10.04 Z"
+            fill="var(--bg-2)" stroke="var(--accent)" stroke-width="0.4" stroke-linejoin="round"/>
+    </g>
+    <!-- rain -->
+    <g stroke="url(#accentGrad)" stroke-width="6" stroke-linecap="round">
+      <line x1="-50" y1="200" x2="-64" y2="236"/>
+      <line x1="14"  y1="200" x2="0"   y2="236"/>
+      <line x1="78"  y1="200" x2="64"  y2="236"/>
+    </g>
+  </g>
+
+  <!-- ===== three big feature cards (two-line labels, large for the thumbnail) ===== -->
+  <!-- card 1: SET ANY WEATHER (sun) -->
+  <g transform="translate(96,0)">
+    <path d="M0,530 L532,530 L552,550 L552,850 L20,850 L0,830 Z" fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
+    <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
+      <path d="M0,564 L0,530 L34,530"/>
+      <path d="M518,850 L552,850 L552,816"/>
+    </g>
+    <g transform="translate(276,592)">
+      <g stroke="url(#accentGrad)" stroke-width="6" stroke-linecap="round">
+        <line x1="0" y1="-52" x2="0" y2="-66"/><line x1="37" y1="-37" x2="47" y2="-47"/>
+        <line x1="52" y1="0" x2="66" y2="0"/><line x1="37" y1="37" x2="47" y2="47"/>
+        <line x1="-37" y1="37" x2="-47" y2="47"/><line x1="-52" y1="0" x2="-66" y2="0"/>
+        <line x1="-37" y1="-37" x2="-47" y2="-47"/><line x1="0" y1="52" x2="0" y2="66"/>
+      </g>
+      <circle cx="0" cy="0" r="38" fill="url(#accentGrad)" filter="url(#softGlow)"/>
+    </g>
+    <text x="276" y="735" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">SET ANY</text>
+    <text x="276" y="810" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">WEATHER</text>
+  </g>
+  <!-- card 2: BALANCE PRESETS (equalizer bars) -->
+  <g transform="translate(684,0)">
+    <path d="M0,530 L532,530 L552,550 L552,850 L20,850 L0,830 Z" fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
+    <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
+      <path d="M0,564 L0,530 L34,530"/>
+      <path d="M518,850 L552,850 L552,816"/>
+    </g>
+    <g fill="url(#accentGrad)">
+      <rect x="218" y="560" width="26" height="72"/>
+      <rect x="263" y="544" width="26" height="88"/>
+      <rect x="308" y="588" width="26" height="44"/>
+    </g>
+    <text x="276" y="735" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">BALANCE</text>
+    <text x="276" y="810" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">PRESETS</text>
+  </g>
+  <!-- SAVE-SAFE badge under the presets card -->
+  <g transform="translate(690,876)">
+    <rect x="0" y="0" width="540" height="76" rx="13" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)" stroke-width="3"/>
+    <path d="M34,40 L52,58 L82,24" fill="none" stroke="url(#accentGrad)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
+    <text x="112" y="52" class="mono ink0" font-size="40" font-weight="700" letter-spacing="1">SAVE-SAFE</text>
+  </g>
+  <!-- card 3: TUNE EVERY VALUE (sliders) -->
+  <g transform="translate(1272,0)">
+    <path d="M0,530 L532,530 L552,550 L552,850 L20,850 L0,830 Z" fill="var(--bg-2)" class="s-line2" style="stroke-width:1.5"/>
+    <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
+      <path d="M0,564 L0,530 L34,530"/>
+      <path d="M518,850 L552,850 L552,816"/>
+    </g>
+    <g stroke="var(--accent)" stroke-width="6" stroke-linecap="round">
+      <line x1="234" y1="570" x2="318" y2="570"/>
+      <line x1="234" y1="592" x2="318" y2="592"/>
+      <line x1="234" y1="614" x2="318" y2="614"/>
+    </g>
+    <g fill="var(--accent)" stroke="var(--bg-2)" stroke-width="3">
+      <circle cx="262" cy="570" r="10"/>
+      <circle cx="296" cy="592" r="10"/>
+      <circle cx="250" cy="614" r="10"/>
+    </g>
+    <text x="276" y="735" class="mono ink0" font-size="64" font-weight="700" text-anchor="middle">TUNE EVERY</text>
+    <text x="276" y="810" class="mono ink0" font-size="72" font-weight="700" text-anchor="middle">VALUE</text>
+  </g>
+
+</svg>
+</body>
+</html>

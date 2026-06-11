@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../house.css">
+<link rel="stylesheet" href="../../themes/wetterwerk.css">
+</head>
+<body>
+<!--
+  One feature card, content driven by query params so a single template renders
+  every feature. render-wetterwerk.ps1 fills these per card:
+    ?t=WEATHER CONTROL  title (mono, accent rule under it)
+    ?b1=...&b2=...      two body lines (sans)
+    ?cap=F9            hotkey / stat cap; empty hides the cap and left-aligns the label
+    ?cl=...            cap label (sans)
+    ?cs=...            cap sub-label (mono, muted)
+  The base fill is --page (the Nexus page surface) so only the cut-corner panel
+  reads as a card floating on the description, not a dark box around it.
+-->
+<svg width="720" height="440" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg">
+  <rect width="720" height="440" fill="var(--page)"/>
+
+  <!-- cut-corner card panel (notch top-right + bottom-left).
+       Near-black on the lighter --page surface, so it reads as a distinct card. -->
+  <path d="M60,50 L644,50 L660,66 L660,390 L76,390 L60,374 Z"
+        fill="var(--bg-0)" class="s-line2" style="stroke-width:1.5"/>
+
+  <!-- card corner brackets (accent) -->
+  <g class="s-acc" style="stroke-width:2.5;stroke-linecap:square">
+    <path d="M60,84 L60,50 L94,50"/>
+    <path d="M626,390 L660,390 L660,356"/>
+  </g>
+
+  <!-- title -->
+  <text id="title" x="96" y="118" class="mono ink0" font-size="34" font-weight="700">WEATHER CONTROL</text>
+  <rect x="98" y="138" width="120" height="3" fill="var(--accent)"/>
+
+  <!-- body -->
+  <text id="b1" x="96" y="192" class="sans ink1" font-size="24">Set any sky condition on command,</text>
+  <text id="b2" x="96" y="224" class="sans ink1" font-size="24">cycle through them with one key.</text>
+
+  <!-- hotkey / stat cap + label -->
+  <g id="capbox">
+    <rect x="96" y="270" width="86" height="70" fill="var(--bg-1)" class="s-line" style="stroke-width:2"/>
+    <rect x="100" y="274" width="78" height="4" fill="var(--accent)" fill-opacity="0.5"/>
+    <text id="cap" x="139" y="318" class="mono acc" font-size="34" font-weight="700" text-anchor="middle">F9</text>
+  </g>
+  <text id="cl" x="200" y="312" class="sans ink2" font-size="24">cycle anytime, even mid-game</text>
+  <text id="cs" x="200" y="344" class="mono ink2" font-size="20">restores the game's cycle on exit</text>
+</svg>
+<script>
+  var p = new URLSearchParams(location.search);
+  function set(id, k){ var v = p.get(k); if (v !== null) document.getElementById(id).textContent = v; }
+  set('title','t'); set('b1','b1'); set('b2','b2'); set('cl','cl'); set('cs','cs');
+  var cap = p.get('cap');
+  if (cap !== null) {
+    if (cap === '') {
+      document.getElementById('capbox').style.display = 'none';
+      document.getElementById('cl').setAttribute('x', '96');
+      document.getElementById('cs').setAttribute('x', '96');
+    } else {
+      document.getElementById('cap').textContent = cap;
+    }
+  }
+</script>
+</body>
+</html>

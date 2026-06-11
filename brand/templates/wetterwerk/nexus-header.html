@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../house.css">
+<link rel="stylesheet" href="../../themes/wetterwerk.css">
+</head>
+<body>
+<svg width="1300" height="372" viewBox="0 0 1300 372" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   style="stop-color:var(--accent-hi)"/>
+      <stop offset="0.5" style="stop-color:var(--accent)"/>
+      <stop offset="1"   style="stop-color:var(--accent-lo)"/>
+    </linearGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0"   style="stop-color:var(--accent);stop-opacity:0.20"/>
+      <stop offset="0.6" style="stop-color:var(--accent);stop-opacity:0.06"/>
+      <stop offset="1"   style="stop-color:var(--accent);stop-opacity:0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1300" height="372" fill="var(--bg-0)"/>
+
+  <!-- subtle corner frame (hairline) -->
+  <g class="s-line" style="stroke-width:2;stroke-linecap:square">
+    <path d="M28,58 L28,28 L58,28"/>
+    <path d="M1242,28 L1272,28 L1272,58"/>
+    <path d="M28,314 L28,344 L58,344"/>
+    <path d="M1242,344 L1272,344 L1272,314"/>
+  </g>
+
+  <!-- ===== compact sun + cloud + rain, right, vertically centered ===== -->
+  <g transform="translate(0,-26)">
+    <circle cx="1075" cy="180" r="170" fill="url(#glowGrad)"/>
+
+    <!-- sun, peeking behind the cloud -->
+    <g transform="translate(1028,128)">
+      <g stroke="url(#accentGrad)" stroke-width="4" stroke-linecap="round">
+        <line x1="0"   y1="-64" x2="0"   y2="-82"/>
+        <line x1="45"  y1="-45" x2="58"  y2="-58"/>
+        <line x1="64"  y1="0"   x2="82"  y2="0"/>
+        <line x1="-45" y1="-45" x2="-58" y2="-58"/>
+        <line x1="-64" y1="0"   x2="-82" y2="0"/>
+      </g>
+      <circle cx="0" cy="0" r="46" fill="url(#accentGrad)" filter="url(#softGlow)"/>
+    </g>
+
+    <!-- cloud -->
+    <g transform="translate(966,150) scale(9.2)">
+      <path d="M19.35,10.04 C18.67,6.59 15.64,4 12,4 C9.11,4 6.6,5.64 5.35,8.04
+               C2.34,8.36 0,10.91 0,14 C0,17.31 2.69,20 6,20 L19,20
+               C21.76,20 24,17.76 24,15 C24,12.36 21.95,10.22 19.35,10.04 Z"
+            fill="var(--bg-2)" stroke="var(--accent)" stroke-width="0.4" stroke-linejoin="round"/>
+    </g>
+
+    <!-- rain streaks -->
+    <g stroke="url(#accentGrad)" stroke-width="4" stroke-linecap="round">
+      <line x1="1002" y1="346" x2="990"  y2="378"/>
+      <line x1="1046" y1="346" x2="1034" y2="378"/>
+      <line x1="1090" y1="346" x2="1078" y2="378"/>
+      <line x1="1134" y1="346" x2="1122" y2="378"/>
+    </g>
+  </g>
+
+  <!-- ===== brand block, top-left (the focus) ===== -->
+  <text x="64" y="74" class="mono" font-size="18" letter-spacing="6">
+    <tspan class="acc">[</tspan><tspan class="ink2"> GOTHIC 1 REMAKE </tspan><tspan class="acc">]</tspan>
+  </text>
+
+  <text x="60" y="152" class="mono" font-size="54" font-weight="700" letter-spacing="-1">
+    <tspan class="ink0">Wetter</tspan><tspan class="acc">werk</tspan>
+  </text>
+  <rect x="64" y="176" width="170" height="4" fill="var(--accent)"/>
+
+  <text x="64" y="220" class="sans ink1" font-size="24" font-weight="500">Command the weather over the Colony.</text>
+</svg>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../house.css">
+<link rel="stylesheet" href="../../themes/wetterwerk.css">
+</head>
+<body>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   style="stop-color:var(--accent-hi)"/>
+      <stop offset="0.5" style="stop-color:var(--accent)"/>
+      <stop offset="1"   style="stop-color:var(--accent-lo)"/>
+    </linearGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0"   style="stop-color:var(--accent);stop-opacity:0.16"/>
+      <stop offset="0.6" style="stop-color:var(--accent);stop-opacity:0.05"/>
+      <stop offset="1"   style="stop-color:var(--accent);stop-opacity:0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="var(--bg-0)"/>
+
+  <!-- frame corner brackets (accent) -->
+  <g class="s-acc" style="stroke-width:3;stroke-linecap:square">
+    <path d="M56,120 L56,56 L120,56"/>
+    <path d="M1800,56 L1864,56 L1864,120"/>
+    <path d="M56,960 L56,1024 L120,1024"/>
+    <path d="M1800,1024 L1864,1024 L1864,960"/>
+  </g>
+
+  <!-- eyebrow -->
+  <text id="eyebrow" x="132" y="180" class="mono" font-size="30" letter-spacing="8">
+    <tspan class="acc">[</tspan><tspan class="ink2"> WETTERWERK </tspan><tspan class="acc">]</tspan>
+  </text>
+
+  <g id="content">
+  <!-- title -->
+  <text x="126" y="372" class="mono ink0" font-size="72" font-weight="700">EVERY VALUE</text>
+  <text x="126" y="452" class="mono ink0" font-size="72" font-weight="700">EXPOSED</text>
+  <rect x="130" y="484" width="260" height="5" fill="var(--accent)"/>
+
+  <!-- copy -->
+  <text x="132" y="560" class="sans ink1" font-size="42" font-weight="500">Reach the dials the sky already has.</text>
+  <text x="132" y="624" class="sans ink2" font-size="28">Ultra Dynamic Sky exposes the weather</text>
+  <text x="132" y="660" class="sans ink2" font-size="28">state. A preset sets these; you can also</text>
+  <text x="132" y="696" class="sans ink2" font-size="28">pin any single value yourself.</text>
+
+  <text x="132" y="804" class="mono ink2" font-size="26">0.0 = off / clear &#183; 1.0 = full</text>
+  </g>
+
+  <g id="visual">
+  <circle cx="1480" cy="540" r="320" fill="url(#glowGrad)"/>
+
+  <!-- five labeled sliders; track + filled portion + knob + value chip -->
+  <!-- CLOUD COVERAGE 0.6 -->
+  <g transform="translate(0,300)">
+    <text x="1080" y="8" class="mono ink1" font-size="26" letter-spacing="1">CLOUD COVERAGE</text>
+    <rect x="1080" y="32" width="560" height="6" fill="var(--bg-2)" class="s-line" style="stroke-width:1"/>
+    <rect x="1080" y="32" width="336" height="6" fill="url(#accentGrad)"/>
+    <circle cx="1416" cy="35" r="15" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+    <text x="1700" y="44" class="mono acc" font-size="28" font-weight="700" text-anchor="end">0.60</text>
+  </g>
+  <!-- FOG DENSITY 0.3 -->
+  <g transform="translate(0,420)">
+    <text x="1080" y="8" class="mono ink1" font-size="26" letter-spacing="1">FOG DENSITY</text>
+    <rect x="1080" y="32" width="560" height="6" fill="var(--bg-2)" class="s-line" style="stroke-width:1"/>
+    <rect x="1080" y="32" width="168" height="6" fill="url(#accentGrad)"/>
+    <circle cx="1248" cy="35" r="15" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+    <text x="1700" y="44" class="mono acc" font-size="28" font-weight="700" text-anchor="end">0.30</text>
+  </g>
+  <!-- RAIN INTENSITY 0.8 -->
+  <g transform="translate(0,540)">
+    <text x="1080" y="8" class="mono ink1" font-size="26" letter-spacing="1">RAIN INTENSITY</text>
+    <rect x="1080" y="32" width="560" height="6" fill="var(--bg-2)" class="s-line" style="stroke-width:1"/>
+    <rect x="1080" y="32" width="448" height="6" fill="url(#accentGrad)"/>
+    <circle cx="1528" cy="35" r="15" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+    <text x="1700" y="44" class="mono acc" font-size="28" font-weight="700" text-anchor="end">0.80</text>
+  </g>
+  <!-- WIND STRENGTH 0.45 -->
+  <g transform="translate(0,660)">
+    <text x="1080" y="8" class="mono ink1" font-size="26" letter-spacing="1">WIND STRENGTH</text>
+    <rect x="1080" y="32" width="560" height="6" fill="var(--bg-2)" class="s-line" style="stroke-width:1"/>
+    <rect x="1080" y="32" width="252" height="6" fill="url(#accentGrad)"/>
+    <circle cx="1332" cy="35" r="15" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+    <text x="1700" y="44" class="mono acc" font-size="28" font-weight="700" text-anchor="end">0.45</text>
+  </g>
+  <!-- THUNDER 0.15 -->
+  <g transform="translate(0,780)">
+    <text x="1080" y="8" class="mono ink1" font-size="26" letter-spacing="1">THUNDER</text>
+    <rect x="1080" y="32" width="560" height="6" fill="var(--bg-2)" class="s-line" style="stroke-width:1"/>
+    <rect x="1080" y="32" width="84" height="6" fill="url(#accentGrad)"/>
+    <circle cx="1164" cy="35" r="15" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+    <text x="1700" y="44" class="mono acc" font-size="28" font-weight="700" text-anchor="end">0.15</text>
+  </g>
+  </g>
+</svg>
+<script>
+  var p = new URLSearchParams(location.search);
+  if (p.get('eyebrow') === '0') {
+    var e = document.getElementById('eyebrow'); if (e) e.style.display = 'none';
+  }
+  if (p.get('invert') === '1') {
+    var c = document.getElementById('content'); if (c) c.setAttribute('transform', 'translate(840,0)');
+    var v = document.getElementById('visual');  if (v) v.setAttribute('transform', 'translate(-820,0)');
+  }
+</script>
+</body>
+</html>

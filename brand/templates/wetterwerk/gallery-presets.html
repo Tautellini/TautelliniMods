@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../house.css">
+<link rel="stylesheet" href="../../themes/wetterwerk.css">
+</head>
+<body>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   style="stop-color:var(--accent-hi)"/>
+      <stop offset="0.5" style="stop-color:var(--accent)"/>
+      <stop offset="1"   style="stop-color:var(--accent-lo)"/>
+    </linearGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0"   style="stop-color:var(--accent);stop-opacity:0.16"/>
+      <stop offset="0.6" style="stop-color:var(--accent);stop-opacity:0.05"/>
+      <stop offset="1"   style="stop-color:var(--accent);stop-opacity:0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="var(--bg-0)"/>
+
+  <!-- frame corner brackets (accent) -->
+  <g class="s-acc" style="stroke-width:3;stroke-linecap:square">
+    <path d="M56,120 L56,56 L120,56"/>
+    <path d="M1800,56 L1864,56 L1864,120"/>
+    <path d="M56,960 L56,1024 L120,1024"/>
+    <path d="M1800,1024 L1864,1024 L1864,960"/>
+  </g>
+
+  <!-- eyebrow -->
+  <text id="eyebrow" x="132" y="180" class="mono" font-size="30" letter-spacing="8">
+    <tspan class="acc">[</tspan><tspan class="ink2"> WETTERWERK </tspan><tspan class="acc">]</tspan>
+  </text>
+
+  <g id="content">
+  <!-- title -->
+  <text x="126" y="372" class="mono ink0" font-size="72" font-weight="700">PRESETS</text>
+  <rect x="130" y="404" width="260" height="5" fill="var(--accent)"/>
+
+  <!-- copy -->
+  <text x="132" y="472" class="sans ink1" font-size="42" font-weight="500">Curated weather, one line to switch.</text>
+  <text x="132" y="536" class="sans ink2" font-size="28">Each preset reweights how often each</text>
+  <text x="132" y="572" class="sans ink2" font-size="28">condition shows up, from calm to stormy.</text>
+
+  <text x="132" y="678" class="mono ink1" font-size="28"><tspan class="acc" font-weight="700">VANILLA</tspan>  the game's own rotation, untouched.</text>
+  <text x="132" y="726" class="mono ink1" font-size="28"><tspan class="acc" font-weight="700">CLEAR</tspan>    bright skies, rain rarely.</text>
+  <text x="132" y="774" class="mono ink1" font-size="28"><tspan class="acc" font-weight="700">GLOOM</tspan>    overcast and fog over the valley.</text>
+  <text x="132" y="822" class="mono ink1" font-size="28"><tspan class="acc" font-weight="700">STORMS</tspan>   frequent rain and thunder.</text>
+  </g>
+
+  <g id="visual">
+  <circle cx="1500" cy="540" r="320" fill="url(#glowGrad)"/>
+
+  <!-- axis labels -->
+  <text x="1196" y="296" class="mono ink2" font-size="24" letter-spacing="2">CALM</text>
+  <text x="1700" y="296" class="mono ink2" font-size="24" letter-spacing="2" text-anchor="end">STORMY</text>
+
+  <!-- four preset rows: name (left) + a calm-to-stormy track with a knob -->
+  <!-- row 1: VANILLA, mid -->
+  <g transform="translate(0,360)">
+    <circle cx="1140" cy="0" r="26" fill="url(#accentGrad)" filter="url(#softGlow)"/>
+    <text x="1196" y="9" class="mono ink0" font-size="30" font-weight="700">VANILLA</text>
+    <rect x="1196" y="34" width="504" height="3" fill="var(--hairline-2)"/>
+    <circle cx="1448" cy="35" r="14" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+  </g>
+  <!-- row 2: CLEAR, left -->
+  <g transform="translate(0,500)">
+    <g transform="translate(1140,0)">
+      <circle cx="0" cy="0" r="22" fill="url(#accentGrad)" filter="url(#softGlow)"/>
+      <g stroke="url(#accentGrad)" stroke-width="4" stroke-linecap="round">
+        <line x1="0" y1="-32" x2="0" y2="-40"/><line x1="23" y1="-23" x2="29" y2="-29"/>
+        <line x1="32" y1="0" x2="40" y2="0"/><line x1="-23" y1="-23" x2="-29" y2="-29"/>
+        <line x1="-32" y1="0" x2="-40" y2="0"/>
+      </g>
+    </g>
+    <text x="1196" y="9" class="mono ink0" font-size="30" font-weight="700">CLEAR</text>
+    <rect x="1196" y="34" width="504" height="3" fill="var(--hairline-2)"/>
+    <circle cx="1262" cy="35" r="14" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+  </g>
+  <!-- row 3: GLOOM, right of mid -->
+  <g transform="translate(0,640)">
+    <g transform="translate(1118,-14) scale(2.1)">
+      <path d="M19.35,10.04 C18.67,6.59 15.64,4 12,4 C9.11,4 6.6,5.64 5.35,8.04
+               C2.34,8.36 0,10.91 0,14 C0,17.31 2.69,20 6,20 L19,20
+               C21.76,20 24,17.76 24,15 C24,12.36 21.95,10.22 19.35,10.04 Z"
+            fill="var(--bg-2)" stroke="var(--ink-1)" stroke-width="0.7" stroke-linejoin="round"/>
+    </g>
+    <text x="1196" y="9" class="mono ink0" font-size="30" font-weight="700">GLOOM</text>
+    <rect x="1196" y="34" width="504" height="3" fill="var(--hairline-2)"/>
+    <circle cx="1560" cy="35" r="14" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+  </g>
+  <!-- row 4: STORMS, far right -->
+  <g transform="translate(0,780)">
+    <g transform="translate(1118,-14) scale(2.1)">
+      <path d="M19.35,10.04 C18.67,6.59 15.64,4 12,4 C9.11,4 6.6,5.64 5.35,8.04
+               C2.34,8.36 0,10.91 0,14 C0,17.31 2.69,20 6,20 L19,20
+               C21.76,20 24,17.76 24,15 C24,12.36 21.95,10.22 19.35,10.04 Z"
+            fill="var(--bg-2)" stroke="var(--accent)" stroke-width="0.7" stroke-linejoin="round"/>
+    </g>
+    <path d="M1140,24 L1130,44 L1142,44 L1132,64" fill="none" stroke="var(--accent-hi)" stroke-width="4"
+          stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
+    <text x="1196" y="9" class="mono ink0" font-size="30" font-weight="700">STORMS</text>
+    <rect x="1196" y="34" width="504" height="3" fill="var(--hairline-2)"/>
+    <circle cx="1672" cy="35" r="14" fill="var(--accent)" stroke="var(--bg-0)" stroke-width="3"/>
+  </g>
+  </g>
+</svg>
+<script>
+  var p = new URLSearchParams(location.search);
+  if (p.get('eyebrow') === '0') {
+    var e = document.getElementById('eyebrow'); if (e) e.style.display = 'none';
+  }
+  if (p.get('invert') === '1') {
+    var c = document.getElementById('content'); if (c) c.setAttribute('transform', 'translate(840,0)');
+    var v = document.getElementById('visual');  if (v) v.setAttribute('transform', 'translate(-900,0)');
+  }
+</script>
+</body>
+</html>

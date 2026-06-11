@@ -1,0 +1,9 @@
+/* THEME: wetterwerk "Azur" (Gothic 1 Remake, weather). One per-mod accent block.
+   Same house skeleton as g1r "Aurum"; only the accent ramp changes to a light sky
+   blue. Swapping the mod is swapping which themes/*.css a template links. */
+:root{
+  --accent:#52ABE6;
+  --accent-hi:#A6DCF7;
+  --accent-lo:#2C77AB;
+  --accent-glow:rgba(82,171,230,0.14);
+}

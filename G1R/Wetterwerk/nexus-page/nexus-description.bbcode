@@ -1,0 +1,73 @@
+[img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/Wetterwerk/nexus-page/images/hero.png[/img]
+
+[size=4][color=#52ABE6][b]EXPERIMENTAL[/b][/color] - a C++ UE4SS mod. The menu is the only entry point; see the version requirement under Installation before you download.[/size]
+
+[img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/Wetterwerk/nexus-page/images/section-features.png[/img]
+
+[size=4][b]Weather Control[/b][/size]
+Wetterwerk adds a [b][color=#52ABE6]Wetterwerk[/color][/b] tab to the UE4SS GUI console. From it you switch the sky to any weather the game has with [b]Previous[/b] / [b]Next[/b] / a button per preset, and [b]Hold[/b] freezes the sky so it keeps the weather you picked instead of drifting back to the game's cycle.
+[line]
+[b][size=4]Presets[/size][/b]
+The game's own Ultra Dynamic Sky weather states, switchable on demand from the tab. Hold pins one so the dynamic cycle stops changing it; release Hold and the game takes over again.
+[line]
+[b][size=4]Every Value Exposed[/size][/b]
+Below the presets, the tab lists [b]every[/b] reflected weather and sky value the game exposes - cloud, fog, rain, snow, wind, thunder and far more - grouped per actor with a filter box, each one a live, draggable control. Inherited engine values are shown read-only, and the controls that can disable weather control sit behind a [b](!) Caution[/b] group.
+
+[img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/Wetterwerk/nexus-page/images/section-install.png[/img]
+
+[b]This is a C++ mod, so it is tied to ONE UE4SS build:[/b] [color=#52ABE6]UE4SS v3.0.1 Beta (Git SHA #272ce2f8)[/color]. On a different UE4SS it will not load (UE4SS.log shows [i]Failed to load dll ... 0x7f[/i] - harmless, the game still runs). There are two downloads:
+
+[list=1]
+[*][b]Bundled with UE4SS[/b] - use this if you do NOT already have UE4SS. It ships the exact matching UE4SS, the [b]dwmapi.dll[/b] proxy and a pre-configured settings file. Extract its contents into [b]...\Gothic 1 Remake\G1R\Binaries\Win64\[/b]. The menu is enabled out of the box.[/*]
+[*][b]Manual (mod only)[/b] - use this if you ALREADY run UE4SS [b]272ce2f8[/b]. Extract the [b]Wetterwerk[/b] folder into [b]...\Win64\ue4ss\Mods\[/b]:
+[code]...\ue4ss\Mods\Wetterwerk\enabled.txt
+...\ue4ss\Mods\Wetterwerk\dlls\main.dll[/code]
+Then enable the UE4SS GUI console (see below).[/*]
+[/list]
+In UE4SS.log you should see: [code]Wetterwerk loaded (C++ tab + editor). Menu is the only entry point.[/code]
+
+[img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/Wetterwerk/nexus-page/images/section-config.png[/img]
+
+The menu lives in the UE4SS GUI console, which opens as a [b]separate window[/b] (not an in-game overlay). The bundled download turns it on for you; for the manual download, set this in [b]...\ue4ss\UE4SS-settings.ini[/b] under [b][Debug][/b]:
+[code]GuiConsoleEnabled = 1
+GuiConsoleVisible = 1
+GraphicsAPI       = dx11[/code]
+
+[list]
+[*]Launch the game and [b]Alt-Tab[/b] to the separate UE4SS window (run the game in borderless/windowed so you can see it). Click the [b]Wetterwerk[/b] tab.[/*]
+[*][b]Top:[/b] current weather, Previous / Next / Hold, and a button per preset.[/*]
+[*][b]Below:[/b] the full value editor with a filter box. Drag any named weather value to change it live.[/*]
+[*]Do [b]not[/b] tick [b]Use Cinematics Settings[/b] (in the Caution group): it switches the sky to manual mode and stops preset switching from working.[/*]
+[/list]
+
+[img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/Wetterwerk/nexus-page/images/section-safety.png[/img]
+
+[list]
+[*]No game files are modified, nothing is patched on disk.[/*]
+[*]Wetterwerk drives the game's own Ultra Dynamic Sky controller through its public functions. It sets the weather, it does not patch the sky system.[/*]
+[*]Remove the Wetterwerk folder (manual) or delete dwmapi.dll + the ue4ss folder (bundled) to uninstall.[/*]
+[/list]
+
+[img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/Wetterwerk/nexus-page/images/section-compatibility.png[/img]
+
+[list]
+[*][b]UE4SS version (the big one):[/b] the DLL is built for one exact UE4SS commit. A different UE4SS build will not load it. Use the bundled download, or rebuild from source for your version.[/*]
+[*][b]Mods that replace the sky / Ultra Dynamic Sky setup:[/b] Wetterwerk drives the game's GothicUltraDynamicControlerAS. A mod that swaps the controller out, or changes which weather each index is, can change what Wetterwerk sets or stop control entirely.[/*]
+[*][b]Other weather mods:[/b] two mods both setting the weather will fight over it. Run one.[/*]
+[*][b]Frame Generation:[/b] the menu uses a separate UE4SS window (ExternalThread render mode), so it does not hook the game's present and should not interact with Frame Generation.[/*]
+[/list]
+
+[img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/Wetterwerk/nexus-page/images/section-troubleshooting.png[/img]
+
+[list]
+[*][b]"Failed to load dll ... 0x7f" in UE4SS.log:[/b] your UE4SS differs from the build the mod was made for. Use the bundled download, or rebuild for your UE4SS.[/*]
+[*][b]No Wetterwerk window:[/b] the GUI console is off. Enable it in UE4SS-settings.ini (above). If the window is blank, set GraphicsAPI = dx11. Run the game borderless/windowed and Alt-Tab to it.[/*]
+[*][b]Presets do nothing after I edit a value:[/b] editing a value manually holds that aspect, so switching presets may not visibly change what you hand-edited. Also check that Use Cinematics Settings is OFF.[/*]
+[*][b]A preset button does nothing:[/b] that weather index is not valid in the current biome. The current-weather readout can also lag by one step.[/*]
+[/list]
+
+[center][line]
+[size=2][ a [url=https://github.com/Tautellini][b]Tautellini[/b][/url] mod ]  &#183;  source &amp; dev notes [color=#52ABE6]&#8594;[/color] [url=https://github.com/Tautellini/TautelliniMods]github.com/Tautellini/TautelliniMods[/url][/size][/center]
+[center][size=2]
+EXPERIMENTAL build - expect rough edges. Thanks for the feedback.
+Built on [url=https://github.com/UE4SS-RE/RE-UE4SS]UE4SS[/url]. Gothic 1 Remake by Alkimia Interactive and THQ Nordic. Sky by Ultra Dynamic Sky.[/size][/center]

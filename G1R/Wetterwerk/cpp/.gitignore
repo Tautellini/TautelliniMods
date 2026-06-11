@@ -1,0 +1,17 @@
+# RE-UE4SS framework source (large; cloned locally, not committed) and its outputs
+/RE-UE4SS/
+
+# CMake / Visual Studio build outputs
+/build/
+/out/
+*.dll
+*.lib
+*.exp
+*.pdb
+*.ilk
+
+# Visual Studio / CMake user files
+/.vs/
+CMakeUserPresets.json
+CMakeCache.txt
+CMakeFiles/
