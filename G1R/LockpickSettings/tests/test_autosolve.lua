@@ -39,6 +39,7 @@ local function makeWorld(opts)
         hintGeometry = true,
         stop = false,
         flags = {},
+        scene = {}, -- fast mode reads/writes the scene interpolation speed
     }
     for id = 0, s.pieceCount - 1 do s.steps[id] = 0 end
     local function rot(id) return s.rotStart[id] + s.sign * (s.steps[id] or 0) end
@@ -73,6 +74,10 @@ local function makeWorld(opts)
             end
             return true
         end,
+        -- fast mode cranks the scene interpolation speed on arm and restores it
+        -- on stop; the values do not affect the decision logic under test
+        getSceneInterp = function(_) return 20 end,
+        setSceneInterp = function(_, _) return true end,
     }
     return s, engine, presses, rot
 end
@@ -114,7 +119,7 @@ T.add("full-auto drives a single off-center piece to the goal", function()
         selectedSig = true, selectedRow = 0,
     })
     local d = newDriver(engine)
-    d:toggleFull(s)
+    d:toggleFast(s)
     runToEnd(d, s)
     T.ok(not d:running(), "disengaged on solve")
     T.eq(rot(0), 0, "piece centered")
@@ -128,7 +133,7 @@ T.add("full-auto selects the target piece before turning it", function()
         screenRight = 1, selectedSig = true, selectedRow = 0,
     })
     local d = newDriver(engine)
-    d:toggleFull(s)
+    d:toggleFast(s)
     runToEnd(d, s)
     T.ok(not d:running())
     T.eq(rot(2), 0, "target piece centered")
@@ -152,7 +157,7 @@ T.add("an uncalibrated nudge that resolves the opposite way is not a deviation",
     })
     local d = Driver.new({ engine = engine, getTask = function() return {} end,
         log = rec })
-    d:toggleFull(s)
+    d:toggleFast(s)
     runToEnd(d, s, 120)
     T.ok(not d:running(), "disengaged")
     T.eq(rot(0), 0, "nudges accepted both ways and reached center")
@@ -174,7 +179,7 @@ T.add("waits while the solver is still searching, does not give up or nudge", fu
         plan = function(_, st) st.plan = { finished = false } return nil end,
     })
     local d = newDriver(engine)
-    d:toggleFull(s)
+    d:toggleFast(s)
     for _ = 1, 50 do if d:running() then d:step(s) end end
     T.ok(d:running(), "still engaged after 50 searching ticks (did not give up)")
     T.eq(#presses, 0, "did not nudge while the solver was still searching")
@@ -198,7 +203,7 @@ T.add("stops when the route cycles without progress (model mismatch)", function(
     })
     local d = Driver.new({ engine = engine, getTask = function() return {} end,
         log = rec })
-    d:toggleFull(s)
+    d:toggleFast(s)
     runToEnd(d, s, 300)
     T.ok(not d:running(), "disengaged instead of looping forever")
     local cyc = false
@@ -212,23 +217,25 @@ T.add("aborts honestly when selection is not observable (no glow)", function()
         screenRight = 1, selectedSig = nil, selectedRow = 0,
     })
     local d = newDriver(engine)
-    d:armSingle(s)
+    d:toggleFast(s)
     runToEnd(d, s, 20)
     T.ok(not d:running(), "disengaged")
     T.eq(#presses, 0, "never pressed without a confirmable selection")
 end)
 
-T.add("single step makes exactly one move and stops", function()
-    local s, engine, presses, rot = makeWorld({
-        pieceCount = 1, rotStart = { [0] = 3 }, sign = 1, screenRight = 1,
-        selectedSig = true, selectedRow = 0,
+T.add("a second toggle cancels an in-progress run", function()
+    -- many pieces off-center so the run is still going after a few ticks; the
+    -- second toggle must stop it (F6-to-cancel, and the auto-off cancel path).
+    local s, engine = makeWorld({
+        pieceCount = 3, rotStart = { [0] = 3, [1] = 3, [2] = 3 }, sign = 1,
+        screenRight = 1, selectedSig = true, selectedRow = 0,
     })
     local d = newDriver(engine)
-    d:armSingle(s)
-    runToEnd(d, s, 20)
-    T.ok(not d:running())
-    T.eq(#presses, 1, "one turn only")
-    T.eq(rot(0), 2, "moved one step toward center, not all the way")
+    d:toggleFast(s)
+    d:step(s) -- begin a move
+    T.ok(d:running(), "engaged and running")
+    d:toggleFast(s)
+    T.ok(not d:running(), "second toggle cancelled the run")
 end)
 
 os.exit(T.run())

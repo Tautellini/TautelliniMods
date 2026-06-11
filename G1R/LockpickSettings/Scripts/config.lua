@@ -53,24 +53,22 @@ return {
     partnerColorSame     = { 0.55, 0.10, 1.00 },
     partnerColorOpposite = { 1.00, 0.15, 0.15 },
 
-    -- Auto-solve: let the mod drive the lock for you. The step hotkey
-    -- executes exactly the next solver move and stops; the full-auto
-    -- hotkey (the same key plus the modifier below) runs the whole route
-    -- to open, stops by itself the moment the lock opens, and is
-    -- cancelled by pressing it again. It moves as fast as each press is
-    -- honoured and re-plans once if a move is refused. Set a hotkey to ""
-    -- to disable it. Needs the next-move feature to be available.
-    autoSolveStepHotkey   = "F6",
-    autoSolveFullHotkey   = "F6",
-    -- Modifier held for full-auto so it does not collide with the step
-    -- key: "SHIFT", "CONTROL", "ALT", or "" for none (give full-auto its
-    -- own key then, or it will share the step key).
-    autoSolveFullModifier = "SHIFT",
-    -- Modifier for FAST full-auto (Ctrl+F6 by default), on the full-auto key.
-    -- Same route, replan and durability safety as full-auto, but it collapses the
-    -- move animation and drives the route on a tight cadence, so it solves much
-    -- faster. "" disables the fast bind.
-    autoSolveFastModifier = "CONTROL",
+    -- Auto-solve: let the mod drive the lock for you, fast. It collapses the
+    -- move animation and runs the route on a tight cadence, so the lock solves
+    -- in a couple of seconds. The hotkey solves the CURRENT lock and stops by
+    -- itself the moment it opens; press it again to cancel. Held with the
+    -- "every" modifier below it toggles FULL-AUTO mode: every lock you open then
+    -- solves itself automatically (press the modifier+hotkey again to turn it
+    -- off, which also cancels a solve in progress). It re-plans once if a move
+    -- is refused. Set the hotkey to "" to disable. Needs the next-move feature
+    -- to be available.
+    autoSolveHotkey        = "F6",
+    -- Modifier held with the hotkey to toggle full-auto-every-lock mode:
+    -- "SHIFT", "CONTROL", "ALT", or "" to disable that toggle.
+    autoSolveEveryModifier = "SHIFT",
+    -- Full-auto-every-lock state at game launch. false = opt-in (toggle it live
+    -- with the modifier+hotkey). true = every lock auto-solves from the start.
+    autoSolveEvery         = false,
 
     -- Log solver internals (moved sets, replans, calibration) to the
     -- UE4SS log. ALPHA DEFAULT: on, so bug reports arrive with a full solver

@@ -11,13 +11,14 @@ LockpickSettings for Gothic 1 Remake
    authored layout: connections the game removed at runtime (skill,
    master perk) keep showing until one of your moves disproves them.
    Off by default.
-4. Optional auto-solve: press F6 and the mod plays the next move for
-   you; press Shift+F6 to run full auto and clear the whole lock,
-   stopping by itself the moment it opens (Shift+F6 again cancels). It
-   moves as fast as each press is honored and re-plans if a move is
-   refused. Ctrl+F6 is an EXPERIMENTAL "super fast" mode that solves
-   almost instantly. Auto-solve still earns the lockpicking achievement.
-   Needs the next-move feature; the keys are configurable.
+4. Optional auto-solve: press F6 and the mod solves the current lock for
+   you, fast (it collapses the move animation and clears the whole lock in
+   a couple of seconds), stopping by itself the moment it opens (F6 again
+   cancels). Press Shift+F6 to toggle FULL-AUTO mode: every lock you open
+   then solves itself automatically (Shift+F6 again turns it off and cancels
+   any solve in progress). It re-plans if a move is refused. Auto-solve still
+   earns the lockpicking achievement. Off by default; needs the next-move
+   feature; the keys are configurable.
 
 Requires UE4SS, experimental build (the game runs UE 5.4.3):
 https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest
@@ -30,10 +31,10 @@ Install:
    The included enabled.txt activates the mod automatically;
    no mods.txt editing is needed.
 3. Start the game. ...\ue4ss\UE4SS.log should show:
-   [LockpickSettings] Loaded 3.0.10 (kit 1.0.0): untrained 2->7, trained 4->14,
+   [LockpickSettings] Loaded 3.1.0 (kit 1.0.0): untrained 2->7, trained 4->14,
    master 6->26, next-move hint off (416 lock graphs from bundled, toggle: F7),
-   connection display off, toggle: F8, auto-solve: F6 step, SHIFT+F6 full-auto,
-   CONTROL+F6 fast
+   connection display off, toggle: F8, auto-solve: F6 solve lock,
+   SHIFT+F6 full-auto every lock (off)
    The lock graphs ship with the mod ("from bundled"). This makes the mod
    independent of the game build at runtime, but it is NOT automatically
    compatible with a new game version or with other mods that change lock
@@ -43,9 +44,9 @@ Configure: edit LockpickSettings\Scripts\config.lua (extraTries = the
 bonus added on top of the vanilla 2/4/6, giving 12/14/16 by default;
 showNextMove /
 showConnections = the assists' state at game start, nextMoveHotkey /
-connectionsHotkey = the toggle keys, autoSolveStepHotkey /
-autoSolveFullHotkey / autoSolveFullModifier = the auto-solve keys,
-hintColorLeft / hintColorRight /
+connectionsHotkey = the toggle keys, autoSolveHotkey /
+autoSolveEveryModifier = the auto-solve keys, autoSolveEvery = whether
+full-auto-every-lock starts on at launch, hintColorLeft / hintColorRight /
 partnerColorSame / partnerColorOpposite = the colors). debugSolver
 defaults to on so bug reports include a full solver trace in
 UE4SS.log; set debugSolver = false for quiet play (it will likely

@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.0.10"
+local ModVersion = "3.1.0"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -131,10 +131,9 @@ end
 local HotkeyName     = Config.nextMoveHotkey
 local ConnHotkeyName = Config.connectionsHotkey
 local DebugSolver    = Config.debugSolver == true
-local AutoStepKey    = Config.autoSolveStepHotkey
-local AutoFullKey    = Config.autoSolveFullHotkey
-local AutoFullMod    = Config.autoSolveFullModifier
-local AutoFastMod    = Config.autoSolveFastModifier
+local AutoKey        = Config.autoSolveHotkey
+local AutoEveryMod   = Config.autoSolveEveryModifier
+local AutoEveryDefault = Config.autoSolveEvery == true
 
 -- the only mutable feature flags, shared BY REFERENCE into the Session and
 -- Tinter so a hotkey toggle propagates live
@@ -142,6 +141,11 @@ local flags = {
     nextMove = Config.showNextMove == true,
     connections = Config.showConnections == true,
 }
+
+-- full-auto-every-lock: when armed, every lock that opens auto-runs the fast
+-- solver. main owns this runtime flag (it is not a Session/Tinter concern);
+-- Shift+F6 toggles it, and tryStart reads it the moment a session is built.
+local autoEvery = AutoEveryDefault
 
 -- the hint/connection features need the whole engine+feature chain plus the
 -- graphs; boost only needs the engine (kit.num is always present).
@@ -351,6 +355,13 @@ local function tryStart(attempt)
     log(string.format("Next-move hint: %s, %d pieces, %d connections, first hint: %s",
         lockName, s.pieceCount, #graph.connections,
         s.nextMove and ("piece " .. s.nextMove.piece) or "none"))
+    -- full-auto-every-lock: if armed, drive THIS lock to open with the fast
+    -- solver the instant it is tracked (the same path a manual F6 takes, at the
+    -- safe point where the session is fully built and the geometry is resolved).
+    -- Only when the live state is usable; the driver self-disengages otherwise.
+    if autoEvery and driver and not s.stateUnknown and s.hintGeometry then
+        pcall(function() driver:toggleFast(s) end)
+    end
     -- the session poll. The worker wakes every POLL_MS but only does game-thread
     -- work (the tick, cached references only) every POLL_NORMAL_EVERY wakes in
     -- normal play (~400ms, as before); while FAST auto-solve is engaged it ticks
@@ -444,78 +455,63 @@ if type(ConnHotkeyName) == "string" and ConnHotkeyName ~= ""
 end
 
 -- ----------------------------------------------------------- auto-solve --
--- F6 steps one solver move; Shift+F6 toggles full-auto (both configurable in
--- config.lua). Same debounce-and-defer shape as the toggles: the handler only
+-- F6 solves the CURRENT lock with the fast solver (press again to cancel);
+-- Shift+F6 (the configurable modifier) toggles full-auto-every-lock, which
+-- auto-runs that same fast solver on every lock you open. Both configurable in
+-- config.lua. Same debounce-and-defer shape as the toggles: the handler only
 -- arms the driver on the game thread; the session tick does the work and only
 -- ever touches the live session.
 local ModifierKey = rawget(_G, "ModifierKey")
-local lastAutoStep, lastAutoFull = 0, 0
-if driver and type(AutoStepKey) == "string" and AutoStepKey ~= "" then
-    if Key[AutoStepKey] then
-        pcall(RegisterKeyBind, Key[AutoStepKey], function()
-            local now = os.clock()
-            if now - lastAutoStep < 0.3 then return end
-            lastAutoStep = now
-            ExecuteInGameThread(function()
-                pcall(function() driver:armSingle(liveSession) end)
-            end)
-        end)
-    else
-        log("ERROR: unknown autoSolveStepHotkey '" .. AutoStepKey
-            .. "', auto-solve step disabled")
-    end
-end
-if driver and type(AutoFullKey) == "string" and AutoFullKey ~= "" then
-    local mod = nil
-    if type(AutoFullMod) == "string" and AutoFullMod ~= "" then
-        mod = ModifierKey and ModifierKey[AutoFullMod]
-        if not mod then
-            log("ERROR: unknown autoSolveFullModifier '" .. AutoFullMod
-                .. "', full-auto registered without a modifier")
-        end
-    end
-    local handler = function()
+local lastAutoSolve, lastAutoEvery = 0, 0
+if driver and type(AutoKey) == "string" and AutoKey ~= "" and Key[AutoKey] then
+    -- F6 (bare): solve this lock now, fast
+    pcall(RegisterKeyBind, Key[AutoKey], function()
         local now = os.clock()
-        if now - lastAutoFull < 0.3 then return end
-        lastAutoFull = now
+        if now - lastAutoSolve < 0.3 then return end
+        lastAutoSolve = now
         ExecuteInGameThread(function()
-            pcall(function() driver:toggleFull(liveSession) end)
+            pcall(function() driver:toggleFast(liveSession) end)
         end)
-    end
-    if Key[AutoFullKey] then
-        local ok
-        if mod then
-            ok = pcall(RegisterKeyBind, Key[AutoFullKey], { mod }, handler)
+    end)
+    -- Shift+F6 (configurable modifier): toggle full-auto-every-lock
+    if type(AutoEveryMod) == "string" and AutoEveryMod ~= "" then
+        local mod = ModifierKey and ModifierKey[AutoEveryMod]
+        if not mod then
+            log("ERROR: unknown autoSolveEveryModifier '" .. AutoEveryMod
+                .. "', full-auto-every-lock toggle disabled")
         else
-            ok = pcall(RegisterKeyBind, Key[AutoFullKey], handler)
-        end
-        if not ok then log("ERROR: could not register full-auto hotkey") end
-    else
-        log("ERROR: unknown autoSolveFullHotkey '" .. AutoFullKey
-            .. "', full-auto disabled")
-    end
-end
--- Ctrl+F6 (configurable modifier): FAST full-auto. Same key as full-auto, with
--- autoSolveFastModifier; arms the driver's fast mode (the session then ticks every
--- poll wake while it runs).
-local lastAutoFast = 0
-if driver and type(AutoFullKey) == "string" and AutoFullKey ~= ""
-    and type(AutoFastMod) == "string" and AutoFastMod ~= "" and Key[AutoFullKey] then
-    local fmod = ModifierKey and ModifierKey[AutoFastMod]
-    if not fmod then
-        log("ERROR: unknown autoSolveFastModifier '" .. AutoFastMod
-            .. "', fast-auto disabled")
-    else
-        local ok = pcall(RegisterKeyBind, Key[AutoFullKey], { fmod }, function()
-            local now = os.clock()
-            if now - lastAutoFast < 0.3 then return end
-            lastAutoFast = now
-            ExecuteInGameThread(function()
-                pcall(function() driver:toggleFast(liveSession) end)
+            local ok = pcall(RegisterKeyBind, Key[AutoKey], { mod }, function()
+                local now = os.clock()
+                if now - lastAutoEvery < 0.3 then return end
+                lastAutoEvery = now
+                ExecuteInGameThread(function()
+                    pcall(function()
+                        autoEvery = not autoEvery
+                        log("Full-auto (every lock) "
+                            .. (autoEvery and "ON" or "OFF"))
+                        local s = liveSession
+                        if autoEvery then
+                            -- arming mid-lock kicks off the current one if usable
+                            if s and not s.stop and not s.opened
+                                and not s.stateUnknown and s.hintGeometry
+                                and not driver:running() then
+                                driver:toggleFast(s)
+                            end
+                        elseif driver:running() then
+                            -- turning it off cancels any solve in progress
+                            driver:toggleFast(s)
+                        end
+                    end)
+                end)
             end)
-        end)
-        if not ok then log("ERROR: could not register fast-auto hotkey") end
+            if not ok then
+                log("ERROR: could not register full-auto-every-lock toggle")
+            end
+        end
     end
+elseif driver and type(AutoKey) == "string" and AutoKey ~= "" then
+    log("ERROR: unknown autoSolveHotkey '" .. tostring(AutoKey)
+        .. "', auto-solve disabled")
 end
 
 -- ------------------------------------------------------------------- input --
@@ -736,24 +732,15 @@ if not NextMoveBroken then
         (type(ConnHotkeyName) == "string" and ConnHotkeyName ~= ""
             and Key[ConnHotkeyName])
         and (", toggle: " .. ConnHotkeyName) or "")
-    if not AutoSolveBroken then
-        local autoKeys = {}
-        if type(AutoStepKey) == "string" and AutoStepKey ~= ""
-            and Key[AutoStepKey] then
-            autoKeys[#autoKeys + 1] = AutoStepKey .. " step"
+    if not AutoSolveBroken and type(AutoKey) == "string" and AutoKey ~= ""
+        and Key[AutoKey] then
+        local autoKeys = { AutoKey .. " solve lock" }
+        if type(AutoEveryMod) == "string" and AutoEveryMod ~= ""
+            and ModifierKey and ModifierKey[AutoEveryMod] then
+            autoKeys[#autoKeys + 1] = AutoEveryMod .. "+" .. AutoKey
+                .. " full-auto every lock " .. (autoEvery and "(on)" or "(off)")
         end
-        if type(AutoFullKey) == "string" and AutoFullKey ~= ""
-            and Key[AutoFullKey] then
-            local pfx = (type(AutoFullMod) == "string" and AutoFullMod ~= "")
-                and (AutoFullMod .. "+") or ""
-            autoKeys[#autoKeys + 1] = pfx .. AutoFullKey .. " full-auto"
-            if type(AutoFastMod) == "string" and AutoFastMod ~= "" then
-                autoKeys[#autoKeys + 1] = AutoFastMod .. "+" .. AutoFullKey .. " fast"
-            end
-        end
-        if #autoKeys > 0 then
-            hintInfo = hintInfo .. ", auto-solve: " .. table.concat(autoKeys, ", ")
-        end
+        hintInfo = hintInfo .. ", auto-solve: " .. table.concat(autoKeys, ", ")
     end
 end
 log("Loaded " .. ModVersion .. " (kit " .. tostring(kit.version) .. "): "

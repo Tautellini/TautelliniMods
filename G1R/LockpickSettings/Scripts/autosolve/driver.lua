@@ -24,8 +24,7 @@ local table = table
 
 -- Tuning. Settled ticks are ~400ms, so these are in tick units unless noted.
 local WAIT_TICKS = 8       -- wait this long for a plan before nudging (~3s)
-local NUDGE_MAX_FULL = 3   -- exploratory "possible" moves before giving up (full-auto)
-local NUDGE_MAX_SINGLE = 1 -- one exploratory move at most for a single F6
+local NUDGE_MAX = 3        -- exploratory "possible" moves before giving up
 local SELECT_TICKS = 4     -- give selection this many ticks to reach the target
 local MOVE_GRACE = 2       -- settled checks showing no change before "no effect"
 local DEVIATION_MAX = 2    -- consecutive deviations that stop a full-auto run
@@ -55,7 +54,7 @@ end
 
 -- clear all run state; mode nil means disengaged
 function Driver:reset()
-    self.mode = nil       -- nil | "single" | "full"
+    self.mode = nil       -- nil | "fast" (the only solving mode)
     self.phase = nil      -- "idle" | "selecting" | "moving"
     self.move = nil       -- the move being executed { piece, dir, nudge }
     self.target = nil     -- the piece we are selecting toward
@@ -69,7 +68,7 @@ function Driver:reset()
     self.moveTicks = 0
     self.nudges = 0
     self.deviations = 0
-    self.origInterp = nil -- scene interpolation speed to restore (fast mode only)
+    self.origInterp = nil -- scene interpolation speed to restore on stop
 end
 
 function Driver:running()
@@ -86,72 +85,18 @@ end
 
 -- ---------------------------------------------------------------- arming --
 
--- F6: execute exactly the next move, then disengage. Does nothing (with a line)
--- while a run is already in progress, per the design: F6 never cancels.
-function Driver:armSingle(s)
-    self:freshen(s)
-    if self:running() then
-        self.log("Auto-solve already running, F6 ignored")
-        return
-    end
-    if not s then
-        self.log("Auto-solve: no active lock")
-        return
-    end
-    if s.stop or s.opened then
-        self.log("Auto-solve: no active lock")
-        return
-    end
-    self:reset()
-    self.mode = "single"
-    self.phase = "idle"
-    self.boundSession = s
-    self:engage(s)
-    self.log("Auto-solve: stepping one move")
-end
-
--- Shift+F6: toggle full-auto. A second press cancels; a successful open also
--- disengages on its own (handled in step()).
-function Driver:toggleFull(s)
-    self:freshen(s)
-    if self.mode == "full" then
-        self:finish(s, "cancelled", false)
-        return
-    end
-    if self.mode == "single" then
-        self.log("Auto-solve already running, full-auto ignored")
-        return
-    end
-    if not s then
-        self.log("Auto-solve: no active lock")
-        return
-    end
-    if s.stop or s.opened then
-        self.log("Auto-solve: no active lock")
-        return
-    end
-    self:reset()
-    self.mode = "full"
-    self.phase = "idle"
-    self.boundSession = s
-    self:engage(s)
-    self.log("Auto-solve: full-auto started")
-end
-
--- Ctrl+F6: toggle FAST full-auto. Same route, replan-on-divergence and durability
--- safety as Shift+F6 (the state machine treats "fast" exactly like "full"), with
--- two additions: it collapses the move animation (cranks the scene interpolation
--- speed, restored on stop) and main drives the session on a tight poll, so the
--- route executes as fast as moves are honoured. A second press cancels; a
--- successful open disengages on its own.
+-- Toggle the fast solver on the given session: it drives the whole route to
+-- open, replanning once on divergence with the same durability safety, then
+-- disengages on its own the moment the lock opens. A second call cancels an
+-- in-progress run. It collapses the move animation (cranks the scene
+-- interpolation speed, restored on stop) and main drives the session on a tight
+-- poll, so the route executes as fast as moves are honoured. This is the single
+-- entry point: F6 calls it for the current lock, and main calls it for every
+-- lock while full-auto-every-lock is armed.
 function Driver:toggleFast(s)
     self:freshen(s)
     if self.mode == "fast" then
         self:finish(s, "cancelled", false)
-        return
-    end
-    if self.mode == "single" or self.mode == "full" then
-        self.log("Auto-solve already running, fast-auto ignored")
         return
     end
     if not s or s.stop or s.opened then
@@ -167,7 +112,7 @@ function Driver:toggleFast(s)
     self.origInterp = self.engine.getSceneInterp(s.scene)
     self.engine.setSceneInterp(s.scene, FAST_INTERP)
     self:engage(s)
-    self.log("Auto-solve: FAST full-auto started")
+    self.log("Auto-solve started")
 end
 
 -- arm the session: the session tick will call step() once per settle. The
@@ -242,8 +187,7 @@ function Driver:stepIdle(s)
     if self.waitTicks < WAIT_TICKS then return end
     -- waited long enough: make a "possible" move to progress and let direction
     -- calibrate from the observed result. Bounded so a truly stuck lock stops.
-    local budget = (self.mode == "single") and NUDGE_MAX_SINGLE or NUDGE_MAX_FULL
-    if self.nudges >= budget then
+    if self.nudges >= NUDGE_MAX then
         self:finish(s, "no solvable move found", false)
         return
     end
@@ -376,8 +320,6 @@ function Driver:stepMoving(s)
             self.deviations = 0
             if self.move.nudge then
                 self.phase, self.move = "idle", nil
-            elseif self.mode == "single" then
-                self:finish(s, "move done", true)
             elseif self:cycling(s) then
                 -- the move landed as asked, but we have now reached this exact
                 -- arrangement several times: the route is oscillating because the
@@ -407,13 +349,9 @@ function Driver:stepMoving(s)
     end
 end
 
--- single-step stops on any deviation; full-auto re-reads, replans and continues
--- once, stopping only on a second consecutive deviation.
+-- re-read, replan and continue once on a deviation, stopping only on a second
+-- consecutive one.
 function Driver:onDeviation(s, why)
-    if self.mode == "single" then
-        self:finish(s, why, false)
-        return
-    end
     self.deviations = self.deviations + 1
     if self.deviations >= DEVIATION_MAX then
         self:finish(s, "stopped after repeated deviations (" .. why .. ")", false)
@@ -456,8 +394,8 @@ end
 
 -- end the run, clear the seam, log one line (success or stop)
 function Driver:finish(s, why, success)
-    -- restore the move animation if fast mode cranked the interpolation speed
-    -- (no-op for single/full, which never set origInterp)
+    -- restore the move animation that arming cranked (origInterp is nil only if
+    -- the scene read failed, in which case there is nothing to restore)
     if self.origInterp ~= nil and s and s.scene then
         self.engine.setSceneInterp(s.scene, self.origInterp)
     end
