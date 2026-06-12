@@ -67,7 +67,8 @@ confounded a freeze before.
 
 **Cut a release (version X.Y.Z):**
 1. Set `ModVersion = "X.Y.Z"` in `G1R/LockpickSettings/Scripts/main.lua`.
-2. Update the `Loaded X.Y.Z` line in `G1R/LockpickSettings/release/zip-readme.txt`.
+2. Update the `Loaded X.Y.Z` line in `G1R/LockpickSettings/bundled-readme.txt`
+   (the source the build copies in as the zip's `readme.txt`).
 3. Run the tests, build, and verify as above.
 4. Only if the user asks to commit: stage EXPLICIT paths (never `git add -A`; the
    user pushes brand assets to `main` in parallel). Use the repo's style: a
