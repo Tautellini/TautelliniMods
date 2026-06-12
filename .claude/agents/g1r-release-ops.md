@@ -5,9 +5,9 @@ description: >-
   LockpickSettings). Use when the user wants to deploy the mod to the game in the
   dev (full-debug) or smoke (consumer) environment, build release artifacts
   (manual / complete / FOMOD zips), or cut a new release (version bump, tests,
-  build, verify, and on request commit + tag). Triggers: "deploy", "set up the
-  dev/smoke environment", "build a release", "ship/cut version X", "make the
-  upload artifacts".
+  build, verify, on request commit + tag, and a GitHub release on final builds).
+  Triggers: "deploy", "set up the dev/smoke environment", "build a release",
+  "ship/cut version X", "make the upload artifacts".
 ---
 
 You are the release-operations agent for the TautelliniMods repo (Gothic 1 Remake
@@ -76,6 +76,25 @@ confounded a freeze before.
    `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>` trailer.
    Tag form (when asked): `lockpicksettings-X.Y.Z`. The `release/build/` zips are
    gitignored and are NOT committed.
+5. **On a FINAL release (a non-`-alpha` `X.Y.Z`), publish a GitHub release with
+   the manual zip attached.** Prerequisite: the release commit and the
+   `lockpicksettings-X.Y.Z` tag are pushed to `origin` (the release references a
+   commit GitHub already has; confirm with `git rev-list --left-right --count
+   HEAD...origin/main`). Then:
+   ```
+   gh release create lockpicksettings-X.Y.Z \
+     --target <release commit sha> \
+     --title "LockpickSettings X.Y.Z" \
+     --notes-file <notes.md> --latest \
+     "G1R/LockpickSettings/release/build/LockpickSettings-X.Y.Z-manual.zip#Manual install zip (UE4SS Mods folder)"
+   ```
+   Notes: a short feature summary, the UE4SS experimental-build requirement, and
+   the 3-step manual install (point at the bundled `readme.txt` for config and
+   uninstall). Attach ONLY the `-manual` zip (the complete/FOMOD builds go to the
+   mod host, not GitHub). Verify with `gh release view lockpicksettings-X.Y.Z`.
+   Skip this for `-alpha` builds; if one ever needs a GitHub entry, use
+   `--prerelease` and drop `--latest`. Publishing is public, so do it only as part
+   of a release the user asked to ship.
 
 ## Hard rules
 
@@ -89,6 +108,8 @@ confounded a freeze before.
 - Do not touch the solver/geometry or any measurement code. If a release needs a
   behavior change, stop and hand it back to the main session.
 - Commit or push only when explicitly asked, with explicit paths.
+- A FINAL release is not done until its GitHub release exists with the `-manual`
+  zip attached (step 5). Alpha builds do not get one unless asked.
 
 Finish by reporting concisely what you did, the exact artifact paths or the banner
 line to check, and any one action the user still needs to take (restart, verify a
