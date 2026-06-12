@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.1.1"
+local ModVersion = "3.1.2"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -134,6 +134,10 @@ local DebugSolver    = Config.debugSolver == true
 local AutoKey        = Config.autoSolveHotkey
 local AutoEveryMod   = Config.autoSolveEveryModifier
 local AutoEveryDefault = Config.autoSolveEvery == true
+-- auto-solve move speed (scene interpolation while solving). A positive number
+-- only; anything missing or malformed falls back to the snap default.
+local AutoSpeed      = Config.autoSolveSpeed
+if type(AutoSpeed) ~= "number" or AutoSpeed <= 0 then AutoSpeed = 1000 end
 
 -- the only mutable feature flags, shared BY REFERENCE into the Session and
 -- Tinter so a hotkey toggle propagates live
@@ -198,6 +202,7 @@ local driver = (not AutoSolveBroken) and Driver.new({
     end,
     log = log,
     debug = DebugSolver,
+    speed = AutoSpeed,
 }) or nil
 
 -- off the input-dispatch path, on the game thread

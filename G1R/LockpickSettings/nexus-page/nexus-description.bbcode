@@ -10,6 +10,9 @@ The piece to move next lights up: [b][color=#00ff00]GREEN [/color][/b]to turn i
 [line]
 [b][size=4]Connection Display[/size] [/b][i](F8, off by default)[/i] 
 Connections to your selected piece will be highlighted: [color=#9900ff][b]PURPLE[/b] [/color]moves the [color=#9900ff]SAME DIRECTION[/color] and [b][color=#980000]RED [/color][/b]moves [color=#980000]OPPOSITE DIRECTION[/color].
+[line]
+[b][size=4]Auto-Solve[/size] [/b][i](F6; Shift+F6 = every lock)[/i]
+The mod drives the lock open for you and stops the moment it clicks. Set the pace with [b]autoSolveSpeed[/b] in config.lua: the default snaps it open in a couple of seconds, or lower it so the solve glides at a human pace, slow enough that a guard can still walk up and catch you.
 
 
 [img]https://raw.githubusercontent.com/Tautellini/TautelliniMods/main/G1R/LockpickSettings/nexus-page/images/section-install.png[/img]
@@ -37,6 +40,7 @@ Edit [b]Scripts\config.lua[/b], apply with a game restart.
 [*][b]nextMoveHotkey[/b] / [b]connectionsHotkey[/b]: the toggle keys (default "F7" / "F8", "" disables)[/*]
 [*][b]hintColorLeft[/b] / [b]hintColorRight[/b]: hint colors as {r, g, b}, encoding the turn (set both equal for a directionless hint)[/*]
 [*][b]partnerColorSame[/b] / [b]partnerColorOpposite[/b]: connection colors as {r, g, b}[/*]
+[*][b]autoSolveSpeed[/b]: how fast auto-solve (F6) moves; the default snaps the lock open in seconds, lower it (vanilla pace is 20) so the solve glides slow enough to get caught[/*]
 [*][b]debugSolver[/b]: verbose solver log for bug reports. On by default during the alpha; set false for quiet play.[/*]
 [/list]
 

@@ -31,7 +31,7 @@ Install:
    The included enabled.txt activates the mod automatically;
    no mods.txt editing is needed.
 3. Start the game. ...\ue4ss\UE4SS.log should show:
-   [LockpickSettings] Loaded 3.1.1 (kit 1.0.0): untrained 2->7, trained 4->14,
+   [LockpickSettings] Loaded 3.1.2 (kit 1.0.0): untrained 2->7, trained 4->14,
    master 6->26, next-move hint off (416 lock graphs from bundled, toggle: F7),
    connection display off, toggle: F8, auto-solve: F6 solve lock,
    SHIFT+F6 full-auto every lock (off)
@@ -46,7 +46,9 @@ showNextMove /
 showConnections = the assists' state at game start, nextMoveHotkey /
 connectionsHotkey = the toggle keys, autoSolveHotkey /
 autoSolveEveryModifier = the auto-solve keys, autoSolveEvery = whether
-full-auto-every-lock starts on at launch, hintColorLeft / hintColorRight /
+full-auto-every-lock starts on at launch, autoSolveSpeed = how fast the
+auto-solver moves (vanilla baseline 20, default 1000 snaps; lower it to
+glide at a human pace so a guard can catch you), hintColorLeft / hintColorRight /
 partnerColorSame / partnerColorOpposite = the colors). debugSolver
 defaults to on so bug reports include a full solver trace in
 UE4SS.log; set debugSolver = false for quiet play (it will likely

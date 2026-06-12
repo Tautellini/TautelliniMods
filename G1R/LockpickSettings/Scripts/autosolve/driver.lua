@@ -32,15 +32,18 @@ local CYCLE_LIMIT = 3      -- stop full-auto if any state recurs this many times
                            -- a correct route never revisits a state, so this
                            -- means the route is oscillating because the live
                            -- lock's connections disagree with the model
-local FAST_INTERP = 1000.0 -- fast mode cranks the scene's piece interpolation
-                           -- speed to this so moves SNAP instead of glide
-                           -- (baseline 20); restored to the original on stop
+local FAST_INTERP = 1000.0 -- DEFAULT scene piece-interpolation speed while a solve
+                           -- runs; config's autoSolveSpeed overrides it per build.
+                           -- High SNAPS each move (baseline is 20) so the lock
+                           -- solves in a couple of seconds; a low value glides at a
+                           -- human pace, so a guard can still walk up and catch you.
+                           -- Restored to the scene's original on stop.
 
 local Driver = {}
 Driver.__index = Driver
 
 -- opts: { engine = adapter, getTask = function() return freshTask end,
---         log = function(msg) end, debug = boolean }
+--         log = function(msg) end, debug = boolean, speed = number }
 function Driver.new(opts)
     opts = opts or {}
     local self = setmetatable({}, Driver)
@@ -48,6 +51,10 @@ function Driver.new(opts)
     self.getTask = opts.getTask or function() return nil end
     self.log = opts.log or function() end
     self.debug = opts.debug and true or false
+    -- scene interpolation speed used while solving. A positive number from config
+    -- overrides the snap default; lower values glide (slow enough to get caught).
+    self.speed = (type(opts.speed) == "number" and opts.speed > 0)
+        and opts.speed or FAST_INTERP
     self:reset()
     return self
 end
@@ -107,10 +114,11 @@ function Driver:toggleFast(s)
     self.mode = "fast"
     self.phase = "idle"
     self.boundSession = s
-    -- collapse the glide so the tight poll never fires mid-animation; the written
-    -- value sticks (probe-confirmed) and finish restores the original.
+    -- set the solve-time interpolation speed (the default cranks it so moves snap
+    -- and the tight poll never fires mid-animation; a low autoSolveSpeed glides
+    -- instead). The written value sticks (probe-confirmed) and finish restores it.
     self.origInterp = self.engine.getSceneInterp(s.scene)
-    self.engine.setSceneInterp(s.scene, FAST_INTERP)
+    self.engine.setSceneInterp(s.scene, self.speed)
     self:engage(s)
     self.log("Auto-solve started")
 end

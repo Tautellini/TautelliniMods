@@ -69,6 +69,14 @@ return {
     -- Full-auto-every-lock state at game launch. false = opt-in (toggle it live
     -- with the modifier+hotkey). true = every lock auto-solves from the start.
     autoSolveEvery         = false,
+    -- How FAST the auto-solver moves: the lock's piece interpolation speed while a
+    -- solve runs (vanilla baseline is 20). The driver only plays the next move once
+    -- the previous one has visibly settled, so this value alone sets the pace. High
+    -- snaps each move and clears the lock in a couple of seconds (1000 = the fast
+    -- default). LOWER it to make the solve glide at a human-watchable pace, so a
+    -- guard can still walk up and catch you mid-pick: 20 matches a normal manual
+    -- move, 40 to 80 is brisk but visible. The scene's original is restored on stop.
+    autoSolveSpeed         = 1000,
 
     -- Log solver internals (moved sets, replans, calibration) to the
     -- UE4SS log. ALPHA DEFAULT: on, so bug reports arrive with a full solver
