@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.1.0"
+local ModVersion = "3.1.1"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -621,7 +621,9 @@ if not NextMoveBroken then
     end
     for _, fn in ipairs({
         "/Script/G1R.GameplayAbilityDoor:Server_SuccessLockEvent",
-        "/Script/G1R.GameplayAbilityOpen:Server_SuccessLockEvent",
+        -- GameplayAbilityOpen:Server_SuccessLockEvent was removed from the class in
+        -- the 2026-06-12 update (buildid 23682495); the Open success signal still
+        -- arrives via its NetMulticast_OnSetLockUnlocked below (and MemorizeLockpick).
         "/Script/G1R.GameplayAbilityDoor:NetMulticast_OnSetLockUnlocked",
         "/Script/G1R.GameplayAbilityOpen:NetMulticast_OnSetLockUnlocked",
         "/Script/G1R.AbilityTask_LockPick:MemorizeLockpick",
