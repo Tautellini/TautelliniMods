@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.1.2"
+local ModVersion = "3.1.3"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load

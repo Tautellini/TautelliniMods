@@ -94,10 +94,18 @@ end
 
 -- write the HighlightColor parameter on every MID of a piece entry. The game's
 -- hover highlight writes the same parameter, so persistent tints are re-applied
--- per tick by the caller.
+-- per tick by the caller. A MID captured when the pieces settled can be torn
+-- down before a later write (lock scene teardown, GC, the F7 toggle firing just
+-- as the pick ends), and pcall does NOT catch the native access violation a
+-- dangling MID raises, so re-check :IsValid() per call: the liveness gate is the
+-- real guard, exactly as engine.pressInput does on the live task.
 function engine.writeColor(e, color)
     for _, mid in ipairs(e.mids) do
-        pcall(function() mid:SetVectorParameterValue(FName("HighlightColor"), color) end)
+        pcall(function()
+            if mid:IsValid() then
+                mid:SetVectorParameterValue(FName("HighlightColor"), color)
+            end
+        end)
     end
 end
 
@@ -120,10 +128,17 @@ function engine.setSceneInterp(scene, value)
 end
 
 -- read the current HighlightColor off a single MID, or nil. Used to observe the
--- game's selected-glow signature and to tell our own paint apart from it.
+-- game's selected-glow signature and to tell our own paint apart from it. Same
+-- staleness risk as engine.writeColor: a MID cached at capture can die before a
+-- later read, so gate on :IsValid() before the native deref (pcall alone cannot
+-- catch the access violation a dangling MID raises).
 function engine.readHighlight(mid)
     local c
-    local ok = pcall(function() c = mid:K2_GetVectorParameterValue(FName("HighlightColor")) end)
+    local ok = pcall(function()
+        if mid:IsValid() then
+            c = mid:K2_GetVectorParameterValue(FName("HighlightColor"))
+        end
+    end)
     if ok and c then return c end
     return nil
 end
