@@ -37,6 +37,9 @@ G1R/LockpickSettings/user-reported-logs/
 # Photoshop source art is large; keep the exported PNG/WEBP in the repo, not the .psd
 *.psd
 
+# planning docs are working notes, obsolete once the work ships; kept local, never pushed
+plans/
+
 # deploy_env.ps1 safety backups of the game's UE4SS-settings.ini / mods.txt / binary
 tools/.env-backup/
 
