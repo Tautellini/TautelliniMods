@@ -203,6 +203,19 @@ A `pcall` around any of those will **not** save the process. The rule is: do
 not call them. The `pcall` is for the operations we have verified safe but want
 to survive an unexpected nil or stale wrapper.
 
+For that safe-but-stale case, prefer the shared helper over a hand-rolled
+`pcall(function() if obj:IsValid() then ... end end)` at every site. The kit
+provides (kit ≥ 1.1.0):
+
+- `kit.engine.guard(obj, fn)` runs `fn(obj)` only when `obj` is a valid UObject,
+  pcall-wrapped, returning the result or `nil`. This is the canonical "touch this
+  object if it is still alive" call; route every cached deref through it.
+- `kit.engine.isValid(obj)` the IsValid gate alone (nil / non-object safe).
+- `kit.engine.try(fn)` a bare guarded call for work not centred on one UObject.
+
+These encode the pattern; they do **not** bless the banned operations above (those
+AV on a perfectly valid object). They guard the stale/destroyed-handle class only.
+
 ---
 
 ## 4. Kotlin / OOP gotchas
@@ -361,6 +374,33 @@ So three rules:
    So **evict and recreate** live objects on reload (the world-change backstop
    and the stale-session eviction at minigame start already do this). Never key
    behavior on `getmetatable(obj) == Class`.
+
+### Probes must be hot-reload-safe and never crash live play
+
+Probes (`G1R/*Probe/`) are developed by editing `main.lua` and hitting CTRL+R
+**in a running game on a real savegame**. A probe that can crash on (re)load
+forces a full restart and risks the play session, which defeats the point. So a
+probe is held to the same native-safety bar as shipping code, and then some:
+
+- **No risky native op at load/eval time, ever.** `pcall` does NOT catch a native
+  access violation (section 3, and `G1R/LuaModdingSurface.md`). So do not merely
+  wrap the banned operations, do not call them: no `GetCDO`/`StaticFindObject` on
+  AngelScript (`/Script/Angelscript.*`) class objects, no instance-prop reads off
+  AS/chest classes, no TMap iteration, no `K2_GetActorLocation` on the part-actor
+  path. Prefer the SAFE reflected surface (native `/Script/G1R.*` classes, the GAS
+  `AttributeSet_*`) and OBSERVE via hooks; treat AS class defaults as read-only-
+  via-measurement, never poked directly.
+- **Gate every cached-object deref on a fresh `:IsValid()`** at use time, not just
+  at capture (the `engine.pressInput` / `engine.writeColor` doctrine). A handle
+  read on one tick can be torn down by the next.
+- **Register hooks/keybinds/notifies ONCE, behind a global flag**
+  (`if not rawget(_G, "__myprobe_v3") then rawset(_G, "__myprobe_v3", true) ... end`).
+  CTRL+R does not tear down handlers, it accumulates them; an unguarded
+  `RegisterHook` at probe scope multiplies every reload until UE4SS aborts.
+- **Keep the act of loading inert.** Auto-run only safe, cheap reads (or nothing);
+  put any heavier or higher-risk discovery behind an explicit keybind the user
+  presses deliberately, so a reload alone can never trigger it. Hooks need one
+  restart to arm; that is the only restart a good probe should ever require.
 
 ---
 

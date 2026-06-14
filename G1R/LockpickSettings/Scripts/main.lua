@@ -716,6 +716,91 @@ if not okNotify then
     log("ERROR: could not register minigame notification: " .. tostring(errNotify))
 end
 
+-- ------------------------------------------- shared mod menu (optional) --
+-- Register this mod's live-tunable settings into the optional SharedModMenu. UE4SS
+-- runs every mod in its OWN Lua state, so kit.menu publishes this spec as DATA through
+-- UE4SS shared variables (a serialized schema + live values); SharedModMenu reads it and
+-- pushes edits back, which kit.menu applies here through these set() callbacks. With no
+-- SharedModMenu installed the publish goes to a store nobody reads, a harmless no-op.
+-- Each get() reads the live value and set(v) writes it AND applies the SAME side-effects
+-- the hotkeys do, so menu and keys stay in lockstep. Colors wait for a color kind.
+-- Guarded on kit.menu so an older VENDORED kit (this mod's own copy, pre-1.3.0) just
+-- skips the tab instead of erroring.
+if kit.menu and kit.menu.register then
+    local function setHint(v)
+        v = v and true or false
+        if not NextMoveBroken and flags.nextMove ~= v then toggleHint() end
+    end
+    local function setConn(v)
+        v = v and true or false
+        if NextMoveBroken or flags.connections == v then return end
+        flags.connections = v
+        log("Connection display " .. (v and "ON" or "OFF"))
+        local s = liveSession
+        if s and not s.stop then pcall(function() s:onConnectionsToggled() end) end
+    end
+    local function setEvery(v)
+        v = v and true or false
+        if AutoSolveBroken or not driver or autoEvery == v then return end
+        autoEvery = v
+        log("Full-auto (every lock) " .. (v and "ON" or "OFF"))
+        local s = liveSession
+        if v then
+            if s and not s.stop and not s.opened and not s.stateUnknown
+                and s.hintGeometry and not driver:running() then
+                pcall(function() driver:toggleFast(s) end)
+            end
+        elseif driver:running() then
+            pcall(function() driver:toggleFast(s) end)
+        end
+    end
+    local function setSpeed(v)
+        v = tonumber(v) or AutoSpeed
+        if v < 20 then v = 20 elseif v > 2000 then v = 2000 end
+        AutoSpeed = v
+        if driver then driver.speed = v end
+        log("Auto-solve speed " .. AutoSpeed)
+    end
+    local function tierGet(t) return function() return ExtraTries[t] or 0 end end
+    local function tierSet(t)
+        return function(v)
+            v = tonumber(v) or 0
+            if v < 0 then v = 0 elseif v > 30 then v = 30 end
+            ExtraTries[t] = math.floor(v + 0.5)
+        end
+    end
+
+    -- one sub-tab per feature group; a broken feature drops its section
+    local sections = {}
+    if not NextMoveBroken then
+        sections[#sections + 1] = { title = "Hints", items = {
+            { name = "Next-Move Hint", kind = "bool",
+                get = function() return flags.nextMove end, set = setHint },
+            { name = "Connections", kind = "bool",
+                get = function() return flags.connections end, set = setConn },
+        } }
+    end
+    if not AutoSolveBroken then
+        sections[#sections + 1] = { title = "Auto-Solve", items = {
+            { name = "Full Auto", kind = "bool",
+                get = function() return autoEvery end, set = setEvery },
+            { name = "Speed", kind = "num", min = 20, max = 2000, step = 20,
+                get = function() return AutoSpeed end, set = setSpeed },
+        } }
+    end
+    sections[#sections + 1] = { title = "Durability", items = {
+        { name = "Untrained", kind = "num", min = 0, max = 30, step = 1,
+            get = tierGet("untrained"), set = tierSet("untrained") },
+        { name = "Trained", kind = "num", min = 0, max = 30, step = 1,
+            get = tierGet("trained"), set = tierSet("trained") },
+        { name = "Master", kind = "num", min = 0, max = 30, step = 1,
+            get = tierGet("master"), set = tierSet("master") },
+    } }
+    pcall(kit.menu.register, "LockpickSettings", sections)
+    log("SharedModMenu: registered " .. #sections .. " section(s) (a tab appears if "
+        .. "the SharedModMenu mod is installed)")
+end
+
 -- ----------------------------------------------------------------- banner --
 local loaded = {}
 if Boost then

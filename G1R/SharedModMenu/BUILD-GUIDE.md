@@ -1,5 +1,14 @@
 # SharedModMenu - Blueprint + pak build guide (zero Unreal experience)
 
+> **OBSOLETE (2026-06-13).** This whole BP-widget + cooked-`.pak` approach is NO
+> LONGER NEEDED. We proved a pure-Lua UMG menu builds and renders fine from UE4SS
+> reflection (Create UserWidget + StaticConstructObject the widget tree +
+> AddToViewport; mouse via the LMB keybind + GetMousePositionOnViewport; camera
+> lock via SetInputMode_UIOnlyEx). SharedModMenu is now a PURE-LUA mod, no Unreal,
+> no cooking, no pak. See `plans/shared-mod-menu.md` and the working renderer in
+> `G1R/TautelliniDevProbe/Scripts/probes/menu.lua`. Kept only for historical
+> reference / if a BP path is ever wanted.
+
 How to build the `SharedModMenu` widget in Unreal Engine 5.4 and package it into
 a `.pak` that `BPModLoaderMod` loads into Gothic 1 Remake. Written for someone who
 has never opened Unreal.
@@ -62,7 +71,7 @@ UI work. If this fails, nothing else can work, so de-risk it now.
      ```
    - Run:
      ```
-     UnrealPak.exe "C:\out\SharedModMenu.pak" -create="C:\path\filelist.txt"
+     UnrealPak.exe "C:\out\SharedModMenu.pak" -create="C:\out\filelist.txt"
      ```
 6. Copy `SharedModMenu.pak` into the game's
    `...\Gothic 1 Remake\G1R\Content\Paks\LogicMods\` (create `LogicMods` if it

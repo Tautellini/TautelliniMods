@@ -1,0 +1,4 @@
+This mod does NOT vendor the shared kit. deploy.ps1 sees this marker and instead drops the one
+standalone bridge file (shared/kit/menu.lua) into Scripts/modmenu.lua. SharedModMenu uses that
+plus inline native-safety helpers, so it ships without any kit dependency, and other mod authors
+integrate by vendoring that same single modmenu.lua, not the whole kit.

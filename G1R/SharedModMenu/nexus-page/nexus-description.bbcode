@@ -1,0 +1,59 @@
+[size=5][b][color=#52ABE6]SharedModMenu[/color][/b][/size]
+[size=4]One in-game settings menu that every mod can plug into.[/size]
+
+[size=4][color=#52ABE6][b]ACTIVELY DEVELOPED[/b][/color] - the API can still change and a new version may contain breaking changes. If your mod integrates with it, link your users to a [b]specific version[/b], not "latest". Integrating mods keep working [b]with or without[/b] this menu installed: they register through the API, and a correctly guarded integration (shown below) simply no-ops when it is absent.[/size]
+
+Optional, pure-Lua, zero dependencies. Any UE4SS Lua mod adds a tab of live settings, toggles, sliders and buttons, all in one panel. On its own it does nothing, it is a [b]host[/b] for other mods' settings.
+
+[line]
+[size=4][b]For players[/b][/size]
+[list]
+[*][b]Install:[/b] drop the [b]SharedModMenu[/b] folder into [b]...\Gothic 1 Remake\G1R\Binaries\Win64\ue4ss\Mods\[/b]. No mods.txt edit.
+[*][b]Open:[/b] press [b]F2[/b] (change it in [b]Scripts\config.lua[/b]).
+[*]Every installed mod that supports it gets its own [b]tab[/b] on top; a mod can split its settings into [b]sub-tabs[/b] below.
+[*][b]Mouse:[/b] click a tab, a toggle, the slider bar, or [-]/[+]. [b]Numpad:[/b] 8/2 select, 4/6 change value, 7/9 sub-tab, 1/3 mod tab.
+[/list]
+No paks, no Blueprints, no game files touched.
+
+[line]
+[size=4][b]For mod authors, the register API[/b][/size]
+Add a tab in [b]one call[/b], with [b]one file[/b] and [b]no dependency[/b]. Copy [b]modmenu.lua[/b] (from this mod's [b]Scripts\[/b]) into your own [b]Scripts\[/b], then at startup:
+
+[code]local ok, modmenu = pcall(require, "modmenu")
+if ok and modmenu then
+  modmenu.register("MyMod", {
+    { name = "God Mode", kind = "bool",
+      get = function() return cfg.god end,
+      set = function(v) cfg.god = v end },
+
+    { name = "Move Speed", kind = "num", min = 0.1, max = 5, step = 0.1,
+      get = function() return cfg.speed end,
+      set = function(v) cfg.speed = v end },
+
+    { name = "Reset", kind = "action", set = function() resetAll() end },
+  })
+end[/code]
+
+[b]Your mod never depends on this one.[/b] You vendor modmenu.lua, so the require always resolves; when SharedModMenu is not installed, [b]register[/b] is a harmless no-op. Your [b]get[/b]/[b]set[/b] stay in your mod, the menu just reads the value and sends edits back, so your mod stays the single source of truth.
+
+[b]Item kinds[/b]
+[list]
+[*][b]bool[/b] - an on/off toggle.
+[*][b]num[/b] - a [-]/[+] stepper, plus a click-to-set bar when you give [b]min[/b]+[b]max[/b] (with [b]step[/b]).
+[*][b]action[/b] - a [ RUN ] button, [b]set[/b] is called when clicked.
+[/list]
+
+[b]Sub-tabs[/b], register a list of sections instead of a flat list:
+[code]modmenu.register("MyMod", {
+  { title = "Combat", items = { --[[ items ]] } },
+  { title = "World",  items = { --[[ items ]] } },
+})[/code]
+
+[line]
+[size=4][b]How it works[/b][/size]
+UE4SS runs each Lua mod in its own isolated state, so [b]modmenu.lua[/b] bridges registrations through UE4SS shared variables and a light per-mod poll applies your menu edits. That single file is fully self-contained, standard Lua plus the UE4SS globals it needs.
+
+The panel itself is plain UMG, just built at runtime from Lua through UE4SS reflection instead of loaded from a cooked [b].pak[/b]. That means no Unreal Editor, no Blueprint assets and nothing to repackage, which is the real win while developing: change the Lua, hot-reload in seconds, see it, every iteration, rather than re-cooking and shipping a widget each time. And little is lost by injecting it live, the result is the same UMG widget tree a pak would ship, only constructed in code and added to the viewport when you open the menu instead of baked ahead of time. For a menu that is one self-contained file and a far faster loop, for the same on-screen result.
+
+[center][line]
+[size=2][ a [url=https://github.com/Tautellini][b]Tautellini[/b][/url] mod ]  &#183;  source [color=#52ABE6]&#8594;[/color] [url=https://github.com/Tautellini/TautelliniMods]github.com/Tautellini/TautelliniMods[/url][/size][/center]

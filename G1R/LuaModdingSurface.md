@@ -9,6 +9,20 @@ inventories live in `reference/` (greppable, one line per class).
 - Reflected property = readable AND writable from Lua. This includes the
   AngelScript classes: they dump as `ASClass /Script/Angelscript.X` and
   their properties are normal reflected properties
+- AS class reads, PRECISE mechanism (re-measured 2026-06-13, dev build): get the
+  default object with `StaticFindObject("/Script/Angelscript.Default__X")` (the
+  by-name lookup is safe), then read its fields BY NAME (`cdo.m_Field`, names from
+  the object dump). Do NOT call `cls:GetCDO()` on an `ASClass`, that is a HARD
+  native crash. `ForEachProperty` enumeration is BLIND to AS data fields (returns
+  0 even when the class has them), so always read by known name, never enumerate.
+  Only ~971 of ~34800 AS classes carry reflected data fields; most (incl. the whole
+  `Bow_*` chain) carry none, so their config lives in non-`UPROPERTY` AS members
+  (VM-only, needs offline decode / C++) or in a different class. Chest classes
+  remain the exception below (StaticFindObject on THEM crashes; use NotifyOnNewObject
+  + write the instance). Shipping caveat: AS-config reads are dev-confirmed only,
+  the original blanket ban was a shipping decision after the 3.0.x live-decode
+  crashed for too many players, so use this for DEV-SIDE extraction (read live, bake
+  to data) until proven safe across player environments.
 - Native UFunctions are callable from Lua but NOT interceptable:
   RegisterHook on G1R/AS-bound natives registers without error and never
   fires, because AngelScript calls them directly via its binding table,

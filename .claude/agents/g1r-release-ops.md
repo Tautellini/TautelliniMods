@@ -34,10 +34,13 @@ the main session.
   - It backs up the original `UE4SS-settings.ini`/`mods.txt` to
     `tools/.env-backup/` once. Use `-DryRun` first when unsure; it prints every
     action and changes nothing.
-- `build_release.ps1 -Mod <name>` — reads `ModVersion` from the mod's `main.lua`
-  and builds `<Mod>-<ver>-manual.zip` (mod only), `-complete.zip` (mod + bundled
-  UE4SS), and `-vortex.zip` (FOMOD installer) into `G1R/<Mod>/release/build/`
-  (gitignored). Needs `tools/ue4ss/` populated for the complete/FOMOD builds.
+- `lockpicksettings_build_release.ps1` — reads `ModVersion` from LockpickSettings'
+  `main.lua` and builds `<Mod>-<ver>-manual.zip` (mod only), `-complete.zip` (mod +
+  bundled UE4SS), and `-vortex.zip` (FOMOD installer) into
+  `G1R/LockpickSettings/release/build/` (gitignored). Needs `tools/ue4ss/` populated
+  for the complete/FOMOD builds. A simple kit-free mod (e.g. SharedModMenu) uses
+  `sharedmodmenu_build_release.ps1` instead, which builds the manual zip plus the
+  standalone `modmenu.lua`.
 - Lua tests: `G1R/LockpickSettings/tests/run.ps1` (LuaJIT; check_load + all
   `test_*`). The decode oracle: `tools/luajit/luajit.exe tools/verify_livegraphs.lua`
   diffed against `G1R/reference/lock-graphs.lua`.
@@ -59,7 +62,7 @@ confounded a freeze before.
 1. Run `G1R/LockpickSettings/tests/run.ps1` and confirm `ALL SUITES PASSED`. The
    solver test's case counts vary run-to-run (randomized scrambles); the `PASS`
    lines are what matter, not the numbers.
-2. `powershell -File tools/build_release.ps1 -Mod LockpickSettings`.
+2. `powershell -File tools/lockpicksettings_build_release.ps1`.
 3. VERIFY the manual zip before declaring success: the shipped `main.lua` has the
    expected `ModVersion`, the key files are present, and NO dev files leaked
    (`tests/`, `plans/`, `TECH-DEBT`, `decode_locks`, `LockBuildProbe`, `*.md`).

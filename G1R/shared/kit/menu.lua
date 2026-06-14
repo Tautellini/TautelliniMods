@@ -1,0 +1,219 @@
+-- Cross-mod menu bridge over UE4SS shared variables (the SharedModMenu integration file).
+--
+-- Every UE4SS Lua mod runs in its OWN isolated state, so a consumer's get/set callbacks can
+-- never reach the menu mod directly. This module bridges them through UE4SS's shared-variable
+-- store (ModRef:Set/GetSharedVariable), which carries scalars only. A consumer's register()
+-- keeps its callbacks local and publishes a SERIALIZED spec + live values; the SharedModMenu mod
+-- reads those and writes edits back, which a poll applies through the local set(). Generic: no
+-- mod-domain literals, and a no-op when SharedModMenu isn't installed.
+--
+-- A spec is a list of SECTIONS, each { title, items }, so one mod can present several sub-tabs.
+-- A bare item list is accepted too and wrapped as one untitled section. Item:
+-- { name, kind = "bool"|"num"|"action", get, set, min, max, step }.
+
+local rawget, rawset = rawget, rawset
+local type, tostring, tonumber, pcall = type, tostring, tonumber, pcall
+local ipairs, pairs = ipairs, pairs
+local tconcat = table.concat
+local sfind, ssub = string.find, string.sub
+
+local M = {}
+
+-- shared-variable store (guarded; ModRef is a UE4SS per-mod global)
+local function modRef() return rawget(_G, "ModRef") end
+function M.available() return modRef() ~= nil end
+local function sset(key, val)
+    local mr = modRef(); if not mr then return false end
+    return (pcall(function() mr:SetSharedVariable(key, val) end))
+end
+local function sget(key)
+    local mr = modRef(); if not mr then return nil end
+    local v; if pcall(function() v = mr:GetSharedVariable(key) end) then return v end
+    return nil
+end
+
+local PFX = "SMM:"
+local K_INDEX = PFX .. "index"
+local function kSchema(n) return PFX .. "schema:" .. n end
+local function kValues(n) return PFX .. "values:" .. n end
+local function kCmd(n)    return PFX .. "cmd:" .. n end
+
+-- serialization: GS between sections, RS between records, FS between fields. Values and edit
+-- commands address items by a FLAT index (sections concatenated in order).
+local GS, RS, FS = "\29", "\30", "\31"
+
+local function split(s, sep)
+    local out, start = {}, 1
+    if s == nil or s == "" then return out end
+    while true do
+        local i = sfind(s, sep, start, true)
+        if not i then out[#out + 1] = ssub(s, start); return out end
+        out[#out + 1] = ssub(s, start, i - 1); start = i + 1
+    end
+end
+
+local function valTok(v, kind)
+    if kind == "bool" then return v and "b1" or "b0" end
+    if kind == "num" then return "n" .. tostring(tonumber(v) or 0) end
+    if kind == "action" then return "x" end
+    if type(v) == "boolean" then return v and "b1" or "b0" end
+    if type(v) == "number" then return "n" .. tostring(v) end
+    return v == nil and "x" or ("s" .. tostring(v))
+end
+local function unTok(t)
+    if t == nil or t == "" then return nil end
+    local tag = ssub(t, 1, 1)
+    if tag == "b" then return ssub(t, 2) == "1" end
+    if tag == "n" then return tonumber(ssub(t, 2)) end
+    if tag == "s" then return ssub(t, 2) end
+    return nil
+end
+
+local function itemGet(it)
+    if it.get then local ok, v = pcall(it.get); if ok then return v end end
+    return it.val
+end
+
+-- a spec -> ordered sections (each { title, items }) + a flat item list that owns the closures
+local function normalize(spec)
+    local sectioned = type(spec[1]) == "table" and type(spec[1].items) == "table"
+    local src = sectioned and spec or { { items = spec } }
+    local sections, flat = {}, {}
+    for _, s in ipairs(src) do
+        local items = {}
+        for _, it in ipairs(s.items or {}) do flat[#flat + 1] = it; items[#items + 1] = it end
+        sections[#sections + 1] = { title = s.title, items = items }
+    end
+    return sections, flat
+end
+
+local function numOrEmpty(v) return type(v) == "number" and tostring(v) or "" end
+
+local function serializeSchema(sections)
+    local secs = {}
+    for _, s in ipairs(sections) do
+        local parts = { s.title or "" }
+        for _, it in ipairs(s.items) do
+            parts[#parts + 1] = tconcat({ tostring(it.name or "?"), tostring(it.kind or "num"),
+                numOrEmpty(it.min), numOrEmpty(it.max), numOrEmpty(it.step) }, FS)
+        end
+        secs[#secs + 1] = tconcat(parts, RS)
+    end
+    return tconcat(secs, GS)
+end
+
+local function deserializeSchema(str)
+    local sections = {}
+    for _, secStr in ipairs(split(str, GS)) do
+        local parts = split(secStr, RS)
+        local items = {}
+        for i = 2, #parts do
+            local f = split(parts[i], FS)
+            items[#items + 1] = { name = f[1] or "?", kind = f[2] or "num",
+                min = tonumber(f[3]), max = tonumber(f[4]), step = tonumber(f[5]) }
+        end
+        sections[#sections + 1] = { title = (parts[1] ~= "" and parts[1] or nil), items = items }
+    end
+    return sections
+end
+
+local function serializeValues(flat)
+    local toks = {}
+    for _, it in ipairs(flat) do toks[#toks + 1] = valTok(itemGet(it), it.kind) end
+    return tconcat(toks, RS)
+end
+
+-- ------------------------------------------------- consumer side (publish) --
+local registry = {} -- name -> flat item list (local; holds the get/set closures)
+local started = false
+local LoopAsync           = rawget(_G, "LoopAsync")
+local ExecuteInGameThread = rawget(_G, "ExecuteInGameThread")
+
+local function nameList(s)
+    local out = {}
+    for _, n in ipairs(split(s or "", ",")) do if n ~= "" then out[#out + 1] = n end end
+    return out
+end
+local function hasName(s, name)
+    for _, n in ipairs(nameList(s)) do if n == name then return true end end
+    return false
+end
+
+local function applyCmds(name, flat)
+    local str = sget(kCmd(name))
+    if not str or str == "" then return end
+    sset(kCmd(name), "") -- clear first so a failing set() can't re-apply in a loop
+    for _, rec in ipairs(split(str, RS)) do
+        local f = split(rec, FS)
+        local it = flat[tonumber(f[1])]
+        if it and it.set then
+            if it.kind == "action" then pcall(it.set, true) else pcall(it.set, unTok(f[2])) end
+        end
+    end
+end
+
+-- one game-thread pass: apply queued edits, then republish current values (unconditionally, so
+-- the store is always fresh, including values the mod changed via its own hotkeys).
+function M.pump()
+    for name, flat in pairs(registry) do
+        applyCmds(name, flat)
+        sset(kValues(name), serializeValues(flat))
+    end
+end
+
+local function startPoll()
+    if started then return end
+    started = true
+    local gen = (tonumber(rawget(_G, "__modMenuGen")) or 0) + 1
+    rawset(_G, "__modMenuGen", gen)
+    if type(LoopAsync) ~= "function" then return end
+    local ticking = false
+    LoopAsync(250, function()
+        if rawget(_G, "__modMenuGen") ~= gen then return true end -- a newer reload won
+        if ticking then return false end
+        ticking = true
+        local function work() pcall(M.pump); ticking = false end
+        if ExecuteInGameThread then ExecuteInGameThread(work) else work() end
+        return false
+    end)
+end
+
+function M.register(name, spec)
+    if type(name) ~= "string" or type(spec) ~= "table" then return end
+    local sections, flat = normalize(spec)
+    registry[name] = flat
+    local idx = sget(K_INDEX) or ""
+    if not hasName(idx, name) then sset(K_INDEX, idx == "" and name or (idx .. "," .. name)) end
+    sset(kSchema(name), serializeSchema(sections))
+    sset(kValues(name), serializeValues(flat))
+    startPoll()
+end
+
+-- ---------------------------------------------------- menu side (consume) --
+-- every registered mod's sections + current values, each item tagged with its flat index.
+function M.readAll()
+    local out = {}
+    for _, name in ipairs(nameList(sget(K_INDEX))) do
+        local schema = sget(kSchema(name))
+        if type(schema) == "string" and schema ~= "" then
+            local sections = deserializeSchema(schema)
+            local vals = split(sget(kValues(name)) or "", RS)
+            local flat = 0
+            for _, s in ipairs(sections) do
+                for _, it in ipairs(s.items) do flat = flat + 1; it.flat = flat; it.value = unTok(vals[flat]) end
+            end
+            out[#out + 1] = { name = name, sections = sections }
+        end
+    end
+    return out
+end
+
+-- queue an edit for a mod's item (by flat index). The consumer's pump() applies it.
+function M.sendEdit(name, flatIndex, kind, value)
+    local rec = tostring(flatIndex) .. FS .. valTok(value, kind)
+    local cur = sget(kCmd(name))
+    if type(cur) == "string" and cur ~= "" then rec = cur .. RS .. rec end
+    sset(kCmd(name), rec)
+end
+
+return M

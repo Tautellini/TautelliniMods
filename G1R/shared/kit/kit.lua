@@ -8,13 +8,15 @@
 -- Generic, game-agnostic helpers only: no mod-domain knowledge ever lives here
 -- (a CI grep guards that, see tests/). Reusable by any future G1R mod.
 --
--- Single Lua state caveat: UE4SS loads ONE copy of a module name across all
--- mods (first require wins, shared via the global package.loaded). The kit's
--- API is therefore ADDITIVE-ONLY within a major; a breaking change renames the
--- module (kit -> kit2). Consumers should assert kit.version >= their minimum.
+-- ISOLATED Lua states: UE4SS runs every mod in its OWN Lua state (measured
+-- 2026-06-14: _G, package.loaded, and even this kit are SEPARATE tables per mod;
+-- the old "single state, first-require-wins" assumption was wrong). So vendoring a
+-- private copy per mod is REQUIRED, not just tidy, there is no shared module instance
+-- to rely on. The ONLY cross-mod channel is UE4SS shared variables, which the menu
+-- bridge uses (see menu.lua). The kit API stays additive-only within a major; a
+-- breaking change renames the module (kit -> kit2). Assert kit.version >= your minimum.
 --
--- Siblings are loaded by FILE PATH (loadfile), not require, so they never enter
--- the global package.loaded and never collide across mods. Only "kit" itself is
+-- Siblings are loaded by FILE PATH (loadfile), not require, so only "kit" itself is
 -- a require target.
 
 local debug, assert, loadfile = debug, assert, loadfile
@@ -31,4 +33,5 @@ kit.num     = load("num")     -- lookup, colorDist2
 kit.color   = load("color")   -- colorFrom decoder
 kit.engine  = load("engine")  -- liveInstances, readRootPos (generic UE4SS access)
 kit.boot    = load("boot")    -- tryRequire (require-and-degrade)
+kit.menu    = load("menu")    -- register(name, spec): cross-mod menu bridge (shared vars)
 return kit

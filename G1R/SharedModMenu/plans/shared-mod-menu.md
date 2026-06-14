@@ -3,6 +3,30 @@
 A standalone, reusable in-game settings menu for Gothic 1 Remake, separate from
 LockpickSettings. Captured from the planning interrogation (2026-06-10).
 
+> **PIVOT (2026-06-13): build it PURE-LUA, not Blueprint.** The "Goal" below assumed
+> a BP/UMG widget in a cooked pak (`BUILD-GUIDE.md`, now obsolete) because Lua-only
+> menus were thought impossible. They are not: a full Lua UMG menu (tabs, mouse +
+> numpad, value controls, camera lock) is built and working in
+> `G1R/TautelliniDevProbe/Scripts/probes/menu.lua`. So SharedModMenu becomes a
+> pure-Lua mod = that renderer + the consumer API. The API / registry / per-mod
+> section / each-mod-owns-persistence design below STILL HOLDS; only the widget
+> implementation changes (Lua reflection instead of a BP pak). Refinements from the
+> newer design (`G1R/TautelliniTuner/plans/tautellini-tuner.md`, which this now
+> supersedes): get/set callbacks instead of onChange dispatchers; tabs instead of
+> sections; OPTIONAL install (other mods register only if `_G.SharedModMenu` exists,
+> queueing if they load first); the dev tooling is a separate mod `TautelliniDevConsole`
+> (renamed from TautelliniConsole) = console commands + optional menu registration.
+> Hotkey lives in one shared `Mods/TautelliniMenu.cfg` (single source despite the kit
+> being vendored everywhere).
+
+> **M1 DONE (2026-06-13): the SharedModMenu mod is built + deployed.** `Scripts/main.lua`
+> (bootstrap + `_G.SharedModMenu` API + queue drain + `Mods/TautelliniMenu.cfg` hotkey,
+> default F2) + `Scripts/render.lua` (the pure-Lua UMG renderer reading the process-global
+> `_G.__sharedModMenu` registry; get/set item callbacks; bool/num/action kinds). Kit got the
+> `kit.menu.register` forwarder shim (kit 1.2.0). Parse + mock-UE4SS wiring harness + kit
+> tests green. Awaiting in-game smoke test (empty menu until a consumer registers). NEXT:
+> M3 = wire LockpickSettings as the first consumer; then M4 = TautelliniDevConsole.
+
 ## Goal
 
 A Blueprint (UMG) widget that renders an in-game menu using the GAME's own

@@ -40,12 +40,20 @@ function Deploy-OneMod($name) {
     New-Item -ItemType Directory -Force "$targetDir\Scripts" | Out-Null
     Copy-Item "$sourceDir\Scripts\*" "$targetDir\Scripts\" -Recurse -Force
 
-    # 2. vendor the shared kit under <Mod>\shared\kit\ (the *.lua files only;
-    #    the kit's tests\ subfolder never ships). main.lua self-adds this dir to
-    #    package.path, so require("kit") resolves it. Self-contained build.
+    # 2. shared code. A "menu-only" mod (marked with a .nokit file) does NOT vendor the kit; it
+    #    gets just the standalone bridge Scripts\modmenu.lua, the same single file any other mod
+    #    vendors to integrate with SharedModMenu. Every other mod vendors the full kit under
+    #    <Mod>\shared\kit\ (the *.lua files only; the kit's tests\ never ships).
     if (Test-Path "$targetDir\shared") { Remove-Item -Recurse -Force "$targetDir\shared" }
-    New-Item -ItemType Directory -Force "$targetDir\shared\kit" | Out-Null
-    Copy-Item (Get-ChildItem -File "$KitSource\*.lua") -Destination "$targetDir\shared\kit\" -Force
+    if (Test-Path "$sourceDir\.nokit") {
+        Copy-Item "$KitSource\menu.lua" "$targetDir\Scripts\modmenu.lua" -Force
+        $shared = "modmenu.lua (no kit)"
+    } else {
+        New-Item -ItemType Directory -Force "$targetDir\shared\kit" | Out-Null
+        Copy-Item (Get-ChildItem -File "$KitSource\*.lua") -Destination "$targetDir\shared\kit\" -Force
+        $kitVer = (Get-Content "$KitSource\version.lua" | Select-String -Pattern '"([^"]+)"').Matches.Groups[1].Value
+        $shared = "kit $kitVer"
+    }
 
     # 3. the enabled.txt activation marker (UE4SS starts any mod folder that has
     #    one; no mods.txt entry needed).
@@ -53,8 +61,7 @@ function Deploy-OneMod($name) {
         Copy-Item "$sourceDir\enabled.txt" "$targetDir\" -Force
     }
 
-    $kitVer = (Get-Content "$KitSource\version.lua" | Select-String -Pattern '"([^"]+)"').Matches.Groups[1].Value
-    Write-Host "Deployed $name -> $targetDir  (kit $kitVer vendored)"
+    Write-Host "Deployed $name -> $targetDir  ($shared)"
 }
 
 if ($Mod -ieq "All") {

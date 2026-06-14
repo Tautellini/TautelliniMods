@@ -1,5 +1,7 @@
-# tools/build_release.ps1
-# Builds the release artifacts for a mod from the single source tree:
+# tools/lockpicksettings_build_release.ps1
+# Builds the LockpickSettings release artifacts from the single source tree. LockpickSettings-
+# SPECIFIC: it vendors the kit and the FOMOD exposes lockpick config presets (per-tier tries,
+# hint, connections). For a simple / kit-free mod use tools\sharedmodmenu_build_release.ps1.
 #
 #   <Mod>-<ver>-manual.zip    mod only; extract into ...\Win64\ue4ss\Mods
 #   <Mod>-<ver>-complete.zip  mod + bundled UE4SS; extract into the GAME ROOT
@@ -14,7 +16,7 @@
 # populate it from a tested experimental UE4SS install: dwmapi.dll plus the
 # ue4ss\ folder). Without it, the manual zip and a UE4SS-less FOMOD still build.
 #
-# Usage: powershell -File tools\build_release.ps1 [-Mod LockpickSettings]
+# Usage: powershell -File tools\lockpicksettings_build_release.ps1
 
 param(
     [string]$Mod = "LockpickSettings"

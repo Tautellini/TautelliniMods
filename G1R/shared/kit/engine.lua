@@ -58,4 +58,44 @@ function engine.readRootPos(part)
     return nil
 end
 
+-- ------------------------------------------------------------- native safety --
+-- pcall is necessary but NOT sufficient: it catches a Lua error, NOT a native
+-- access violation. The real guard against the most common AV, dereferencing a
+-- handle whose UObject was destroyed or GC'd, is a fresh IsValid() BEFORE the
+-- deref. These wrap that doctrine so callers stop hand-rolling pcall+IsValid at
+-- every site. They do NOT make a BANNED operation safe: TMap iteration,
+-- GetCDO/StaticFindObject or instance-prop reads on AngelScript classes still AV
+-- on a perfectly valid object (see the refusals at the top of this file). guard()
+-- defends the stale/destroyed-handle class of crash, the one IsValid catches.
+
+-- true only if obj is a live UObject. IsValid() is itself the designed-safe check
+-- (it reads the object-table slot, never derefs the object); the pcall makes a nil
+-- or a non-UObject value return false instead of erroring.
+function engine.isValid(obj)
+    if obj == nil then return false end
+    local ok, v = pcall(function() return obj:IsValid() end)
+    return (ok and v) and true or false
+end
+
+-- run fn(obj) ONLY when obj is a valid UObject, with the whole call pcall-wrapped.
+-- Returns fn's result, or nil when obj is invalid or fn raised a Lua error. This is
+-- the one-liner for "touch this object if it is still alive"; route every cached
+-- deref through it instead of a bare pcall:
+--   local name = engine.guard(obj, function(o) return o:GetFullName() end)
+function engine.guard(obj, fn)
+    if not engine.isValid(obj) then return nil end
+    local ok, r = pcall(fn, obj)
+    if ok then return r end
+    return nil
+end
+
+-- a bare guarded call for work that is NOT centred on a single UObject (a
+-- StaticFindObject lookup, a numeric/struct read): returns fn()'s result, or nil on
+-- a caught Lua error. Same caveat: catches Lua errors, NOT native AVs.
+function engine.try(fn)
+    local ok, r = pcall(fn)
+    if ok then return r end
+    return nil
+end
+
 return engine
