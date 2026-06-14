@@ -40,6 +40,10 @@ G1R/LockpickSettings/user-reported-logs/
 # planning docs are working notes, obsolete once the work ships; kept local, never pushed
 plans/
 
+# nexus-page/ folders hold only the images shown on the NexusMods page; the BBCode body is a
+# local working copy pasted into Nexus by hand, not a repo artifact
+*.bbcode
+
 # deploy_env.ps1 safety backups of the game's UE4SS-settings.ini / mods.txt / binary
 tools/.env-backup/
 
