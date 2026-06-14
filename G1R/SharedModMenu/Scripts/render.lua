@@ -59,17 +59,11 @@ local function toText(s)
     return try(function() return kt:Conv_StringToText(s) end)
 end
 
-local FONT, BAR_CHARS = 11, 12
--- num row columns, laid out so the [-]/bar/[+] click zones never overlap (gaps between each):
---   [-] 234..258 | bar 266..378 | value 390..436 | [+] 446..470
-local L = {
-    panelX = 50, panelY = 58, panelW = 440,
-    closeW = 40, closeH = 18, closeY = 60,
-    modTabY = 68, subTabY = 92, tabH = 20, tabX0 = 60, tabStep = 98, tabW = 92,
-    rowH = 22, markX = 60, nameX = 78, nameW = 150,
-    decX = 234, barX = 266, barW = 112, valX = 390, valW = 46, incX = 446, colW = 24,
-}
-L.closeX = L.panelX + L.panelW - L.closeW - 2
+-- All value, slider and hit-test math (and the panel layout) live in the pure viewmath module so
+-- they can be unit-tested without the engine; render.lua keeps only the reflection/widget plumbing.
+local VM = require("viewmath")
+local L = VM.L
+local FONT = 11
 
 -- ----------------------------------------------------------- data access --
 local function curMod() return S.tabs and S.tabs[S.tab] end
@@ -78,45 +72,19 @@ local function curItems() local s = curSections()[S.sub]; return s and s.items o
 local function modName() local m = curMod(); return m and m.name end
 local function tabCount() return S.tabs and #S.tabs or 0 end
 local function subCount() return #curSections() end
-local function clamp(n, lo, hi) if n < lo then return hi elseif n > hi then return lo else return n end end
-
-local function hasBar(it) return it.kind == "num" and it.min and it.max end
-local function barString(it)
-    local lo, hi = it.min or 0, it.max or 1
-    local frac = (hi > lo) and (((tonumber(it.value) or 0) - lo) / (hi - lo)) or 0
-    if frac < 0 then frac = 0 elseif frac > 1 then frac = 1 end
-    local filled = math.floor(frac * BAR_CHARS + 0.5)
-    return "|" .. string.rep("#", filled) .. string.rep("-", BAR_CHARS - filled) .. "|"
-end
-local function valText(it)
-    if it.kind == "bool" then return it.value and "[ ON ]" or "[ OFF ]" end
-    if it.kind == "action" then return "[ RUN ]" end
-    return tostring(it.value)
-end
+local clamp, hasBar, barString, valText = VM.clampWrap, VM.hasBar, VM.barString, VM.valText
 
 -- send an edit to the owning mod and reflect it locally at once
 local function editItem(it, d)
     if not menu then return end
-    if it.kind == "bool" then
-        it.value = not it.value
-    elseif it.kind == "num" then
-        local v = (tonumber(it.value) or 0) + d * (it.step or 1)
-        if it.min and v < it.min then v = it.min elseif it.max and v > it.max then v = it.max end
-        it.value = v
-    elseif it.kind ~= "action" then
-        return
-    end
+    if it.kind == "bool" then it.value = not it.value
+    elseif it.kind == "num" then it.value = VM.stepValue(it, d)
+    elseif it.kind ~= "action" then return end
     menu.sendEdit(modName(), it.flat, it.kind, it.value)
 end
 local function setItemFromBar(it, px)
-    local lo, hi = it.min or 0, it.max or 1
-    local frac = (px - L.barX) / L.barW
-    if frac < 0 then frac = 0 elseif frac > 1 then frac = 1 end
-    local v = lo + frac * (hi - lo)
-    if it.step and it.step > 0 then v = lo + math.floor((v - lo) / it.step + 0.5) * it.step end
-    if v < lo then v = lo elseif v > hi then v = hi end
-    it.value = v
-    if menu then menu.sendEdit(modName(), it.flat, "num", v) end
+    it.value = VM.valueFromBar(it, px)
+    if menu then menu.sendEdit(modName(), it.flat, "num", it.value) end
 end
 
 -- --------------------------------------------------------------- build UI --
@@ -285,34 +253,22 @@ local function mousePos()
     local px, py; pcall(function() px = v.X end); pcall(function() py = v.Y end)
     if px and py then return px, py end
 end
-local function hitTabRow(px, py, y, count, get)
-    if py < y or py > y + L.tabH then return nil end
-    for i = 1, count do
-        local x0 = L.tabX0 + (i - 1) * L.tabStep
-        if px >= x0 and px <= x0 + L.tabW then return i end
-    end
-end
 local function onLMB()
     if not S.open then return end
     local px, py = mousePos(); if not px then return end
-    if px >= L.closeX - 4 and px <= L.closeX + L.closeW and py >= L.closeY - 2 and py <= L.closeY + L.closeH then closeMenu(); return end
-    local mt = hitTabRow(px, py, L.modTabY, tabCount())
-    if mt then if mt ~= S.tab then S.tab = mt; S.sub = 1; S.sel = 1; rebuild() end return end
-    if S.showSub then
-        local st = hitTabRow(px, py, L.subTabY, subCount())
-        if st then if st ~= S.sub then S.sub = st; S.sel = 1; rebuild() end return end
-    end
-    local items = curItems()
-    local idx = math.floor((py - S.rowTop) / L.rowH) + 1
-    if px < L.panelX or px > L.panelX + L.panelW or idx < 1 or idx > #items then return end
-    showSelection(idx)
-    local it = items[idx]
-    if it.kind == "bool" or it.kind == "action" then
-        if px >= L.decX - 6 and px <= L.decX + 150 then editItem(it, 1); showValue(idx) end
-    elseif it.kind == "num" then
-        if px >= L.decX - 6 and px <= L.decX + L.colW then editItem(it, -1); showValue(idx)
-        elseif px >= L.incX - 6 and px <= L.incX + L.colW then editItem(it, 1); showValue(idx)
-        elseif hasBar(it) and px >= L.barX and px <= L.barX + L.barW then setItemFromBar(it, px); showValue(idx) end
+    local z = VM.hitZone(px, py, {
+        tabCount = tabCount(), subCount = subCount(), showSub = S.showSub, rowTop = S.rowTop, items = curItems(),
+    })
+    if not z then return end
+    if z.zone == "close" then closeMenu()
+    elseif z.zone == "modtab" then if z.index ~= S.tab then S.tab = z.index; S.sub = 1; S.sel = 1; rebuild() end
+    elseif z.zone == "subtab" then if z.index ~= S.sub then S.sub = z.index; S.sel = 1; rebuild() end
+    elseif z.zone == "item" then
+        showSelection(z.index)
+        local it = curItems()[z.index]; if not it then return end
+        if z.part == "toggle" or z.part == "inc" then editItem(it, 1); showValue(z.index)
+        elseif z.part == "dec" then editItem(it, -1); showValue(z.index)
+        elseif z.part == "bar" then setItemFromBar(it, px); showValue(z.index) end
     end
 end
 
