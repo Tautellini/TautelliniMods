@@ -2,11 +2,13 @@
 --
 -- Replaces the per-probe mods (ArcheryProbe, ASReadProbe, CanvasProbe, ...). Each
 -- probe is a module in probes/ that returns `function(ctx) ... return spec end`,
--- where spec = { name, keys = { {key, mod, desc, fn} }, hooks = { {path, tag, cb} } }.
--- main.lua loads them, registers each key ONCE and each hook ONCE (tracked in a
--- persistent global so CTRL+R never double-registers), and dispatches through a
--- table refreshed every load so edits hot-reload. It also detects key conflicts and
--- logs the full keymap. Adding a probe = drop a file in probes/ and list it below.
+-- where spec = { name, keys = { {key, mod, desc, fn} }, hooks = { {path, tag, cb} },
+-- events = { {name, cb} }, notifies = { {path, cb} }, inits = { fn, ... } }.
+-- main.lua loads them and registers each key, hook, custom event, notify and a single
+-- shared init-post hook ONCE (tracked in a persistent global so CTRL+R never
+-- double-registers), dispatching through tables refreshed every load so edits hot-
+-- reload. It also detects key conflicts and logs the full keymap. Adding a probe =
+-- drop a file in probes/ and list it below.
 --
 -- HOT-RELOAD SAFE: no risky native op at load; all UObject derefs go through the
 -- shared kit guard. Probes that can crash (asread) gate their danger behind explicit
@@ -24,7 +26,7 @@ local rawget, rawset = rawget, rawset
 -- 'gamepad' is SHELVED (file kept): UE4SS on this build cannot marshal an FKey parameter into
 -- IsInputKeyDown/GetInputAnalogKeyState (real OR constructed FKey -> "Array failed invariants"),
 -- so polling controller input from Lua is a dead end. Re-add it only to resume that hunt.
-local MODULES = { "archery", "asread" }
+local MODULES = { "archery", "asread", "lockbuild", "sleep" }
 
 -- ---- bootstrap the vendored kit + hot-reload reset (the mod main.lua pattern) ----
 local here   = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")
@@ -138,15 +140,23 @@ local Key             = rawget(_G, "Key")
 local ModifierKey     = rawget(_G, "ModifierKey")
 local RegisterKeyBind = rawget(_G, "RegisterKeyBind")
 local RegisterHook    = rawget(_G, "RegisterHook")
+local RegisterCustomEvent          = rawget(_G, "RegisterCustomEvent")
+local NotifyOnNewObject            = rawget(_G, "NotifyOnNewObject")
+local RegisterInitGameStatePostHook = rawget(_G, "RegisterInitGameStatePostHook")
 
 local P = rawget(_G, "__devprobe")
 if not P then P = {}; rawset(_G, "__devprobe", P) end
-P.keys  = P.keys  or {}   -- label -> true (keybind already registered)
-P.hooks = P.hooks or {}   -- path  -> true (hook already armed)
-P.fn     = {}             -- LABEL -> current key handler (refreshed each load). Keyed by
-                          -- label (not module:key) so a key changing owner across a hot
-                          -- reload still dispatches the new handler instead of going dead.
-P.hookcb = {}             -- path -> current hook callback (refreshed each load)
+P.keys     = P.keys     or {}   -- label -> true (keybind already registered)
+P.hooks    = P.hooks    or {}   -- path  -> true (hook already armed)
+P.events   = P.events   or {}   -- name  -> true (custom event already armed)
+P.notifies = P.notifies or {}   -- path  -> true (notify already armed)
+P.fn       = {}                 -- LABEL -> current key handler (refreshed each load). Keyed by
+                                -- label (not module:key) so a key changing owner across a hot
+                                -- reload still dispatches the new handler instead of going dead.
+P.hookcb   = {}                 -- path -> current hook callback (refreshed each load)
+P.evtcb    = {}                 -- name -> current custom-event callback (refreshed each load)
+P.notifycb = {}                 -- path -> current notify callback (refreshed each load)
+P.initcb   = {}                 -- list of current init callbacks (refreshed each load)
 
 local function bindKey(keyName, mod, label)
     if P.keys[label] then return true end
@@ -166,10 +176,41 @@ local function armHook(path, tag)
     if P.hooks[path] then return end
     if type(RegisterHook) ~= "function" then return end
     local ok, err = pcall(RegisterHook, path, function(self, ...)
-        local cb = P.hookcb[path]; if cb then cb(self, ...) end
+        local cb = P.hookcb[path]; if cb then pcall(cb, self, ...) end
     end)
     if ok then P.hooks[path] = true; root("hook armed: " .. tag)
     else root("hook NOT armed: " .. tag .. "  (" .. tostring(err) .. ")") end
+end
+
+local function armEvent(name)
+    if P.events[name] then return end
+    if type(RegisterCustomEvent) ~= "function" then return end
+    local ok, err = pcall(RegisterCustomEvent, name, function(self, ...)
+        local cb = P.evtcb[name]; if cb then pcall(cb, self, ...) end
+    end)
+    if ok then P.events[name] = true; root("event armed: " .. name)
+    else root("event NOT armed: " .. name .. "  (" .. tostring(err) .. ")") end
+end
+
+local function armNotify(path)
+    if P.notifies[path] then return end
+    if type(NotifyOnNewObject) ~= "function" then return end
+    local ok, err = pcall(NotifyOnNewObject, path, function(obj, ...)
+        local cb = P.notifycb[path]; if cb then pcall(cb, obj, ...) end
+    end)
+    if ok then P.notifies[path] = true; root("notify armed: " .. path)
+    else root("notify NOT armed: " .. path .. "  (" .. tostring(err) .. ")") end
+end
+
+-- one central init-post hook; its dispatcher iterates the per-load init list
+local function armInit()
+    if P.initArmed then return end
+    if type(RegisterInitGameStatePostHook) ~= "function" then return end
+    local ok, err = pcall(RegisterInitGameStatePostHook, function(...)
+        for _, fn in ipairs(P.initcb) do pcall(fn, ...) end
+    end)
+    if ok then P.initArmed = true; root("init-post hook armed")
+    else root("init-post hook NOT armed  (" .. tostring(err) .. ")") end
 end
 
 -- ---- load every module and register centrally ----
@@ -197,6 +238,18 @@ for _, modName in ipairs(MODULES) do
                 P.hookcb[h.path] = h.cb
                 armHook(h.path, h.tag)
             end
+            for _, e in ipairs(spec.events or {}) do
+                P.evtcb[e.name] = e.cb
+                armEvent(e.name)
+            end
+            for _, n in ipairs(spec.notifies or {}) do
+                P.notifycb[n.path] = n.cb
+                armNotify(n.path)
+            end
+            for _, fn in ipairs(spec.inits or {}) do
+                P.initcb[#P.initcb + 1] = fn
+            end
+            if #(spec.inits or {}) > 0 then armInit() end
             if type(spec.autorun) == "function" then pcall(spec.autorun) end
         end
     end

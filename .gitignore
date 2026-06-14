@@ -31,6 +31,12 @@ G1R/LockpickSettings/release/
 # notes); distribution is via GitHub Releases, not the repo.
 G1R/SharedModMenu/release/
 
+# crash dumps / logs users send for triage: kept locally, never committed
+G1R/LockpickSettings/user-reported-logs/
+
+# Photoshop source art is large; keep the exported PNG/WEBP in the repo, not the .psd
+*.psd
+
 # deploy_env.ps1 safety backups of the game's UE4SS-settings.ini / mods.txt / binary
 tools/.env-backup/
 

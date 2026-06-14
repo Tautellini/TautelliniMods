@@ -39,9 +39,13 @@ AngelScript read frontier; the validated route is safe, but a bad target (e.g. a
 class) can still hard-crash, so use a throwaway save when poking new AS classes.
 Forensic `ABOUT TO` logging pinpoints any crash.
 
-## Migrated from
+## Probes
 
-ArcheryProbe, ASReadProbe, CanvasProbe. The old per-probe folders can be deleted once
-this is confirmed working. Stale probes not yet migrated (AngelscriptProbe,
-AnimSpeedProbe, LockBuildProbe, LockProbe, SleepProbe, WeatherProbe) port the same way
-if needed.
+Active (in `MODULES`): `archery` (F1), `asread` (F12), `lockbuild` (F3), `sleep`
+(F10 / Shift+F10 / Ctrl+F10 / numpad / * -). Kept on disk but NOT loaded: `gamepad.lua`
+(shelved, FKey input is a dead end on this build) and `menu.lua` (graduated into the standalone
+SharedModMenu mod).
+
+Consolidated from the old per-probe mods (ArcheryProbe, ASReadProbe, LockBuildProbe, SleepProbe).
+The retired/concluded ones (CanvasProbe, AngelscriptProbe, AnimSpeedProbe, LockProbe, WeatherProbe)
+were removed; their findings live in memory, `LuaModdingSurface.md`, and the shipped mods.

@@ -4,7 +4,7 @@
 #
 #   -Mode dev    full debugging/investigation: text log + GUI console + hot
 #                reload, every investigation hook on, all dev mods on, and
-#                (with -Probes) the LockBuildProbe deployed. debugSolver stays on.
+#                (with -Probes) the TautelliniDevProbe deployed. debugSolver stays on.
 #   -Mode smoke  the CONSUMER environment for release verification: consumer
 #                UE4SS settings with only the log window open (no GUI console, no
 #                hot reload), ONLY LockpickSettings active (all dev mods and our
@@ -57,8 +57,8 @@ $InvestigationHooks = @(
     'HookGameViewportClientTick', 'HookUObjectProcessEvent', 'HookProcessConsoleExec',
     'HookUStructLink'
 )
-# our own dev probes; removed from the live folder in smoke so only the mod runs
-$OurProbes = @('LockBuildProbe', 'LockProbe', 'AnimSpeedProbe')
+# our consolidated dev probe; removed from the live folder in smoke so only the mod runs
+$OurProbes = @('TautelliniDevProbe')
 
 $DevModsTxt = @'
 ActorDumperMod : 1
@@ -171,8 +171,8 @@ if ($Mode -eq 'smoke') {
         if (Test-Path $pd) { Do-Or-Say "remove probe $p (smoke is mod-only)" { Remove-Item -Recurse -Force $pd } }
     }
 } elseif ($Probes) {
-    Do-Or-Say "deploy LockBuildProbe (dev -Probes)" {
-        & (Join-Path $PSScriptRoot 'deploy.ps1') -Mod 'LockBuildProbe' -GameRoot $GameRoot | Out-Null
+    Do-Or-Say "deploy TautelliniDevProbe (dev -Probes)" {
+        & (Join-Path $PSScriptRoot 'deploy.ps1') -Mod 'TautelliniDevProbe' -GameRoot $GameRoot | Out-Null
     }
 }
 

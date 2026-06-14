@@ -25,7 +25,7 @@ the main session.
 - `deploy_env.ps1 -Mode dev|smoke [-FullUE4SS] [-Probes] [-DryRun]` — sets the
   whole game environment, then deploys the mod:
   - `dev`: text log + GUI console + hot reload, all investigation hooks on, all
-    dev mods on, `debugSolver` on. `-Probes` also deploys `LockBuildProbe`.
+    dev mods on, `debugSolver` on. `-Probes` also deploys `TautelliniDevProbe`.
   - `smoke`: the CONSUMER environment for release verification: consumer UE4SS
     settings with only the log window open (no GUI console, no hot reload), ONLY
     `LockpickSettings` + required infra active (all dev mods and our probes off),
@@ -48,7 +48,7 @@ the main session.
 ## Standard workflows
 
 **Deploy (dev):** `powershell -File tools/deploy_env.ps1 -Mode dev` (add `-Probes`
-when an investigation needs `LockBuildProbe`). Tell the user to restart or CTRL+R.
+when an investigation needs `TautelliniDevProbe`). Tell the user to restart or CTRL+R.
 
 **Smoke test a build:** `powershell -File tools/deploy_env.ps1 -Mode smoke`
 (add `-FullUE4SS` with the game closed for an exact ships-this test). Tell the
@@ -65,7 +65,7 @@ confounded a freeze before.
 2. `powershell -File tools/lockpicksettings_build_release.ps1`.
 3. VERIFY the manual zip before declaring success: the shipped `main.lua` has the
    expected `ModVersion`, the key files are present, and NO dev files leaked
-   (`tests/`, `plans/`, `TECH-DEBT`, `decode_locks`, `LockBuildProbe`, `*.md`).
+   (`tests/`, `plans/`, `TECH-DEBT`, `decode_locks`, `TautelliniDevProbe`, `*.md`).
 4. Report the three artifact paths and sizes from `release/build/`.
 
 **Cut a release (version X.Y.Z):**
