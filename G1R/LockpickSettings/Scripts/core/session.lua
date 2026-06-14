@@ -17,7 +17,7 @@
 
 local setmetatable = setmetatable
 local ipairs, pairs = ipairs, pairs
-local tostring = tostring
+local tostring, type = tostring, type
 local math, table, os, string = math, table, os, string
 
 local Geometry = require("nextmove.geometry")
@@ -368,8 +368,9 @@ function Session.start(ctx)
             if ty then
                 -- the part ACTOR is kept for the column anchor reads at session
                 -- start; rr is OPTIONAL (latch actors carry no runtime root,
-                -- requiring one silently dropped them)
-                table.insert(pieces[id].parts, { ty = ty, rr = rr, actor = a })
+                -- requiring one silently dropped them). mid is kept so the live
+                -- material can be recovered after the proximity gate runs.
+                table.insert(pieces[id].parts, { ty = ty, rr = rr, actor = a, mid = mid })
             end
         end
     end
@@ -455,8 +456,10 @@ function Session.start(ctx)
     -- units; stale same-id actors of earlier minigames sit far away). Geometry
     -- stays pure arithmetic and receives only these number arrays.
     local partPos = {}
+    local liveMids = {} -- per piece, the MIDs of parts that sit AT the live slot
     for id = 0, s.pieceCount - 1 do
         partPos[id] = {}
+        liveMids[id] = {}
         local slot = s.slotStart[id]
         for _, part in ipairs((pieces[id] or {}).parts or {}) do
             if part.rr then
@@ -465,12 +468,26 @@ function Session.start(ctx)
                     local d2 = (p[1] - slot[1]) ^ 2
                         + (p[2] - slot[2]) ^ 2
                         + (p[3] - slot[3]) ^ 2
-                    local cur = partPos[id][part.ty]
-                    if d2 < 45 ^ 2 and (not cur or d2 < cur.d2) then
-                        partPos[id][part.ty] = { p = p, d2 = d2 }
+                    if d2 < 45 ^ 2 then
+                        local cur = partPos[id][part.ty]
+                        if not cur or d2 < cur.d2 then
+                            partPos[id][part.ty] = { p = p, d2 = d2 }
+                        end
+                        if part.mid and part.mid:IsValid() then
+                            table.insert(liveMids[id], part.mid)
+                        end
                     end
                 end
             end
+        end
+    end
+    -- On the unreliable FindAllOf set, repaint ONLY the materials proven to sit at
+    -- the live slot: stale same-id actors of finished minigames carry dead MIDs,
+    -- and writing one is a native crash pcall cannot catch (it also painted onto
+    -- invisible/wrong pieces). The clean fresh-spawn / subsystem sets keep all MIDs.
+    if ctx.unreliableActors then
+        for id = 0, s.pieceCount - 1 do
+            if s.pieces[id] then s.pieces[id].mids = liveMids[id] end
         end
     end
     -- the rail axis, step and bar-column anchor are pure math: hand the slot
@@ -767,7 +784,10 @@ function Session:tick()
     if s.flags.nextMove and s.plan and not s.nextMove and not s.plan.finished then
         s.nextMove = s.solver:plan(s)
     end
-    s.tinter:retint(s)
+    -- the repaint writes HighlightColor to the piece MIDs; pcall-wrapped to match
+    -- the other retint call sites so a Lua-level fault disengages cleanly
+    local okPaint, errPaint = pcall(function() s.tinter:retint(s) end)
+    if not okPaint and s.debug then s.log("Tint repaint error: " .. tostring(errPaint)) end
     -- auto-solver seam: when armed (main sets s.autopilot), advance the driver
     -- ONE step per SETTLED tick (the early returns above mean this is only
     -- reached when motion has settled and the lock is alive and not opened).

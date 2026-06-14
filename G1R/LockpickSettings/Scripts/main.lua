@@ -27,7 +27,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, debug = rawget, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.1.3"
+local ModVersion = "3.1.4"
 
 -- Poll cadence. The poll worker wakes every POLL_MS; in normal play it does
 -- game-thread work (the tick) only every POLL_NORMAL_EVERY wakes (~400ms, load
@@ -183,6 +183,8 @@ local FreshPieces = {} -- piece actors by spawn time, see the notify below
 local FreshAbility = nil -- the most recently spawned open/door ability
 local FreshTask = nil -- the CURRENT minigame task (notify-captured)
 local StartSnap = nil -- slot snapshot of the previous start attempt
+local OpenedLocks = {} -- names of locks opened this session; never re-tracked off
+                       -- stale actors (cleared on world change). See tryStart.
 
 -- the auto-solver instance (main owns it, like the live session). It presses the
 -- CURRENT task through the main-owned FreshTask cache, liveness checked per call
@@ -289,7 +291,8 @@ local function tryStart(attempt)
     FreshPieces = keep
     if #actorList < 2 then
         actorList, actorSrc = {}, "subsystem"
-        for _, sub in ipairs(Engine.liveInstances("LockPickSubsystem")) do
+        local sub = Engine.lockSubsystem() -- cached singleton, no per-open scan
+        if sub then
             pcall(function()
                 local arr = sub.m_PendingLockPieces
                 for i = 1, #arr do
@@ -299,7 +302,6 @@ local function tryStart(attempt)
                     end
                 end
             end)
-            if #actorList > 0 then break end
         end
     end
     if #actorList == 0 then
@@ -309,11 +311,27 @@ local function tryStart(attempt)
     if DebugSolver then
         log("solver: " .. #actorList .. " piece actors from " .. actorSrc)
     end
+    -- Stale-actor crash guard, BEFORE any read. A lock we already opened cannot be
+    -- re-locked; pressing F6 on it or re-interacting spawns a fresh task but no
+    -- fresh pieces, so discovery falls to the world-wide FindAllOf and returns the
+    -- DEAD piece actors of the finished minigame. Reading those in Session.start is
+    -- a native access violation pcall cannot catch (user-reported: F6 on a just-
+    -- solved chest). Refuse here, before the read. Only the FindAllOf last resort
+    -- is gated, so a genuinely new lock (which arrives via fresh spawns or the
+    -- subsystem) is never blocked, even one that shares this name.
+    if actorSrc:find("FindAllOf", 1, true) and OpenedLocks[lockName] then
+        log("Skipping '" .. lockName .. "': already opened this session and only "
+            .. "stale actors remain (not reading half-dead objects)")
+        return
+    end
     -- build the session from the collected actors
     local session, reason = Session.start({
         lockName = lockName, graph = graph, actorList = actorList,
         engine = Engine, num = Num, solver = solverInstance, tinter = tinterInstance,
         flags = flags, log = log, debug = DebugSolver, schedule = schedule,
+        -- the FindAllOf fallback returns stale same-id actors of finished minigames;
+        -- the session must filter their dead materials out before painting
+        unreliableActors = actorSrc:find("FindAllOf", 1, true) and true or false,
     })
     if session == nil then
         if reason == "retry" then
@@ -381,6 +399,10 @@ local function tryStart(attempt)
             -- before the driver's next step), so this is the authoritative "it is
             -- off now" confirmation. Pairs with the start banner. Fires once: the
             -- loop stops the moment it returns true.
+            -- an opened lock cannot be re-locked: remember it so a later F6 or
+            -- re-interaction never tries to re-track it off the dead actors the
+            -- finished minigame leaves behind (the FindAllOf-stale crash path)
+            if s.opened and s.lockName then OpenedLocks[s.lockName] = true end
             log("Lockpick session ended for '" .. tostring(s.lockName)
                 .. "': tracking, hint and auto-solve off")
             return true
@@ -661,6 +683,12 @@ pcall(RegisterInitGameStatePostHook, function()
     local s = liveSession
     liveSession = nil
     if s then s.stop = true end
+    -- a world change can recreate the lock subsystem; drop the cached singleton
+    -- so the next open re-resolves it instead of touching a stale handle
+    pcall(function() Engine.resetCache() end)
+    -- a loaded save can put opened locks back to locked; forget the opened set so
+    -- they track again (the stale actors they guarded against are gone with the world)
+    OpenedLocks = {}
 end)
 
 -- --------------------------------------------------------------- triggers --

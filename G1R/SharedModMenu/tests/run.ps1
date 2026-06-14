@@ -1,29 +1,31 @@
-# Runs SharedModMenu's pure-Lua tests under LuaJIT (no game, no engine).
+# Runs SharedModMenu's pure-Lua tests under Lua 5.4 (the UE4SS runtime; no game, no engine).
+# UE4SS (build 968+) runs PUC Lua 5.4, NOT LuaJIT; test against 5.4 so 5.1-only behaviour
+# never masks a real bug.
 # Usage:  powershell -File G1R\SharedModMenu\tests\run.ps1
 $ErrorActionPreference = "Stop"
 
 $here     = $PSScriptRoot
 $repoRoot = (Resolve-Path (Join-Path $here "..\..\..")).Path
 
-$luajit = $null
-$onPath = Get-Command luajit -ErrorAction SilentlyContinue
-if ($onPath) {
-    $luajit = $onPath.Source
+$lua = $null
+$local = Join-Path $repoRoot "tools\lua54\lua.exe"
+if (Test-Path $local) {
+    $lua = $local
 } else {
-    $local = Join-Path $repoRoot "tools\luajit\luajit.exe"
-    if (Test-Path $local) { $luajit = $local }
+    $onPath = Get-Command lua -ErrorAction SilentlyContinue
+    if ($onPath) { $lua = $onPath.Source }
 }
-if (-not $luajit) {
-    throw "luajit not found. Install it (scoop install luajit) or drop a prebuilt luajit.exe + lua51.dll in tools\luajit\. See CONTRIBUTING.md."
+if (-not $lua) {
+    throw "Lua 5.4 not found. Build it: download lua.org/ftp/lua-5.4.7.tar.gz into tools\, extract, compile src\*.c (except luac.c) to tools\lua54\lua.exe with cl or gcc. See CONTRIBUTING.md."
 }
 
-Write-Host "Using $luajit`n"
+Write-Host "Using $lua`n"
 $failing = 0
 Push-Location $here
 try {
     foreach ($s in (Get-ChildItem -Filter "test_*.lua" | Sort-Object Name)) {
         Write-Host "=== $($s.Name) ==="
-        & $luajit $s.Name
+        & $lua $s.Name
         if ($LASTEXITCODE -ne 0) { $failing += 1 }
         Write-Host ""
     }

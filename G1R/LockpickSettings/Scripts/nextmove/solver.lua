@@ -72,6 +72,10 @@ local function buildSearch(s, skipEdge, variant)
         local lst = {}
         for _, e in ipairs(s.edges[x] or {}) do
             if not (skipEdge and skipEdge.a == x and skipEdge.b == e.b) then
+                -- cache the base-7 place value ON the original edge (place is constant
+                -- for the session) so the hot loop reads a plain field e.pb instead of
+                -- indexing place[e.b], with NO per-search table allocation
+                if e.pb == nil then e.pb = place[e.b] end
                 lst[#lst + 1] = e
             end
         end
@@ -98,8 +102,8 @@ local function buildSearch(s, skipEdge, variant)
     -- head/tail so FIFO and LIFO pops share one structure without ever
     -- nil-ing a slot (Lua's # is unreliable over holes).
     local buckets = {}
-    for h = 0, 6 * n do buckets[h] = {} end
-    buckets[h0][1] = startS
+    buckets[h0] = { startS } -- only the start bucket; the rest are created lazily on push,
+                             -- so a search allocates a handful of bucket tables, not 6n+1
     return {
         out = out,
         gd = gd,
@@ -178,7 +182,7 @@ local function stepSearch(s, search, budget)
                     local lst = out[x]
                     for i = 1, #lst do
                         local e = lst[i]
-                        local pb = place[e.b]
+                        local pb = e.pb -- precomputed in buildSearch (was place[e.b])
                         local db = floor(S / pb) % 7
                         local nb = db + d * e.dir
                         if nb < 0 or nb > 6 then
@@ -204,7 +208,9 @@ local function stepSearch(s, search, budget)
                             if nh < 0 then nh = 0 end
                             if nh > maxH then nh = maxH end
                             local nt = (tail[nh] or 0) + 1
-                            buckets[nh][nt] = T
+                            local b = buckets[nh]
+                            if not b then b = {}; buckets[nh] = b end
+                            b[nt] = T
                             tail[nh] = nt
                             if nh < search.minH then search.minH = nh end
                         end

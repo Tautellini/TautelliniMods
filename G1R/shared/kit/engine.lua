@@ -41,6 +41,11 @@ end
 -- RelativeLocation struct read decodes when MemberVariableLayout is active and
 -- equals K2_GetComponentLocation; either path serves. part.rr is the component.
 function engine.readRootPos(part)
+    -- IsValid (a safe object-table slot read, never a deref) BEFORE the native
+    -- location read: on the FindAllOf fallback the component can belong to a stale
+    -- or destroyed actor, and pcall does NOT catch the access violation that reading
+    -- a dead component raises.
+    if not (part and engine.isValid(part.rr)) then return nil end
     local x, y, z
     local okp = pcall(function()
         local v = part.rr.RelativeLocation

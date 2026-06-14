@@ -22,6 +22,24 @@ local engine = {}
 -- generic primitives, re-exported verbatim from the shared kit
 engine.liveInstances = kit.engine.liveInstances
 engine.readRootPos = kit.engine.readRootPos
+local isValid = kit.engine.isValid
+
+-- Process-stable singletons resolved once and reused. Re-scanning them with
+-- FindAllOf (a full UObject sweep) on every chest/lock open was a measurable
+-- open-time hitch. Each is IsValid-gated (re-resolved if it dies) and cleared on
+-- a world change (engine.resetCache, called from main's InitGameState backstop),
+-- so a stale handle from a previous world can never be read.
+local cache = {}
+function engine.resetCache() cache.sub, cache.lib, cache.mpc = nil, nil, nil end
+
+-- the LockPickSubsystem singleton (carries the live lock scene actor and the
+-- pending piece actors). Cached: FindAllOf runs only on first use or after the
+-- handle goes invalid, not on every open.
+function engine.lockSubsystem()
+    if isValid(cache.sub) then return cache.sub end
+    cache.sub = engine.liveInstances("LockPickSubsystem")[1]
+    return cache.sub
+end
 
 -- the active lock's FName. The TASK is the only object guaranteed to belong to
 -- the current minigame; its owning Ability carries m_Lock. Ability objects are
@@ -62,18 +80,25 @@ end
 -- MPC_Lockpicking collection, and the live lock scene actor. Returns
 -- lib, mpc, scene or nil.
 function engine.mpcHandles()
-    local lib, mpc, scene
-    pcall(function() lib = StaticFindObject("/Script/Engine.Default__KismetMaterialLibrary") end)
-    pcall(function() mpc = StaticFindObject("/Game/Blueprints/LockPick/MPC_Lockpicking.MPC_Lockpicking") end)
-    for _, sub in ipairs(engine.liveInstances("LockPickSubsystem")) do
+    -- lib + mpc are name-stable CDOs/assets: StaticFindObject once, then reuse.
+    if not isValid(cache.lib) then
+        pcall(function() cache.lib = StaticFindObject("/Script/Engine.Default__KismetMaterialLibrary") end)
+    end
+    if not isValid(cache.mpc) then
+        pcall(function() cache.mpc = StaticFindObject("/Game/Blueprints/LockPick/MPC_Lockpicking.MPC_Lockpicking") end)
+    end
+    -- the scene actor is per-minigame, so read it fresh off the cached subsystem
+    -- (a cheap property read, not a scan) every open.
+    local scene
+    local sub = engine.lockSubsystem()
+    if sub then
         pcall(function()
             local sc = sub.m_LockSceneActor
             if sc and sc:IsValid() then scene = sc end
         end)
-        if scene then break end
     end
-    if lib and lib:IsValid() and mpc and mpc:IsValid() and scene then
-        return lib, mpc, scene
+    if isValid(cache.lib) and isValid(cache.mpc) and scene then
+        return cache.lib, cache.mpc, scene
     end
     return nil
 end
@@ -83,6 +108,10 @@ end
 -- Slot_0..N-1 per the mined piece count are valid; higher slots keep stale
 -- values from earlier scenes.
 function engine.readSlot(h, i)
+    -- gate the live scene actor before the native MPC read: on a rapid open/close it
+    -- can die between the tick's liveness check and here, and pcall cannot catch the
+    -- access violation reading a dead scene raises (IsValid is a safe slot read).
+    if not isValid(h.scene) then return nil end
     local v
     local ok = pcall(function()
         local c = h.lib:GetVectorParameterValue(h.scene, h.mpc, FName("Slot_" .. i))

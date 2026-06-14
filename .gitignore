@@ -9,7 +9,12 @@
 *.swp
 Thumbs.db
 
-# local LuaJIT test runtime (install per CONTRIBUTING.md, never committed)
+# local Lua 5.4 test runtime: UE4SS runs PUC Lua 5.4, so tests run against it (build per
+# CONTRIBUTING.md, never committed). tools/lua54/ is the built lua.exe, tools/lua-5.4.7/ the
+# source. The old LuaJIT runtime is no longer used by the runners but stays ignored if present.
+tools/lua54/
+tools/lua-5.4.7/
+tools/lua-5.4.7.tar.gz
 tools/luajit/
 
 # python tooling cache
