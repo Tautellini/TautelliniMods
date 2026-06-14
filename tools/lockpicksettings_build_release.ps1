@@ -15,6 +15,9 @@
 # UE4SS for the complete/vortex builds is read from tools\ue4ss\ (gitignored;
 # populate it from a tested experimental UE4SS install: dwmapi.dll plus the
 # ue4ss\ folder). Without it, the manual zip and a UE4SS-less FOMOD still build.
+# Record the build id in tools\ue4ss.version (tracked) whenever you refresh
+# tools\ue4ss\: the DLL carries no version, so that file is the only trace of
+# which UE4SS a release bundled. The complete zip is stamped from it.
 #
 # Usage: powershell -File tools\lockpicksettings_build_release.ps1
 
@@ -30,6 +33,8 @@ $ModSrc     = Join-Path $RepoRoot "G1R\$Mod"
 $ScriptsSrc = Join-Path $ModSrc "Scripts"
 $KitSrc     = Join-Path $RepoRoot "G1R\shared\kit"
 $UE4SSSrc   = Join-Path $PSScriptRoot "ue4ss"
+$UE4SSVerF  = Join-Path $PSScriptRoot "ue4ss.version"
+$UE4SSVer   = if (Test-Path $UE4SSVerF) { (Get-Content $UE4SSVerF -Raw).Trim() } else { "experimental" }
 $ReadmeSrc  = Join-Path $ModSrc "bundled-readme.txt"
 $HeroSrc    = Join-Path $ModSrc "nexus-page\images\hero.png"
 $WarnSrc    = Join-Path $ModSrc "nexus-page\images\fomod-ue4ss-warning.png"
@@ -88,6 +93,8 @@ function Copy-ModPayload([string]$parent, [bool]$withConfig) {
 function Copy-UE4SS([string]$win64Dir) {
     New-Item -ItemType Directory -Force $win64Dir | Out-Null
     Copy-Item "$UE4SSSrc\*" $win64Dir -Recurse -Force
+    # stamp the bundled build so the version survives extraction (the DLL carries none)
+    Write-Lua (Join-Path $win64Dir "ue4ss\UE4SS-VERSION.txt") "RE-UE4SS $UE4SSVer  (bundled with $Mod $ver)`r`n"
 }
 
 function Write-Lua([string]$path, [string]$text) {
@@ -132,7 +139,7 @@ function New-ConfigVariant([string]$baseText, $preset, [bool]$hint, [bool]$conn)
     return $t
 }
 
-Write-Host "Building $Mod $ver  (UE4SS bundled: $haveUE4SS)`n"
+Write-Host "Building $Mod $ver  (UE4SS bundled: $(if ($haveUE4SS) { $UE4SSVer } else { 'no' }))`n"
 
 # ---- 1. manual.zip : mod only, extract into ue4ss\Mods ----
 $s = New-Stage "manual"
@@ -229,7 +236,7 @@ $x.Add('      <optionalFileGroups order="Explicit">')
 $x.Add('        <group name="UE4SS is required and is NOT included: install it yourself" type="SelectAtLeastOne">')
 $x.Add('          <plugins order="Explicit">')
 $x.Add('            <plugin name="I understand: I will install UE4SS myself (tick to continue)">')
-$x.Add('              <description>This mod needs UE4SS, and it is NOT bundled here: mod managers cannot deploy the UE4SS proxy DLL reliably. Install UE4SS yourself from   https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest   (the regular zip, not zDEV) into the game Win64 folder, next to G1R-Win64-Shipping.exe. This mod will not load until UE4SS is present. Tick this box to confirm and continue.</description>')
+$x.Add("              <description>This mod needs UE4SS, and it is NOT bundled here: mod managers cannot deploy the UE4SS proxy DLL reliably. Install UE4SS yourself from   https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest   (the regular zip, not zDEV; tested with build v$UE4SSVer) into the game Win64 folder, next to G1R-Win64-Shipping.exe. This mod will not load until UE4SS is present. Tick this box to confirm and continue.</description>")
 if (Test-Path $WarnSrc) { $x.Add('              <image path="fomod\images\warning.png"/>') }
 $x.Add('              <conditionFlags><flag name="ue4ssAck">on</flag></conditionFlags>')
 $x.Add('              <typeDescriptor><type name="Optional"/></typeDescriptor>')

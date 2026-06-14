@@ -105,6 +105,8 @@ $ModsTxt = Join-Path $UE4SSDir 'Mods\mods.txt'
 $ModsDir = Join-Path $UE4SSDir 'Mods'
 $BundledUE4SS = Join-Path $PSScriptRoot 'ue4ss'
 $BundledSettings = Join-Path $BundledUE4SS 'ue4ss\UE4SS-settings.ini'
+$BundledUE4SSVerF = Join-Path $PSScriptRoot 'ue4ss.version'
+$BundledUE4SSVer = if (Test-Path $BundledUE4SSVerF) { (Get-Content $BundledUE4SSVerF -Raw).Trim() } else { 'experimental' }
 $BackupDir = Join-Path $PSScriptRoot '.env-backup'
 
 if (-not (Test-Path $UE4SSDir)) { throw "UE4SS not found at $UE4SSDir. Is the game/UE4SS installed at -GameRoot?" }
@@ -181,7 +183,7 @@ if ($FullUE4SS) {
     if ($gameRunning) {
         Write-Warning "  -FullUE4SS skipped: close the game first (UE4SS.dll/dwmapi.dll are locked while it runs)."
     } else {
-        Do-Or-Say "lay down bundled UE4SS binary (dwmapi.dll + UE4SS.dll)" {
+        Do-Or-Say "lay down bundled UE4SS binary v$BundledUE4SSVer (dwmapi.dll + UE4SS.dll)" {
             Copy-Item (Join-Path $BundledUE4SS 'dwmapi.dll') (Join-Path $Win64 'dwmapi.dll') -Force
             Copy-Item (Join-Path $BundledUE4SS 'ue4ss\UE4SS.dll') (Join-Path $UE4SSDir 'UE4SS.dll') -Force
         }
