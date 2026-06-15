@@ -12,12 +12,13 @@
 local print, pcall, ipairs, pairs, tostring, type = print, pcall, ipairs, pairs, tostring, type
 local rawget, rawset = rawget, rawset
 
-local ModVersion = "1.0.0"
+local ModVersion = "1.1.0"
 local function log(m) print("[SharedModMenu] " .. tostring(m) .. "\n") end
 
 -- hot-reload reset: nil our modules before re-require, and full-sweep UE4SS's path cache. Every
 -- module lives in Scripts/, which UE4SS already has on package.path, so no bootstrap is needed.
 package.loaded["render"] = nil
+package.loaded["viewmath"] = nil
 package.loaded["config"] = nil
 package.loaded["modmenu"] = nil
 do local reg = rawget(_G, "ue4ss_loaded_modules"); if type(reg) == "table" then for k in pairs(reg) do reg[k] = nil end end end
@@ -37,13 +38,15 @@ local KEY = (type(Config.menuKey) == "string" and Config.menuKey ~= "") and Conf
 local RegisterKeyBind     = rawget(_G, "RegisterKeyBind")
 local Key                 = rawget(_G, "Key")
 local ExecuteInGameThread = rawget(_G, "ExecuteInGameThread")
-local function onGameThread(fn) if ExecuteInGameThread then ExecuteInGameThread(fn) else fn() end end
+-- marshal handler work to the game thread; if the marshaller is absent we stay inert rather than
+-- run UObject-touching render work on the event-loop thread (keys are gated on it below too).
+local function onGameThread(fn) if ExecuteInGameThread then ExecuteInGameThread(fn) end end
 local function dispatch(name, arg)
     local h = rawget(_G, "__smmHandlers"); local fn = h and h[name]
-    if fn then fn(arg) end
+    if fn then pcall(fn, arg) end
 end
 
-if not rawget(_G, "__smmBound") and Key and type(RegisterKeyBind) == "function" then
+if not rawget(_G, "__smmBound") and Key and type(RegisterKeyBind) == "function" and type(ExecuteInGameThread) == "function" then
     local function bind(keyName, fn) if Key[keyName] then pcall(RegisterKeyBind, Key[keyName], function() onGameThread(fn) end) end end
     bind(KEY,                 function() dispatch("toggle") end)
     bind("LEFT_MOUSE_BUTTON", function() dispatch("onLMB") end)

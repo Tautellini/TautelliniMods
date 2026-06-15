@@ -1,7 +1,7 @@
--- tests for viewmath  --  the menu's pure value, slider and hit-test math.
+-- tests for viewmath  --  the menu's pure value, slider, layout and hit-test math.
 -- These are the parts that have actually broken in play (the [-]/bar click overlap, the bar fill,
--- the click-to-set clamping), so they get pinned here. viewmath names no engine globals, so it
--- loads straight under LuaJIT with no mocks.
+-- the click-to-set clamping, tab overflow/overlap, the 1200x800 bounds and item paging), so they
+-- get pinned here. viewmath names no engine globals, so it loads straight under Lua 5.4 with no mocks.
 package.path = "./?.lua;../Scripts/?.lua;" .. package.path
 
 local T = require("tinytest")
@@ -11,6 +11,17 @@ local L = VM.L
 local function num(v, min, max, step)
     return { kind = "num", value = v, min = min, max = max, step = step }
 end
+local function names(prefix, n) local t = {} for i = 1, n do t[i] = prefix .. " " .. i end return t end
+
+-- a view with `mods` mod tabs, `subs` sub tabs (0 = none), and the given item list
+local function view(mods, subs, items)
+    local showSub = subs > 0
+    local lay = VM.layout({ modNames = names("Mod", mods), subNames = showSub and names("Sub", subs) or {},
+                            showSub = showSub, itemCount = #items })
+    return { tabCount = mods, subCount = subs, showSub = showSub, items = items, lay = lay }
+end
+local function defView() return view(2, 2, { num(50, 0, 100, 5), { kind = "bool", value = true } }) end
+local function rowY(i, v) return v.lay.rowTop + (i - 1) * L.rowH + 4 end -- a few px into row i
 
 -- ------------------------------------------------------------ bar string --
 T.add("barString is empty at min, full at max, half at midpoint", function()
@@ -68,39 +79,96 @@ end)
 
 T.add("valueFromBar snaps to step", function()
     local it = num(0, 0, 10, 1)
-    -- a click ~37% along a 0..10 range is 3.7, which snaps to 4
-    T.eq(VM.valueFromBar(it, L.barX + L.barW * 0.37), 4)
+    T.eq(VM.valueFromBar(it, L.barX + L.barW * 0.37), 4) -- ~3.7 snaps to 4
+end)
+
+-- ------------------------------------------------------------- ellipsize --
+T.add("ellipsize keeps short strings and truncates long ones with an ellipsis", function()
+    T.eq(VM.ellipsize("Combat", 12), "Combat")
+    T.eq(VM.ellipsize("abcdefghij", 5), "abcd…")
+end)
+
+-- --------------------------------------------------------------- layout --
+T.add("panel width grows with more and longer tabs, capped at maxPanelW", function()
+    local one  = VM.layout({ modNames = names("M", 1), showSub = false, itemCount = 1 })
+    local many = VM.layout({ modNames = names("StressMod", 30), showSub = false, itemCount = 1 })
+    T.lt(one.panelW, many.panelW, "more tabs widen the panel")
+    T.ok(many.panelW <= L.maxPanelW, "never exceeds maxPanelW")
+    local short = VM.layout({ modNames = names("A", 8), showSub = false, itemCount = 1 })
+    local long  = VM.layout({ modNames = names("ModNameHere", 8), showSub = false, itemCount = 1 })
+    T.lt(short.panelW, long.panelW, "auto-sizes to the name length")
+end)
+
+T.add("tabs collapse onto new rows and every tab stays within the panel", function()
+    local lay = VM.layout({ modNames = names("StressMod", 30), showSub = false, itemCount = 1 })
+    local seen = {}
+    for _, r in ipairs(lay.modRects) do
+        seen[r.y] = true
+        T.ok(r.x + r.w <= L.panelX + L.maxPanelW, "a tab never extends past the panel width")
+    end
+    local rows = 0; for _ in pairs(seen) do rows = rows + 1 end
+    T.ok(rows >= 2, "30 mods wrap to more than one row")
+end)
+
+T.add("a very long mod name is ellipsized and does not break the layout", function()
+    local lay = VM.layout({ modNames = { string.rep("X", 200), "Short" }, showSub = false, itemCount = 1 })
+    local r = lay.modRects[1]
+    T.ok(#r.name < 40, "the 200-char name is truncated")
+    T.ok(r.x + r.w <= L.panelX + L.maxPanelW, "its tab still fits the panel")
+    local v = { tabCount = 2, subCount = 0, showSub = false, items = {}, lay = lay }
+    local r2 = lay.modRects[2]
+    T.eq(VM.hitZone(r2.x + 2, r2.y + 2, v).index, 2, "the next tab is still hit-testable")
+end)
+
+T.add("a long item list pages within maxPanelH; a short one does not", function()
+    local big = VM.layout({ modNames = { "M" }, showSub = false, itemCount = 1000 })
+    T.eq(big.paging, true, "1000 items page")
+    T.ok(big.visible < 1000, "only a window of rows is shown")
+    T.ok(big.panelH <= L.maxPanelH, "height is capped at maxPanelH")
+    local small = VM.layout({ modNames = { "M" }, showSub = false, itemCount = 3 })
+    T.eq(small.paging, false)
+    T.eq(small.visible, 3)
+    T.ok(small.panelH <= L.maxPanelH)
+end)
+
+T.add("pageOffset advances by a full page and clamps at the ends", function()
+    T.eq(VM.pageOffset(0, 1, 33, 100), 33, "page down from the top")
+    T.eq(VM.pageOffset(33, 1, 33, 100), 66, "page down again")
+    T.eq(VM.pageOffset(66, 1, 33, 100), 67, "clamps to the last page (maxOff = 67)")
+    T.eq(VM.pageOffset(67, 1, 33, 100), 67, "no-op past the end")
+    T.eq(VM.pageOffset(40, -1, 33, 100), 7, "page up")
+    T.eq(VM.pageOffset(7, -1, 33, 100), 0, "page up clamps to the top")
+    T.eq(VM.pageOffset(0, 1, 33, 20), 0, "a list that fits never pages")
+end)
+
+T.add("scrollOffset keeps the selected item inside the window", function()
+    T.eq(VM.scrollOffset(1, 0, 10, 100), 0, "selection at the top: no scroll")
+    T.eq(VM.scrollOffset(5, 0, 10, 100), 0, "selection already in the window: unchanged")
+    T.eq(VM.scrollOffset(50, 0, 10, 100), 40, "below the window scrolls it to the last row")
+    T.eq(VM.scrollOffset(50, 45, 10, 100), 45, "already visible: unchanged")
+    T.eq(VM.scrollOffset(3, 40, 10, 100), 2, "above the window scrolls up")
+    T.eq(VM.scrollOffset(100, 0, 10, 100), 90, "clamps to the last page")
+    T.eq(VM.scrollOffset(5, 0, 10, 8), 0, "a list that fits never scrolls")
 end)
 
 -- ------------------------------------------------------------- hit zones --
--- the shape a real frame would pass: two num rows starting at rowTop
-local function view()
-    return {
-        tabCount = 2, subCount = 2, showSub = true,
-        rowTop = L.subTabY + L.tabH + 6,
-        items = {
-            num(50, 0, 100, 5),
-            { kind = "bool", value = true },
-        },
-    }
-end
-local function rowY(i, v) return v.rowTop + (i - 1) * L.rowH + 4 end -- a few px into row i
-
 T.add("clicking the [X] button hits close", function()
-    local z = VM.hitZone(L.closeX + 4, L.closeY + 4, view())
-    T.eq(z.zone, "close")
+    local v = defView()
+    T.eq(VM.hitZone(v.lay.closeX + 4, L.closeY + 4, v).zone, "close")
 end)
 
 T.add("clicking a mod tab and a sub tab resolves to its index", function()
-    local v = view()
-    T.eq(VM.hitZone(L.tabX0 + 4, L.modTabY + 4, v).zone, "modtab")
-    T.eq(VM.hitZone(L.tabX0 + L.tabStep + 4, L.modTabY + 4, v).index, 2, "second mod tab")
-    T.eq(VM.hitZone(L.tabX0 + 4, L.subTabY + 4, v).zone, "subtab")
-    T.eq(VM.hitZone(L.tabX0 + L.tabStep + 4, L.subTabY + 4, v).index, 2, "second sub tab")
+    local v = defView()
+    local m1, m2 = v.lay.modRects[1], v.lay.modRects[2]
+    T.eq(VM.hitZone(m1.x + 4, m1.y + 4, v).zone, "modtab")
+    T.eq(VM.hitZone(m2.x + 4, m2.y + 4, v).index, 2, "second mod tab")
+    local s1, s2 = v.lay.subRects[1], v.lay.subRects[2]
+    T.eq(VM.hitZone(s1.x + 4, s1.y + 4, v).zone, "subtab")
+    T.eq(VM.hitZone(s2.x + 4, s2.y + 4, v).index, 2, "second sub tab")
 end)
 
 T.add("a num row resolves [-], the bar, [+], and a bare select by column", function()
-    local v = view()
+    local v = defView()
     local y = rowY(1, v)
     T.eq(VM.hitZone(L.decX + 2, y, v).part, "dec", "[-] column")
     T.eq(VM.hitZone(L.incX + 2, y, v).part, "inc", "[+] column")
@@ -112,7 +180,7 @@ end)
 -- the regression that bit us: the [-] zone must not bleed onto the bar, or a click on the bar's
 -- left edge would step down by one instead of setting the value where you clicked.
 T.add("the [-] zone and the bar zone do not overlap", function()
-    local v = view()
+    local v = defView()
     local y = rowY(1, v)
     T.eq(VM.hitZone(L.barX, y, v).part, "bar", "the bar's first pixel is bar, not dec")
     T.lt(L.decX + L.colW, L.barX, "[-] right edge sits left of the bar's left edge")
@@ -120,17 +188,29 @@ T.add("the [-] zone and the bar zone do not overlap", function()
 end)
 
 T.add("a bool row resolves its toggle zone", function()
-    local v = view()
+    local v = defView()
     local z = VM.hitZone(L.decX + 4, rowY(2, v), v)
     T.eq(z.zone, "item")
     T.eq(z.index, 2)
     T.eq(z.part, "toggle")
 end)
 
+T.add("the scroll arrows resolve to scroll up / down when paging", function()
+    local lay = VM.layout({ modNames = { "M" }, showSub = false, itemCount = 1000 })
+    local pv = { tabCount = 1, subCount = 0, showSub = false, items = {}, lay = lay }
+    local yInd = lay.rowTop + lay.visible * L.rowH
+    T.eq(VM.hitZone(L.markX + 2, yInd + 4, pv).zone, "scroll")
+    T.eq(VM.hitZone(L.markX + 2, yInd + 4, pv).dir, -1, "left arrow scrolls up")
+    T.eq(VM.hitZone(L.markX + 36, yInd + 4, pv).dir, 1, "right arrow scrolls down")
+    -- the two zones are contiguous (no dead strip between the glyphs)
+    T.eq(VM.hitZone(L.markX + 32, yInd + 4, pv).dir, -1, "the boundary belongs to up")
+    T.eq(VM.hitZone(L.markX + 33, yInd + 4, pv).dir, 1, "just past the boundary is down")
+end)
+
 T.add("clicks off the panel and below the last row miss", function()
-    local v = view()
+    local v = defView()
     T.eq(VM.hitZone(L.panelX - 20, rowY(1, v), v), nil, "left of the panel")
-    T.eq(VM.hitZone(L.nameX, v.rowTop + 5 * L.rowH, v), nil, "below the last row")
+    T.eq(VM.hitZone(L.nameX, v.lay.rowTop + 5 * L.rowH, v), nil, "below the last row")
 end)
 
 os.exit(T.run())
