@@ -12,7 +12,7 @@
 local print, pcall, ipairs, pairs, tostring, type = print, pcall, ipairs, pairs, tostring, type
 local rawget, rawset = rawget, rawset
 
-local ModVersion = "1.1.0"
+local ModVersion = "1.2.0"
 local function log(m) print("[SharedModMenu] " .. tostring(m) .. "\n") end
 
 -- hot-reload reset: nil our modules before re-require, and full-sweep UE4SS's path cache. Every
@@ -29,10 +29,11 @@ if not okR then log("FATAL: render module failed: " .. tostring(menu)); return e
 -- always runs the newest handlers without re-binding.
 rawset(_G, "__smmHandlers", menu)
 
--- the toggle hotkey is this mod's OWN config (no shared file)
+-- the hotkeys are this mod's OWN config (no shared file)
 local okCfg, Config = pcall(require, "config")
 if not okCfg or type(Config) ~= "table" then Config = {} end
 local KEY = (type(Config.menuKey) == "string" and Config.menuKey ~= "") and Config.menuKey or "F2"
+local Keys = type(Config.keys) == "table" and Config.keys or {}
 
 -- ------------------------------------------------ registration (main.lua tail) --
 local RegisterKeyBind     = rawget(_G, "RegisterKeyBind")
@@ -48,19 +49,25 @@ end
 
 if not rawget(_G, "__smmBound") and Key and type(RegisterKeyBind) == "function" and type(ExecuteInGameThread) == "function" then
     local function bind(keyName, fn) if Key[keyName] then pcall(RegisterKeyBind, Key[keyName], function() onGameThread(fn) end) end end
-    bind(KEY,                 function() dispatch("toggle") end)
-    bind("LEFT_MOUSE_BUTTON", function() dispatch("onLMB") end)
-    bind("LBUTTON",           function() dispatch("onLMB") end)
-    bind("NUM_EIGHT",         function() dispatch("navItem", -1) end)
-    bind("NUM_TWO",           function() dispatch("navItem", 1) end)
-    bind("NUM_FOUR",          function() dispatch("adjust", -1) end)
-    bind("NUM_SIX",           function() dispatch("adjust", 1) end)
-    bind("NUM_SEVEN",         function() dispatch("navSub", -1) end)
-    bind("NUM_NINE",          function() dispatch("navSub", 1) end)
-    bind("NUM_ONE",           function() dispatch("navTab", -1) end)
-    bind("NUM_THREE",         function() dispatch("navTab", 1) end)
+    -- the configured name for a nav action, or its default when unset / not a key this build knows
+    local function navKey(field, default)
+        local v = Keys[field]
+        return (type(v) == "string" and v ~= "" and Key[v]) and v or default
+    end
+    bind(KEY,                            function() dispatch("toggle") end)
+    bind("LEFT_MOUSE_BUTTON",            function() dispatch("onLMB") end)
+    bind("LBUTTON",                      function() dispatch("onLMB") end)
+    bind(navKey("itemPrev", "NUM_EIGHT"), function() dispatch("navItem", -1) end)
+    bind(navKey("itemNext", "NUM_TWO"),   function() dispatch("navItem", 1) end)
+    bind(navKey("valueDec", "NUM_FOUR"),  function() dispatch("adjust", -1) end)
+    bind(navKey("valueInc", "NUM_SIX"),   function() dispatch("adjust", 1) end)
+    bind(navKey("activate", "NUM_FIVE"),  function() dispatch("activate") end)
+    bind(navKey("subPrev", "NUM_SEVEN"),  function() dispatch("navSub", -1) end)
+    bind(navKey("subNext", "NUM_NINE"),   function() dispatch("navSub", 1) end)
+    bind(navKey("tabPrev", "NUM_ONE"),    function() dispatch("navTab", -1) end)
+    bind(navKey("tabNext", "NUM_THREE"),  function() dispatch("navTab", 1) end)
     rawset(_G, "__smmBound", true)
-    log("keys bound: " .. KEY .. " = toggle; numpad 8/2 item, 4/6 value, 7/9 sub-tab, 1/3 mod-tab, mouse.")
+    log("keys bound: " .. KEY .. " = toggle; numpad 8/2 item, 4/6 value, 5 run, 7/9 sub-tab, 1/3 mod-tab, mouse.")
 end
 
 -- world-change backstop (bound once): on a save load the cached menu widget + PlayerController

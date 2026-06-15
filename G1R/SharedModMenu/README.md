@@ -68,7 +68,11 @@ modmenu.register("MyMod", {
 - Toggle with the configured key (default **F2**).
 - Mouse: click a tab or sub-tab to switch, a row to select, `[-]`/`[+]`/the bar/`[ ON/OFF ]`/
   `[ RUN ]` to act, `[X]` to close.
-- Numpad: `8`/`2` select item, `4`/`6` change value, `7`/`9` sub-tab, `1`/`3` mod tab.
+- Numpad: `8`/`2` select item, `4`/`6` change value, `5` run the selected `[ RUN ]` action (or flip
+  the selected `[ ON/OFF ]`), `7`/`9` sub-tab, `1`/`3` mod tab.
+
+Every key above is remappable in `Scripts/config.lua` (`menuKey` plus the `keys` table). Key
+changes take effect on the next game start; all other settings hot-reload with CTRL+R.
 
 ## Install & config
 

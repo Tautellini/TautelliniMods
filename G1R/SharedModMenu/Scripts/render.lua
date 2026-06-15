@@ -212,14 +212,35 @@ local function showWidget(on)
     if not isValid(S.widget) then return end
     if on then pcall(function() S.widget:AddToViewport(50) end) else removeFromViewport() end
 end
-local function resetState() S.open = false; S.widget = nil; S.sig = nil; S.pc = nil end
+local function resetState() S.open = false; S.widget = nil; S.sig = nil; S.pc = nil; S.priorCursor = nil end
 
+local function readCursor(pc)
+    local v; pcall(function() v = pc.bShowMouseCursor end)
+    return v == true
+end
+
+-- Opening forces the cursor on and routes input to UI; closing must restore the state the game had
+-- BEFORE we opened. If a game menu (inventory, pause, ...) already owned the cursor when we opened,
+-- forcing GameOnly + cursor-off on close strips the cursor from that still-open menu, which is the
+-- bug. So we capture the cursor state once at open and branch on it at close.
 local function setUIInput(on)
     local pc, lib = getPC(), wlib()
     if not (isValid(pc) and isValid(lib)) then return end
-    pcall(function() pc.bShowMouseCursor = on end)
-    if on then pcall(function() lib:SetInputMode_UIOnlyEx(pc, S.widget, 0, true) end)
-    else pcall(function() lib:SetInputMode_GameOnly(pc, true) end) end
+    if on then
+        if S.priorCursor == nil then S.priorCursor = readCursor(pc) end  -- capture once, not per rebuild
+        pcall(function() pc.bShowMouseCursor = true end)
+        pcall(function() lib:SetInputMode_UIOnlyEx(pc, S.widget, 0, true) end)
+    elseif S.priorCursor then
+        -- a game menu owned the cursor when we opened: keep it visible and leave input on UI, so the
+        -- game does not start eating keys/look behind that menu.
+        S.priorCursor = nil
+        pcall(function() lib:SetInputMode_UIOnlyEx(pc, nil, 0, true) end)
+        pcall(function() pc.bShowMouseCursor = true end)
+    else  -- opened from plain gameplay: hand control fully back to the game
+        S.priorCursor = nil
+        pcall(function() pc.bShowMouseCursor = false end)
+        pcall(function() lib:SetInputMode_GameOnly(pc, true) end)
+    end
 end
 
 local function setText(tb, s)
@@ -310,6 +331,13 @@ local function navItem(d) showSelection(S.sel + d) end
 local function navSub(d) if S.open and subCount() > 0 then S.sub = clamp(S.sub + d, 1, subCount()); S.sel = 1; S.off = 0; rebuild() end end
 local function navTab(d) if S.open and tabCount() > 0 then S.tab = clamp(S.tab + d, 1, tabCount()); S.sub = 1; S.sel = 1; S.off = 0; rebuild() end end
 local function adjust(d) if S.open then local it = curItems()[S.sel]; if it then editItem(it, d); showValue(S.sel) end end end
+-- run the selected action / flip the selected switch: the keyboard equivalent of clicking [ RUN ]
+-- or [ ON/OFF ]. A num row has no single "activate", so it is left to the value keys.
+local function activate()
+    if not S.open then return end
+    local it = curItems()[S.sel]; if not it then return end
+    if it.kind == "action" or it.kind == "bool" then editItem(it, 1); showValue(S.sel) end
+end
 
 -- ----------------------------------------------------------------- mouse --
 local function mousePos()
@@ -349,5 +377,5 @@ end
 
 return {
     toggle = toggle, onLMB = onLMB, navItem = navItem, navSub = navSub,
-    navTab = navTab, adjust = adjust, close = closeMenu, resetState = resetState,
+    navTab = navTab, adjust = adjust, activate = activate, close = closeMenu, resetState = resetState,
 }
