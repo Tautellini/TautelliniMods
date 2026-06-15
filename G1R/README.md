@@ -72,21 +72,32 @@ Hard-won facts about this game's tech. Read before writing any mod code.
   over GothicLockSceneActor:m_RotationToBarOffset correlates with two
   early-session AV crashes); pcall cannot catch native AVs, so avoid
   TMap iteration in shipped mods unless unavoidable
-- DEFERRED-CALLBACK ABORT (upstream RE-UE4SS bug under Lua 5.4): a mod that
-  polls on a worker thread (`LoopAsync`) and marshals each tick to the game
-  thread (`ExecuteInGameThread`) can hit `Abort signal received` inside
-  `UE4SS!process_simple_actions -> LuaMadeSimple::Registry::get_function_ref`
-  (LuaMod.cpp:3705 / LuaMadeSimple.cpp:257). Cause is UE4SS-internal: it keeps
-  each deferred callback as a registry ref INDEX (`luaL_ref`), frees that index
-  too early under 5.4, then looks the callback back up by the same index; the
-  slot is now nil (or reused for another value) and it `abort()`s in a C++ frame
-  with no pcall around it. It is an abort, not an access violation, and like an
-  AV no pcall can catch it. NOT memory corruption, NOT the solver, NOT closure
-  GC. No Lua-side fix works: anchoring the closures changes nothing (UE4SS's own
-  registry ref already keeps them alive, and the broken thing is UE4SS's INDEX,
-  not the closure's reachability; a second reference of ours cannot restore a
-  slot UE4SS niled itself), and throttling the hand-offs or pausing the GC did
-  nothing either. The only real fix is to move the tick OFF the deferred queue
-  (run it on the game thread via a per-frame UFunction hook) or wait for an
-  upstream UE4SS fix. Dumps: `%LOCALAPPDATA%/G1R/Saved/Crashes/UECC-*/`, read
-  `CrashContext.runtime-xml` for the callstack + ErrorMessage
+- DEFERRED-CALLBACK ABORT (upstream RE-UE4SS bug, issue #1180): a mod that fans
+  out overlapping deferred work via `LoopAsync` -> `ExecuteInGameThread`,
+  `ExecuteWithDelay` -> `ExecuteInGameThread`, or per-keypress
+  `ExecuteInGameThread` can crash inside
+  `UE4SS!engine_tick_hook -> process_simple_actions -> get_function_ref`
+  (LuaMod.cpp:3705 / LuaMadeSimple.cpp:257). It shows up as TWO signatures from
+  one root cause: an `abort()` (the symbolicated crash-reporter stack) and a
+  delayed `0xC0000374` heap corruption (the WER minidumps). The REAL mechanism
+  (re-measured 2026-06-15 against the RE-UE4SS source and issue #1180, the old
+  "frees the ref index too early under 5.4" note was WRONG): on our build line
+  `process_simple_actions` drains its action vector by iterating it in place with
+  `std::erase_if` while running each Lua callback inside the predicate. A callback
+  that queues more work reallocates that vector mid-iteration (use-after-free), and
+  all callbacks share one `lua_newthread` stack that gets stomped. The stale entry
+  then makes `get_function_ref` throw `luaL_error` OUTSIDE the `TRY` frame, so it
+  aborts. `pcall` cannot catch it (the throw is in UE4SS C++, outside any Lua
+  frame). It is NOT a Lua 5.4 GC bug, NOT a single-thread lifecycle bug, and NOT a
+  keybind-thread data race (the queue is `recursive_mutex`-serialized; the lethal
+  part is reentrancy). A Lua-side fix DOES exist and is proven on this exact crash
+  (the earlier "no Lua-side fix works" note was WRONG): collapse to ONE long-lived
+  game-thread driver holding a single load-time ref that drains a plain-Lua work
+  queue, with keybinds flag-only and no nested deferral. Our `3.0.1-968` build
+  predates the upstream fixes (PR #1201 2026-06-07; #1268/#1269/#1271 2026-06-14),
+  so updating UE4SS is the other half of the remedy. The abort can be SILENT (a
+  game crashpad can swallow it, exit `0x40000015`, no dump), so validate a fix by
+  sustained F6/F7 stress, not by absence of dumps. Full writeup, principles, and
+  the per-mod compliance audit: `UE4SS-Lua-Best-Practices.md`. Dumps:
+  `%LOCALAPPDATA%/G1R/Saved/Crashes/UECC-*/` and `%LOCALAPPDATA%/CrashDumps/`
+  (parse with `tools/parse_minidump.py`)

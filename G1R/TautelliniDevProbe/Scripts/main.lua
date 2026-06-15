@@ -26,7 +26,7 @@ local rawget, rawset = rawget, rawset
 -- 'gamepad' is SHELVED (file kept): UE4SS on this build cannot marshal an FKey parameter into
 -- IsInputKeyDown/GetInputAnalogKeyState (real OR constructed FKey -> "Array failed invariants"),
 -- so polling controller input from Lua is a dead end. Re-add it only to resume that hunt.
-local MODULES = { "archery", "asread", "lockbuild", "sleep" }
+local MODULES = { "archery", "asread", "lockbuild", "sleep", "tickfind" }
 
 -- ---- bootstrap the vendored kit + hot-reload reset (the mod main.lua pattern) ----
 local here   = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")
