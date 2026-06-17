@@ -219,27 +219,34 @@ local function readCursor(pc)
     return v == true
 end
 
--- Opening forces the cursor on and routes input to UI; closing must restore the state the game had
--- BEFORE we opened. If a game menu (inventory, pause, ...) already owned the cursor when we opened,
--- forcing GameOnly + cursor-off on close strips the cursor from that still-open menu, which is the
--- bug. So we capture the cursor state once at open and branch on it at close.
+-- Opening forces the cursor on and routes input to the UI. On close we must hand control back
+-- correctly. If a game menu (inventory, pause, ...) still owns the cursor, forcing GameOnly +
+-- cursor-off strips it from that menu. But if we opened over a game menu the player has SINCE closed
+-- (back to gameplay while our menu stayed open), keeping the cursor on leaves it stuck with input on
+-- a dead UI focus, which deadlocks. So we snapshot the cursor at open AND re-read it live: keep it
+-- only if it was owned at open and is STILL on at close. We are event-driven, not a per-tick force,
+-- so once the game reclaims the cursor (sets it off) that read is the game's real intent; the open
+-- snapshot is downgraded as soon as we see that, in case a rebuild re-forces the cursor on after.
 local function setUIInput(on)
     local pc, lib = getPC(), wlib()
     if not (isValid(pc) and isValid(lib)) then return end
     if on then
-        if S.priorCursor == nil then S.priorCursor = readCursor(pc) end  -- capture once, not per rebuild
+        local cur = readCursor(pc)
+        if S.priorCursor == nil then S.priorCursor = cur            -- first open: did a game menu own it?
+        elseif S.priorCursor and not cur then S.priorCursor = false end  -- game reclaimed gameplay since
         pcall(function() pc.bShowMouseCursor = true end)
         pcall(function() lib:SetInputMode_UIOnlyEx(pc, S.widget, 0, true) end)
-    elseif S.priorCursor then
-        -- a game menu owned the cursor when we opened: keep it visible and leave input on UI, so the
-        -- game does not start eating keys/look behind that menu.
+    else
+        local keepCursor = S.priorCursor and readCursor(pc)  -- a game menu owned it at open AND still does
         S.priorCursor = nil
-        pcall(function() lib:SetInputMode_UIOnlyEx(pc, nil, 0, true) end)
-        pcall(function() pc.bShowMouseCursor = true end)
-    else  -- opened from plain gameplay: hand control fully back to the game
-        S.priorCursor = nil
-        pcall(function() pc.bShowMouseCursor = false end)
-        pcall(function() lib:SetInputMode_GameOnly(pc, true) end)
+        if keepCursor then
+            -- leave the cursor visible and input on UI, so the game does not eat keys/look behind that menu
+            pcall(function() lib:SetInputMode_UIOnlyEx(pc, nil, 0, true) end)
+            pcall(function() pc.bShowMouseCursor = true end)
+        else  -- plain gameplay (or the game menu is gone): hand control fully back to the game
+            pcall(function() pc.bShowMouseCursor = false end)
+            pcall(function() lib:SetInputMode_GameOnly(pc, true) end)
+        end
     end
 end
 
