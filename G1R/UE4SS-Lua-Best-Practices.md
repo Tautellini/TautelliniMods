@@ -70,6 +70,29 @@ do the minimum and hand off to the game thread (see Periodic and deferred work).
   reflected containers, reading instance properties or calling `GetCDO()` on class
   objects of a scripting-VM type). Avoid them; `pcall` will not save you.
 
+## Garbage collection
+
+- **A large resident Lua table poisons GC timing and can cause intermittent native
+  crashes.** Lua's GC walks every live object each cycle, so a table with N entries is N
+  objects of work. A heavy GC pass can race UE4SS's object marshaling, and the result is
+  an access violation deep in UE4SS dispatch frames, BEFORE your callback runs, that
+  `pcall` cannot catch. It looks exactly like a UE4SS bug and is easy to misattribute.
+  Measured in LockpickSettings 3.2.x: a ~1.29M-element integer array left resident made
+  opening a chest / starting a lock crash intermittently; freeing it removed the crash.
+- **`require` caches its return value in `package.loaded` for the whole session.** A data
+  module that `return`s a giant table keeps that table alive forever. If you only need it
+  to build a compact form, convert it, then drop the cache and reclaim it now:
+
+      local t = require("data.big")        -- huge table, now cached in package.loaded
+      local blob = pack(t)                 -- the compact form you actually keep
+      package.loaded["data.big"] = nil     -- release the giant table...
+      collectgarbage("collect")            -- ...and reclaim it this frame
+
+- **For resident data, prefer one big object over many small ones.** A multi-MB Lua
+  STRING is a single GC object and is cheap to scan; the same bytes as a per-element TABLE
+  are millions of objects the GC re-scans every cycle. Keep shipped blobs as strings once
+  loaded, not as arrays.
+
 ## Hooks, notifications, input
 
 - **`RegisterHook`:** the UFunction must already exist in memory when you register, so
