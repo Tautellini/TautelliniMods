@@ -10,9 +10,9 @@
 -- The toggle hotkey is THIS mod's own setting (Scripts/config.lua). No shared config file.
 
 local print, pcall, ipairs, pairs, tostring, type = print, pcall, ipairs, pairs, tostring, type
-local rawget, rawset = rawget, rawset
+local rawget, rawset, os = rawget, rawset, os
 
-local ModVersion = "1.2.1"
+local ModVersion = "1.2.2"
 local function log(m) print("[SharedModMenu] " .. tostring(m) .. "\n") end
 
 -- hot-reload reset: nil our modules before re-require, and full-sweep UE4SS's path cache. Every
@@ -48,7 +48,23 @@ local function dispatch(name, arg)
 end
 
 if not rawget(_G, "__smmBound") and Key and type(RegisterKeyBind) == "function" and type(ExecuteInGameThread) == "function" then
-    local function bind(keyName, fn) if Key[keyName] then pcall(RegisterKeyBind, Key[keyName], function() onGameThread(fn) end) end end
+    -- Serialize dispatches. Each keybind used to fire its own ExecuteInGameThread instantly, so a
+    -- fast double-tap of F2 (or mashing keys) put two overlapping menu builds on UE4SS's deferred
+    -- queue and hit the #1180 reentrancy (a UMG write-AV opening the menu). A per-key debounce
+    -- (kills held-key repeat / double-tap) plus a short global cooldown keep at most one dispatch
+    -- in flight. Time-based, so there is no flag that can get stuck.
+    local lastFire, busyUntil = {}, 0
+    local function bind(keyName, fn)
+        if not Key[keyName] then return end
+        pcall(RegisterKeyBind, Key[keyName], function()
+            local now = os.clock()
+            if now < busyUntil then return end
+            if lastFire[keyName] and now - lastFire[keyName] < 0.15 then return end
+            lastFire[keyName] = now
+            busyUntil = now + 0.12
+            onGameThread(fn)
+        end)
+    end
     -- the configured name for a nav action, or its default when unset / not a key this build knows
     local function navKey(field, default)
         local v = Keys[field]
