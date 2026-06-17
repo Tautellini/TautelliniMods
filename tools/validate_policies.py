@@ -7,6 +7,7 @@
   3. write per-blob hashes to tools/_hashes_py.txt for the Lua inflate
      round-trip test (dump_hashes.lua must produce the identical file)
 """
+import base64
 import sys
 import re
 import zlib
@@ -17,8 +18,15 @@ sys.path.insert(0, "tools")
 from sim_planner import parse_graphs
 
 GRAPHS = Path("G1R/reference/lock-graphs.lua")
-BIN = Path("G1R/LockpickSettings/Scripts/data/lockpolicies.bin")
+DATA = Path("G1R/LockpickSettings/Scripts/data/lockpolicies.lua")
 IDX = Path("G1R/LockpickSettings/Scripts/data/lockpolicies_index.lua")
+
+
+def load_blob(path):
+    # the .lua is `return [[<base64>]]`; pull the base64 and decode it
+    txt = path.read_text(encoding="utf-8")
+    b64 = txt[txt.index("[[") + 2:txt.rindex("]]")]
+    return base64.b64decode("".join(b64.split()))
 
 
 def load_index(path):
@@ -58,7 +66,7 @@ def apply_move(S, x, d, place, out):
 def main():
     locks = parse_graphs(GRAPHS)
     idx = load_index(IDX)
-    blob = BIN.read_bytes()
+    blob = load_blob(DATA)
     rng = random.Random(99)
     hashes, bad = [], 0
     for name in sorted(idx):

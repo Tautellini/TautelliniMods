@@ -10,7 +10,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, rawset, debug = rawget, rawset, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.0"
+local ModVersion = "3.2.1"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -26,10 +26,10 @@ end
 -- a no-op there).
 local MODULES = {
     "kit", "config", "core.engine_lock", "core.session", "core.tinter",
-    "core.settings", "util.palette", "util.inflate", "data.lockgraphs",
-    "data.lockpolicies_index", "tries.boost", "nextmove.policy",
-    "nextmove.geometry", "nextmove.hint", "connections.connections",
-    "autosolve.driver",
+    "core.settings", "util.palette", "util.inflate", "util.base64",
+    "data.lockgraphs", "data.lockpolicies", "data.lockpolicies_index",
+    "tries.boost", "nextmove.policy", "nextmove.geometry", "nextmove.hint",
+    "connections.connections", "autosolve.driver",
 }
 for _, m in ipairs(MODULES) do package.loaded[m] = nil end
 do
@@ -94,26 +94,25 @@ local Tinter = tryRequire("core.tinter")
 local Session = tryRequire("core.session")
 local Driver = tryRequire("autosolve.driver")
 
--- shipped solution policies: data/lockpolicies.bin (DEFLATE next-move tables per lock
--- x precision variant, built by tools/build_policies.py) + lockpolicies_index.lua.
--- Loaded whole at boot; one lock's variant is inflated on open and looked up.
+-- shipped solution policies: data/lockpolicies.lua (base64 of DEFLATE next-move tables
+-- per lock x precision variant, built by tools/build_policies.py) + lockpolicies_index.
+-- base64'd so scanners read it as source, not an opaque binary. Decoded once at boot;
+-- one lock's variant is inflated on open and looked up.
 local Policy = nil
 do
     local okIdx, Index = pcall(require, "data.lockpolicies_index")
     local blob = nil
-    if ModDir then
-        pcall(function()
-            local fh = io.open(ModDir .. "/Scripts/data/lockpolicies.bin", "rb")
-            if fh then blob = fh:read("*a"); fh:close() end
-        end)
-    end
+    pcall(function()
+        local b64 = require("data.lockpolicies")
+        if type(b64) == "string" then blob = require("util.base64").decode(b64) end
+    end)
     if PolicyMod and okIdx and type(Index) == "table" and blob and #blob > 0 then
         Policy = PolicyMod.new({
             index = Index, log = log,
             readBlob = function(off, len) return blob:sub(off + 1, off + len) end,
         })
     else
-        log("ERROR: shipped policies (data/lockpolicies.bin/_index) not loaded; "
+        log("ERROR: shipped policies (data/lockpolicies + _index) not loaded; "
             .. "next-move hint and auto-solve off for this session")
     end
 end

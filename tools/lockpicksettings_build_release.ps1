@@ -16,7 +16,8 @@
 # Usage: powershell -File tools\lockpicksettings_build_release.ps1
 
 param(
-    [string]$Mod = "LockpickSettings"
+    [string]$Mod = "LockpickSettings",
+    [string]$OutDir = ""   # defaults to <Mod>\release\build; override to dodge a locked artifact
 )
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.IO.Compression
@@ -30,7 +31,7 @@ $UE4SSSrc   = Join-Path $PSScriptRoot "ue4ss"
 $UE4SSVerF  = Join-Path $PSScriptRoot "ue4ss.version"
 $UE4SSVer   = if (Test-Path $UE4SSVerF) { (Get-Content $UE4SSVerF -Raw).Trim() } else { "experimental" }
 $ReadmeSrc  = Join-Path $ModSrc "bundled-readme.txt"
-$OutDir     = Join-Path $ModSrc "release\build"
+if (-not $OutDir) { $OutDir = Join-Path $ModSrc "release\build" }
 
 if (-not (Test-Path "$ScriptsSrc\main.lua")) { throw "mod not found at $ModSrc (need Scripts\main.lua)" }
 
