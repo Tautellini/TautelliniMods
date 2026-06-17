@@ -10,7 +10,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, rawset, debug = rawget, rawset, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.2"
+local ModVersion = "3.2.3"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -350,9 +350,13 @@ local function tryStart(attempt)
     -- stale re-entry guard: actors from FindAllOf with no readable geometry = the contaminated
     -- actor cloud of a finished minigame; polling it per tick is a native AV surface. Don't track.
     if s.stateUnknown then
-        log("Skipping tracking for '" .. lockName .. "': no fresh pieces and no "
-            .. "readable geometry (stale actors from an earlier minigame); "
-            .. "avoids polling half-dead objects")
+        -- Cache the verdict: an already-unlocked chest yields this same stale, geometry-less
+        -- state every time it is opened. Mark it so the OpenedLocks gate at the top of tryStart
+        -- turns away future opens BEFORE the scan. Net: this scan happens once per chest per
+        -- session, not on every open.
+        OpenedLocks[lockName] = true
+        log("Skipping tracking for '" .. lockName .. "': no readable geometry (already-unlocked "
+            .. "or stale actors); caching so re-opens skip the scan")
         return
     end
     -- bind THIS minigame's task: its death is the authoritative "minigame over" signal
@@ -374,15 +378,13 @@ end
 -- The toggle ACTIONS, run on the game thread (keybind marshals via ExecuteInGameThread;
 -- the menu set() callbacks call these too, so keys and menu stay in lockstep).
 -- Mode exclusivity: a display toggle stops any auto-solve first (one active execution).
--- toggleGap caps the rate of ANY two toggles so mashing can't burst-restart auto-solve
--- and hammer the #1180 queue.
-local lastAnyToggle = 0
-local function toggleGap()
-    local now = os.clock()
-    if now - lastAnyToggle < 0.15 then return false end
-    lastAnyToggle = now
-    return true
-end
+-- Keybinds do NOT run their action inline. Each sets a flag here; the ONE session-loop
+-- game-thread pass drains them (see the loop). This is the #1180 fix: every keybind used to do
+-- its own ExecuteInGameThread, and mashing F6/F7/F8 collided those on UE4SS's deferred queue (and
+-- with the loop's own pass) -> "Abort signal received". One dispatcher = no collision. Flags are
+-- set on the keybind thread and drained on the game thread; booleans, so the cross-thread write
+-- is safe. The per-key 0.3s debounce below still kills held-key repeat.
+local Pending = { hint = false, conn = false, auto = false, every = false }
 local lastToggle = 0
 local function cancelDriverFor(s)
     if driver and s and not s.stop and driver:running() then
@@ -437,16 +439,15 @@ local function doEveryToggle()
     end)
 end
 
--- keybinds debounce per-key (0.3s, kills held-key repeat), then the global toggleGap,
--- then marshal the action to the game thread.
+-- keybinds debounce per-key (0.3s, kills held-key repeat), then set a Pending flag the session
+-- loop drains on its one game-thread pass (no per-keybind ExecuteInGameThread; see Pending above).
 if type(HotkeyName) == "string" and HotkeyName ~= "" and not NextMoveBroken then
     if Key[HotkeyName] then
         pcall(RegisterKeyBind, Key[HotkeyName], function()
             local now = os.clock()
             if now - lastToggle < 0.3 then return end
-            if not toggleGap() then return end
             lastToggle = now
-            ExecuteInGameThread(function() pcall(toggleHint) end)
+            Pending.hint = true
         end)
     else
         log("ERROR: unknown nextMoveHotkey '" .. HotkeyName .. "', hotkey disabled")
@@ -460,9 +461,8 @@ if type(ConnHotkeyName) == "string" and ConnHotkeyName ~= ""
         pcall(RegisterKeyBind, Key[ConnHotkeyName], function()
             local now = os.clock()
             if now - lastConnToggle < 0.3 then return end
-            if not toggleGap() then return end
             lastConnToggle = now
-            ExecuteInGameThread(function() pcall(doConnToggle) end)
+            Pending.conn = true
         end)
     else
         log("ERROR: unknown connectionsHotkey '" .. ConnHotkeyName
@@ -476,9 +476,8 @@ if driver and type(AutoKey) == "string" and AutoKey ~= "" and Key[AutoKey] then
     pcall(RegisterKeyBind, Key[AutoKey], function()
         local now = os.clock()
         if now - lastAutoSolve < 0.3 then return end
-        if not toggleGap() then return end
         lastAutoSolve = now
-        ExecuteInGameThread(function() pcall(doAutoToggle) end)
+        Pending.auto = true
     end)
     if type(AutoEveryMod) == "string" and AutoEveryMod ~= "" then
         local mod = ModifierKey and ModifierKey[AutoEveryMod]
@@ -489,9 +488,8 @@ if driver and type(AutoKey) == "string" and AutoKey ~= "" and Key[AutoKey] then
             local ok = pcall(RegisterKeyBind, Key[AutoKey], { mod }, function()
                 local now = os.clock()
                 if now - lastAutoEvery < 0.3 then return end
-                if not toggleGap() then return end
                 lastAutoEvery = now
-                ExecuteInGameThread(function() pcall(doEveryToggle) end)
+                Pending.every = true
             end)
             if not ok then
                 log("ERROR: could not register full-auto-every-lock toggle")
@@ -638,6 +636,12 @@ if not NextMoveBroken then
     local seenSession = nil -- for one-shot end-of-session bookkeeping
 
     local function tickStep()
+        -- drain pending keybind actions on this ONE game-thread pass (the #1180 fix: no
+        -- per-keybind ExecuteInGameThread to collide on the deferred queue)
+        if Pending.hint then Pending.hint = false; pcall(toggleHint) end
+        if Pending.conn then Pending.conn = false; pcall(doConnToggle) end
+        if Pending.auto then Pending.auto = false; pcall(doAutoToggle) end
+        if Pending.every then Pending.every = false; pcall(doEveryToggle) end
         local s = liveSession
         if seenSession and (s ~= seenSession or seenSession.stop) then
             local ended = seenSession
@@ -678,6 +682,7 @@ if not NextMoveBroken then
             end
         end
         if seenSession and (s ~= seenSession or seenSession.stop) then due = true end
+        if Pending.hint or Pending.conn or Pending.auto or Pending.every then due = true end
         if not due then return false end
         ticking = true
         ExecuteInGameThread(function()
