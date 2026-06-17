@@ -6,6 +6,15 @@ in **`G1R/README.md`** and **`G1R/LuaModdingSurface.md`** (the safety bible).
 Read those before writing mod code. They win on any conflict; fix the doc, not
 the rule.
 
+## General Response Guidance
+- keep short responses that get to the point fast
+- explain only when being asked to, keep it short otherwise
+
+## General Code Guidance
+- use variable and function names that are human readable and understandable
+- only write comments where absolutely necessary
+- when you see something does not comply with the guidance or general best practices, fix it right away
+
 ## Hard rules (do not break)
 
 - **The solver is MOVE-AND-PRESERVE.** `nextmove/solver.lua` and the search math
