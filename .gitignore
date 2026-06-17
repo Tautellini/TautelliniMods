@@ -56,3 +56,6 @@ tools/.env-backup/
 *.preview.html
 tools/sim_variants.py
 .claude/scheduled_tasks.lock
+
+# third-party reference mod kept locally for technique study, never shipped or tracked
+G1R/TautelliniConsole/reference/
