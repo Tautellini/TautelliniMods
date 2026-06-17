@@ -6,7 +6,7 @@ local Inflate = require("util.inflate")
 
 local idx = assert(loadfile(
     "G1R/LockpickSettings/Scripts/data/lockpolicies_index.lua"))()
-local bin = require("util.base64").decode(require("data.lockpolicies"))
+local bin = require("util.bytes").fromInts(require("data.lockpolicies"))
 
 local function hashb(s)
     local h = 0

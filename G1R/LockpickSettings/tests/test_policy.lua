@@ -1,8 +1,8 @@
 -- test_policy.lua  --  the shipped next-move LOOKUP end to end.
 --
--- Proves the Lua side of the precompute: util.base64 decodes the shipped data file,
--- util.inflate decodes the DEFLATE blobs, nextmove.policy encodes the live state and
--- looks up the move, and following that move from random reachable states always
+-- Proves the Lua side of the precompute: util.bytes reconstructs the shipped data
+-- (an integer array), util.inflate decodes the DEFLATE blobs, nextmove.policy encodes
+-- the live state and looks up the move, and following that move from random states always
 -- reaches the goal. The offline generator + inflate byte-exactness are validated
 -- separately (tools/validate_policies.py, tools/dump_hashes.lua); this is the
 -- in-engine-runtime (Lua 5.4) proof of the open/encode/lookup/decode path.
@@ -19,8 +19,8 @@ local Policy = require("nextmove.policy")
 local Graphs = require("data.lockgraphs")
 local Index = require("data.lockpolicies_index")
 
--- the shipped data (base64 of the blob) + a reader (offsets in the index are 0-based)
-local bin = require("util.base64").decode(require("data.lockpolicies"))
+-- the shipped data (integer array) + a reader (offsets in the index are 0-based)
+local bin = require("util.bytes").fromInts(require("data.lockpolicies"))
 local function readBlob(off, len) return bin:sub(off + 1, off + len) end
 
 local policy = Policy.new({ index = Index, readBlob = readBlob })

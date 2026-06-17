@@ -7,7 +7,6 @@
   3. write per-blob hashes to tools/_hashes_py.txt for the Lua inflate
      round-trip test (dump_hashes.lua must produce the identical file)
 """
-import base64
 import sys
 import re
 import zlib
@@ -23,10 +22,10 @@ IDX = Path("G1R/LockpickSettings/Scripts/data/lockpolicies_index.lua")
 
 
 def load_blob(path):
-    # the .lua is `return [[<base64>]]`; pull the base64 and decode it
+    # the .lua is `return { <int per byte> }`; pull the integers and pack them
     txt = path.read_text(encoding="utf-8")
-    b64 = txt[txt.index("[[") + 2:txt.rindex("]]")]
-    return base64.b64decode("".join(b64.split()))
+    body = txt[txt.index("{") + 1:txt.rindex("}")]
+    return bytes(int(x) for x in body.split(",") if x.strip())
 
 
 def load_index(path):

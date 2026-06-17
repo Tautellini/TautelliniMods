@@ -10,7 +10,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, rawset, debug = rawget, rawset, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.1"
+local ModVersion = "3.2.2"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -26,7 +26,7 @@ end
 -- a no-op there).
 local MODULES = {
     "kit", "config", "core.engine_lock", "core.session", "core.tinter",
-    "core.settings", "util.palette", "util.inflate", "util.base64",
+    "core.settings", "util.palette", "util.inflate", "util.bytes",
     "data.lockgraphs", "data.lockpolicies", "data.lockpolicies_index",
     "tries.boost", "nextmove.policy", "nextmove.geometry", "nextmove.hint",
     "connections.connections", "autosolve.driver",
@@ -94,18 +94,25 @@ local Tinter = tryRequire("core.tinter")
 local Session = tryRequire("core.session")
 local Driver = tryRequire("autosolve.driver")
 
--- shipped solution policies: data/lockpolicies.lua (base64 of DEFLATE next-move tables
--- per lock x precision variant, built by tools/build_policies.py) + lockpolicies_index.
--- base64'd so scanners read it as source, not an opaque binary. Decoded once at boot;
--- one lock's variant is inflated on open and looked up.
+-- shipped solution policies: data/lockpolicies.lua (DEFLATE next-move tables per lock
+-- x precision variant, built by tools/build_policies.py) + lockpolicies_index. Shipped
+-- as a Lua integer array so scanners read it as data, not an opaque binary or obfuscated
+-- string. Reconstructed once at boot; one lock's variant is inflated on open and looked up.
 local Policy = nil
 do
     local okIdx, Index = pcall(require, "data.lockpolicies_index")
     local blob = nil
     pcall(function()
-        local b64 = require("data.lockpolicies")
-        if type(b64) == "string" then blob = require("util.base64").decode(b64) end
+        local ints = require("data.lockpolicies")
+        if type(ints) == "table" then blob = require("util.bytes").fromInts(ints) end
     end)
+    -- ROOT-CAUSE FIX for the intermittent chest-open crash: require() CACHES its return value,
+    -- so the ~1.29M-element integer table from data/lockpolicies would stay resident in
+    -- package.loaded and Lua's GC would re-scan all 1.29M entries every cycle. That heavy GC
+    -- raced UE4SS's object marshaling and caused the crash. Drop the cache and reclaim it now;
+    -- only the compact ~1.3MB blob STRING (a single cheap GC object) stays resident.
+    package.loaded["data.lockpolicies"] = nil
+    collectgarbage("collect")
     if PolicyMod and okIdx and type(Index) == "table" and blob and #blob > 0 then
         Policy = PolicyMod.new({
             index = Index, log = log,
@@ -186,8 +193,6 @@ local tinterInstance = (Tinter and palette and Engine and Hint and Connections)
 
 -- main owns the single live-session slot and the notify spawn caches.
 local liveSession = nil
-local FreshPieces = {}  -- piece actors by spawn time (notify below)
-local FreshAbility = nil
 local FreshTask = nil   -- the CURRENT minigame task
 local StartSnap = nil   -- previous start attempt's slot snapshot (scramble gate)
 local OpenedLocks = {}  -- locks opened this session; cleared on world change
@@ -217,7 +222,12 @@ end
 -- --------------------------------------------------------------- start flow --
 local function tryStart(attempt)
     if NextMoveBroken or liveSession ~= nil then return end
-    local lockName = Engine.currentLockName(FreshTask, FreshAbility)
+    -- A truly-ended task (an already-open chest whose task the game tore down) bails here with
+    -- no scan. The task can also LINGER as valid on a re-open; the OpenedLocks gate below catches
+    -- that case before any scan too.
+    if not (FreshTask and FreshTask.obj) then return end
+    do local ok = false; pcall(function() ok = FreshTask.obj:IsValid() end); if not ok then return end end
+    local lockName = Engine.currentLockName(FreshTask, nil)
     local graph = lockName and LockGraphs[lockName]
     if not graph then
         if lockName then
@@ -227,9 +237,38 @@ local function tryStart(attempt)
         end
         return
     end
+    -- Already opened this session = a re-open, not a minigame. Bail BEFORE any scan (mpcHandles,
+    -- FindAllOf) and before Boost. This is the gate that actually stops the work on a re-open.
+    if OpenedLocks[lockName] then
+        if DebugSolver then
+            log("solver: '" .. lockName .. "' already opened this session, skipping (no scans)")
+        end
+        return
+    end
+    -- Boost the tries for THIS minigame. Moved here from the spawn notify so a re-open (caught
+    -- above) never pays for Boost's FindAllOf. Idempotent.
+    if not BoostBroken then
+        local okB, errB = pcall(function() Boost.apply(ExtraTries, Engine, Num, log) end)
+        if not okB then log("Boost error: " .. tostring(errB)) end
+    end
     -- resolve the MPC/scene handles ONCE per open (mpcHandles does a ~30ms FindAllOf):
     -- reused by the scramble gate and handed to Session.start, so the scan runs once.
     local lib, mpc, scene = Engine.mpcHandles()
+    -- Are we actually in a minigame? mpcHandles resolves only when a live lock SCENE
+    -- exists, which happens only during the minigame. An already-unlocked chest still
+    -- spawns the lockpick task (so we reach here) but has no scene and allows no pick.
+    -- No scene means no minigame: bail before the piece scans, so we never run the
+    -- world-wide FindAllOf (the major lag) or read the chest's dead lock objects (a
+    -- native crash). Retry a couple of times in case the scene is just slow to spawn.
+    if not lib then
+        if attempt < 3 then
+            schedule(450, function() pcall(tryStart, attempt + 1) end)
+        elseif DebugSolver then
+            log("No lock scene, not a minigame (already-open chest?), skipping '"
+                .. tostring(lockName) .. "'")
+        end
+        return
+    end
     -- SCRAMBLE GATE: pieces may still be gliding into their scrambled columns; a
     -- baseline read mid-glide poisons that piece for the session. Proceed only once
     -- two snapshots ~450ms apart agree.
@@ -268,54 +307,14 @@ local function tryStart(attempt)
             end
         end
     end
-    -- collect only actors born for THIS minigame: fresh spawns first, then the
-    -- subsystem array, then the world-wide FindAllOf last resort (which also returns
-    -- earlier minigames' actors).
-    local actorList, actorSrc = {}, "fresh spawns"
-    local nowT = os.clock()
-    local keep = {}
-    for _, e in ipairs(FreshPieces) do
-        if nowT - e.t < 60.0 then
-            keep[#keep + 1] = e
-            if nowT - e.t < 12.0 then
-                local okv, valid = pcall(function() return e.obj:IsValid() end)
-                if okv and valid and not string.find(e.obj:GetFullName(),
-                    "Default__", 1, true) then
-                    actorList[#actorList + 1] = e.obj
-                end
-            end
-        end
-    end
-    FreshPieces = keep
-    if #actorList < 2 then
-        actorList, actorSrc = {}, "subsystem"
-        for _, sub in ipairs(Engine.liveInstances("LockPickSubsystem")) do
-            pcall(function()
-                local arr = sub.m_PendingLockPieces
-                for i = 1, #arr do
-                    local a = arr[i]
-                    if a and a:IsValid() then
-                        actorList[#actorList + 1] = a
-                    end
-                end
-            end)
-            if #actorList > 0 then break end
-        end
-    end
-    if #actorList == 0 then
-        actorList = Engine.liveInstances("GothicLockPieceActor")
-        actorSrc = "FindAllOf (no fresh spawns, subsystem empty)"
-    end
+    -- Piece actors come from the world-wide FindAllOf. The fresh-spawn notify and the
+    -- subsystem's pending-piece list were always empty in practice (the game pre-pools the
+    -- pieces), so those two paths were dead and are gone. FindAllOf can return dead actors from
+    -- a finished minigame, but Session.start IsValid-gates each one, and the OpenedLocks gate
+    -- above already turns away re-opens before we get here.
+    local actorList = Engine.liveInstances("GothicLockPieceActor")
     if DebugSolver then
-        log("solver: " .. #actorList .. " piece actors from " .. actorSrc)
-    end
-    -- stale-actor crash guard: re-opening an already-opened lock spawns a task but no
-    -- fresh pieces, so discovery falls to FindAllOf and returns the DEAD actors of the
-    -- finished minigame; reading those is a native AV. Refuse before any read.
-    if actorSrc:find("FindAllOf", 1, true) and OpenedLocks[lockName] then
-        log("Skipping '" .. lockName .. "': already opened this session and only "
-            .. "stale actors remain (not reading half-dead objects)")
-        return
+        log("solver: " .. #actorList .. " piece actors (FindAllOf)")
     end
     -- LockpickPrecision = how many connections the game pruned (the first k); open
     -- that precomputed variant.
@@ -335,7 +334,7 @@ local function tryStart(attempt)
         handles = lib and { lib = lib, mpc = mpc, scene = scene } or nil,
         tinter = tinterInstance,
         flags = flags, log = log, debug = DebugSolver, schedule = schedule,
-        unreliableActors = actorSrc:find("FindAllOf", 1, true) and true or false,
+        unreliableActors = true,  -- always world-wide FindAllOf now (may include stale actors)
     })
     if session == nil then
         if reason == "retry" then
@@ -348,10 +347,9 @@ local function tryStart(attempt)
         return -- reason == "fail": already logged
     end
     local s = session
-    -- stale re-entry guard: pieces only from FindAllOf AND no readable geometry = the
-    -- contaminated actor cloud of a finished minigame; polling it per tick is a native
-    -- AV surface. Don't track it.
-    if s.stateUnknown and actorSrc:find("FindAllOf", 1, true) then
+    -- stale re-entry guard: actors from FindAllOf with no readable geometry = the contaminated
+    -- actor cloud of a finished minigame; polling it per tick is a native AV surface. Don't track.
+    if s.stateUnknown then
         log("Skipping tracking for '" .. lockName .. "': no fresh pieces and no "
             .. "readable geometry (stale actors from an earlier minigame); "
             .. "avoids polling half-dead objects")
@@ -505,25 +503,9 @@ elseif driver and type(AutoKey) == "string" and AutoKey ~= "" then
         .. "', auto-solve disabled")
 end
 
+
 -- ------------------------------------------------------------------- input --
 -- selection tracking off the task's Up/Down handlers (keyboard AND controller). Tiny
--- debounce: a held key repeats at ~30ms.
-local lastSelStep = 0
-local function onSelectionStep(delta)
-    local now = os.clock()
-    if now - lastSelStep < 0.005 then return end
-    lastSelStep = now
-    local s = liveSession
-    if not s or s.stop then return end
-    pcall(function() s:onSelectionStep(delta) end)
-end
-
-local function onMovePress(dir)
-    local s = liveSession
-    if not s or s.stop then return end
-    pcall(function() s:onMovePress(dir) end)
-end
-
 -- RegisterHook can fail when a UFunction isn't reachable yet; remember failures and
 -- retry at minigame start, then log once what still fails.
 local PendingHooks = {}
@@ -551,18 +533,13 @@ local function retryPendingHooks()
 end
 
 if not NextMoveBroken then
-    tryHook("/Script/G1R.AbilityTask_LockPick:UpPressed", function()
-        pcall(onSelectionStep, 1)
-    end)
-    tryHook("/Script/G1R.AbilityTask_LockPick:DownPressed", function()
-        pcall(onSelectionStep, -1)
-    end)
-    tryHook("/Script/G1R.AbilityTask_LockPick:LeftPressed", function()
-        pcall(onMovePress, -1)
-    end)
-    tryHook("/Script/G1R.AbilityTask_LockPick:RightPressed", function()
-        pcall(onMovePress, 1)
-    end)
+    -- NOTE: the four directional press hooks (Up/Down/Left/Right) are intentionally NOT
+    -- registered. The auto-solve driver presses those keys, so hooking them made the game
+    -- fire our own hooks REENTRANTLY inside the game-thread tick, tripping UE4SS's
+    -- deferred-queue abort (#1180, "Abort signal received" mid-solve). They were redundant:
+    -- selection is polled every tick (selSync) and every driver step (resyncSelection), and
+    -- the move-press handler was a no-op. Open/exit signals below fire from the GAME, rarely,
+    -- so they stay.
     -- BackPressed = player exited: stop the session and any solve NOW, before the task
     -- tears down, so nothing presses a dying task.
     tryHook("/Script/G1R.AbilityTask_LockPick:BackPressed", function()
@@ -597,30 +574,15 @@ if not NextMoveBroken then
             if DebugSolver then log("solver: OPEN signal: " .. src) end
         end
     end
-    for _, fn in ipairs({
-        "/Script/G1R.GameplayAbilityDoor:Server_SuccessLockEvent",
-        "/Script/G1R.GameplayAbilityDoor:NetMulticast_OnSetLockUnlocked",
-        "/Script/G1R.GameplayAbilityOpen:NetMulticast_OnSetLockUnlocked",
-        "/Script/G1R.AbilityTask_LockPick:MemorizeLockpick",
-    }) do
-        tryHook(fn, function() pcall(onOpenSignal, fn) end)
-    end
-    for _, fn in ipairs({
-        "/Script/G1R.GameplayAbilityDoor:Server_FailedLockEvent",
-        "/Script/G1R.GameplayAbilityOpen:Server_FailedLockEvent",
-    }) do
-        tryHook(fn, function()
-            pcall(function()
-                local s = liveSession
-                if s and not s.stop then
-                    s.atGoalTicks = 0 -- a break re-scrambles; don't read the flight
-                    if DebugSolver then
-                        log("solver: FAIL signal (pick broke): " .. fn)
-                    end
-                end
-            end)
-        end)
-    end
+    -- Open signal: ONLY the AbilityTask_LockPick function, which fires solely during a real
+    -- minigame. The GameplayAbilityOpen/Door NetMulticast/Success/Fail hooks were dropped:
+    -- they fire on EVERY container/door interaction, and UE4SS crashes marshaling that
+    -- dispatch into Lua when opening an already-unlocked chest (the chest-open AV, before any
+    -- of our code runs). MemorizeLockpick plus the session's own settle detection cover open
+    -- detection; pick-break re-scramble is left to the session. Net: we hook nothing outside
+    -- an actual minigame.
+    tryHook("/Script/G1R.AbilityTask_LockPick:MemorizeLockpick",
+        function() pcall(onOpenSignal, "MemorizeLockpick") end)
 end
 
 -- world change: kill any session without touching stored object wrappers
@@ -632,19 +594,17 @@ pcall(RegisterInitGameStatePostHook, function()
 end)
 
 -- --------------------------------------------------------------- triggers --
-pcall(NotifyOnNewObject, "/Script/G1R.GothicLockPieceActor", function(obj)
-    FreshPieces[#FreshPieces + 1] = { obj = obj, t = os.clock() }
-end)
-pcall(NotifyOnNewObject, "/Script/G1R.GameplayAbilityOpen", function(obj)
-    FreshAbility = { obj = obj, t = os.clock() }
-end)
-pcall(NotifyOnNewObject, "/Script/G1R.GameplayAbilityDoor", function(obj)
-    FreshAbility = { obj = obj, t = os.clock() }
-end)
+-- NOTE: NotifyOnNewObject for GothicLockPieceActor was removed too. Its FreshPieces cache was
+-- always empty in practice (the game pre-pools pieces, so no "new object" fires), and tryStart
+-- now reads pieces straight from FindAllOf. One fewer per-construction notify dispatching to Lua.
+-- NOTE: NotifyOnNewObject for GameplayAbilityOpen/Door was removed. Those fire on every
+-- container/door interaction (not just lockpicking), and UE4SS crashes marshaling the
+-- new-object notify into Lua on an already-unlocked chest open. The lock name comes from
+-- the AbilityTask_LockPick (FreshTask) and the live-instance scan, not from FreshAbility.
 
--- the minigame task spawn is the trigger: boost tries, evict any stale session, retry
--- hooks, then start tracking after a settle delay (the scramble gate self-corrects, so
--- a low delay just shows the tint sooner).
+-- The minigame task spawn is the trigger. Record the task cheaply, evict any stale session,
+-- then hand off to tryStart after a short settle delay. tryStart bails with NO scan if the task
+-- is dead or the lock was already opened this session, otherwise it Boosts and starts tracking.
 local okNotify, errNotify = pcall(NotifyOnNewObject, "/Script/G1R.AbilityTask_LockPick",
     function(task)
         pcall(function()
@@ -659,14 +619,8 @@ local okNotify, errNotify = pcall(NotifyOnNewObject, "/Script/G1R.AbilityTask_Lo
             end
             retryPendingHooks()
         end)
-        if not BoostBroken then
-            local ok, err = pcall(function()
-                Boost.apply(ExtraTries, Engine, Num, log)
-            end)
-            if not ok then log("Boost error: " .. tostring(err)) end
-        end
         if not NextMoveBroken then
-            schedule(450, function()
+            schedule(200, function()
                 local ok2, err2 = pcall(tryStart, 1)
                 if not ok2 then log("Next-move hint error: " .. tostring(err2)) end
             end)

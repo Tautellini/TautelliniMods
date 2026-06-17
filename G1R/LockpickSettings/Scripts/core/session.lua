@@ -116,11 +116,18 @@ function Session.start(ctx)
     local pieces, found = {}, 0
     local lifeActor = nil
     for _, a in ipairs(ctx.actorList) do
+        -- IsValid-gate the ACTOR before any field read: a world-wide FindAllOf can return
+        -- dead pieces from a finished/already-unlocked lock, and reading a freed UObject is
+        -- a native AV that pcall cannot catch. Dead actors are skipped; if too few survive
+        -- the session simply does not start (no crash on an already-open chest).
+        local okv, valid = pcall(function() return a and a:IsValid() end)
         local id, mid, ty, rr
-        pcall(function() id = a.m_PieceId end)
-        pcall(function() mid = a.m_MaterialInstanceDynamic end)
-        pcall(function() ty = tostring(a.m_LockPieceType) end)
-        pcall(function() rr = a.m_RuntimeRootComponent end)
+        if okv and valid then
+            pcall(function() id = a.m_PieceId end)
+            pcall(function() mid = a.m_MaterialInstanceDynamic end)
+            pcall(function() ty = tostring(a.m_LockPieceType) end)
+            pcall(function() rr = a.m_RuntimeRootComponent end)
+        end
         if id ~= nil then
             lifeActor = lifeActor or a
             if not pieces[id] then
