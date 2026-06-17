@@ -1,17 +1,6 @@
--- geometry.lua  --  rail axis, step and bar-column anchor (PURE math class)
---
--- ZERO UE4SS globals: Session reads ALL coordinates through the engine facade
--- (slot cloud via engine.readSlot, part roots via engine.readRootPos) and the
--- 45-unit stale-actor gate at the call site where the piece's own slot is
--- known, then hands Geometry plain {x,y,z} number arrays. So the identical
--- file loads under bare LuaJIT and the tests feed it synthetic clouds.
---
--- Modeled as a class per the project's metatable-class convention (and for the
--- tidy fed-cloud-in / frame-out surface plus the placeValues/snapRot
--- namespace); it holds no long-lived state. The thresholds here are
--- play-verified (2026-06-07, 252/252 bar reads on one column): a subtle
--- reorder silently re-opens the anchor-guessing era the direct read retired.
--- MOVE-AND-PRESERVE only.
+-- geometry.lua -- rail axis, step and bar-column anchor (PURE math, no UE4SS globals).
+-- Session feeds it engine-read {x,y,z} clouds; the tests feed synthetic ones. The
+-- thresholds are play-verified -- MOVE-AND-PRESERVE, a reorder re-opens anchor-guessing.
 
 local setmetatable = setmetatable
 local ipairs, pairs = ipairs, pairs
@@ -22,7 +11,6 @@ local floor, abs, sqrt = math.floor, math.abs, math.sqrt
 local Geometry = {}
 Geometry.__index = Geometry
 
--- opts: { log = function(msg) end | nil, debug = boolean }
 function Geometry.new(pieceCount, opts)
     opts = opts or {}
     local self = setmetatable({}, Geometry)
@@ -32,8 +20,7 @@ function Geometry.new(pieceCount, opts)
     return self
 end
 
--- base-7 place values, 0-indexed (place[id] = 7^id). MUST stay 0-indexed: the
--- search reads (rot+3)*place[id] and the engine slot index equals the piece id.
+-- base-7 place values, 0-indexed (place[id] = 7^id). MUST stay 0-indexed.
 function Geometry.placeValues(n)
     local place = {}
     local pw = 1
@@ -44,26 +31,20 @@ function Geometry.placeValues(n)
     return place
 end
 
--- absolute grid snap: the rotation a slot projects to around the anchored
--- center. No accumulation, so shakes, resets and missed settles cannot drift it.
+-- the rotation a slot projects to around the anchored center (absolute, no drift).
 function Geometry.snapRot(slot, axis, cpProj, stepSize)
     local pr = slot[1] * axis[1] + slot[2] * axis[2] + slot[3] * axis[3]
     return floor((pr - cpProj) / stepSize + 0.5)
 end
 
--- which way is "screen right" along the rail, from STAGE GEOMETRY alone (no
--- camera API): the stage prefab's fixed camera views the lock with piece ids
--- increasing screen-UP and no roll, so screen-right along the rail is
--- worldUp x rowDir projected on the rail axis. The player camera does not
--- render the stage, so projecting on it only works by accident.
+-- "screen right" along the rail from STAGE geometry alone (the stage prefab's fixed
+-- camera, not the player camera): worldUp x rowDir projected on the rail axis.
 function Geometry:stageScreenRight(slotStart, axis)
     local r0, rN = slotStart[0], slotStart[self.pieceCount - 1]
     if not (r0 and rN and axis) then return nil end
     local rv = { rN[1] - r0[1], rN[2] - r0[2], rN[3] - r0[3] }
-    -- remove the column component, keep the pure row direction
     local rp = rv[1] * axis[1] + rv[2] * axis[2] + rv[3] * axis[3]
     rv[1], rv[2] = rv[1] - rp * axis[1], rv[2] - rp * axis[2]
-    -- worldUp x rowDir, horizontal by construction
     local cx, cy = -rv[2], rv[1]
     local pr = cx * axis[1] + cy * axis[2]
     if abs(pr) > 1.0 then
@@ -72,9 +53,8 @@ function Geometry:stageScreenRight(slotStart, axis)
     return nil
 end
 
--- candidate rail axes from the slot cloud: differencing adjacent-row
--- differences cancels the row direction. The degenerate same-column fallback
--- recovers an axis from the row direction's horizontal perpendicular.
+-- candidate rail axes: differencing adjacent-row differences cancels the row dir.
+-- The degenerate same-column fallback recovers it from the row's horizontal perp.
 function Geometry:deriveAxis(slotStart)
     local n = self.pieceCount
     local D = {}
@@ -99,10 +79,8 @@ function Geometry:deriveAxis(slotStart)
             best[2] / bestLen, best[3] / bestLen } }
     end
     if not best and #D > 0 then
-        -- DEGENERATE SCRAMBLE fallback (all pieces in one column): the
-        -- difference-of-differences cancels to nothing, but the ROW direction
-        -- always exists, rails are horizontal, so the axis is the row
-        -- direction's horizontal perpendicular.
+        -- all pieces in one column: the diff-of-diffs cancels, so use the row
+        -- direction's horizontal perpendicular (rails are horizontal).
         local rx, ry, rz = 0, 0, 0
         for _, dv in ipairs(D) do
             rx, ry, rz = rx + dv[1], ry + dv[2], rz + dv[3]
@@ -121,10 +99,9 @@ function Geometry:deriveAxis(slotStart)
     return candidates
 end
 
--- fit the step size for a given axis projection: the grid is slightly
--- nonuniform and the scene's step property is unreadable in some
--- configurations, so scan for the step that snaps the projections onto a grid.
--- Returns bestStep, bestWorst (the worst residual at that step).
+-- scan for the step that snaps the projections onto a grid (the grid is slightly
+-- nonuniform and the scene's step property is sometimes unreadable). Returns
+-- bestStep, bestWorst (worst residual at that step).
 function Geometry:fitStep(ps)
     local n = self.pieceCount
     local bestStep, bestWorst
@@ -162,15 +139,13 @@ function Geometry:fitStep(ps)
     return bestStep, bestWorst
 end
 
--- the bar-column DIRECT READ on one axis: the plate type tracks the slots; every
--- other readable type is a fixed-column candidate that must put EVERY plate on
--- an in-range integer grid; exactly one distinct surviving column is required,
--- anything else (none, several) is an honest geoFail. partPos[id][ty] = {p,d2}
--- is supplied by the caller (already engine-read and 45-unit-gated). Returns an
--- adopted table { c, st, rots, ty } or nil, geoFail.
+-- the bar-column DIRECT READ: the plate type tracks the slots; every other readable
+-- type is a fixed-column candidate that must put EVERY plate on an in-range integer
+-- grid. Exactly one surviving column is required; anything else is an honest geoFail.
+-- partPos[id][ty] = {p,d2} is caller-supplied (engine-read, 45-unit-gated). Returns
+-- an adopted { c, st, rots, ty } or nil, geoFail.
 function Geometry:findAnchorColumn(ps, axis, partPos, bestStep, degenerate)
     local n = self.pieceCount
-    -- which types are present
     local tySet = {}
     for id = 0, n - 1 do
         for ty in pairs(partPos[id] or {}) do tySet[ty] = true end
@@ -191,8 +166,7 @@ function Geometry:findAnchorColumn(ps, axis, partPos, bestStep, degenerate)
             break
         end
     end
-    -- fixed-column candidates from every other type: one shared column across
-    -- pieces, tight spread required
+    -- fixed-column candidates from every other type: one shared column, tight spread
     local cols = {}
     for ty in pairs(tySet) do
         if ty ~= plateTy then
@@ -213,14 +187,13 @@ function Geometry:findAnchorColumn(ps, axis, partPos, bestStep, degenerate)
             end
         end
     end
-    -- validation: the column must put EVERY plate on an integer grid position
-    -- within the rail
+    -- each candidate must put EVERY plate on an in-rail integer grid position
     local adopted, geoFail = nil, nil
     for _, cc in ipairs(cols) do
         local st = not degenerate and bestStep or nil
         if degenerate then
-            -- step from the uniform plate-to-bar distance: |D| = k*step with
-            -- k in 1..3 and the step physically near 6.2, so k is unique.
+            -- step from the uniform plate-to-bar distance: |D| = k*step, k in 1..3,
+            -- step physically ~6.2, so k is unique.
             local D = 0
             for id = 0, n - 1 do
                 local d = ps[id] - cc.c
@@ -272,12 +245,9 @@ function Geometry:findAnchorColumn(ps, axis, partPos, bestStep, degenerate)
     return adopted, geoFail
 end
 
--- derive the full rail frame from the slot cloud plus the (pre-read, gated)
--- part-root positions. Returns frame
---   { axis, sign, stepSize, cpProj, rotStart (0-indexed), screenRight,
---     hintGeometry = true }
--- or nil, geoFail. Pure: no engine, no pcall (errors here are bugs, the caller
--- pcall-wraps defensively).
+-- derive the full rail frame from the slot cloud + the (pre-read, gated) part roots.
+-- Returns { axis, sign, stepSize, cpProj, rotStart (0-indexed), screenRight,
+-- hintGeometry } or nil, geoFail. Pure; the caller pcall-wraps defensively.
 function Geometry:derive(slotStart, partPos)
     local n = self.pieceCount
     local candidates = self:deriveAxis(slotStart)
@@ -296,8 +266,7 @@ function Geometry:derive(slotStart, partPos)
                 if ps[id] < psMin then psMin = ps[id] end
                 if ps[id] > psMax then psMax = ps[id] end
             end
-            -- same-column scrambles give the sweep nothing to fit; the step
-            -- then derives from the bar distance instead
+            -- same-column scramble: the sweep can't fit a step, derive it from the bar
             local degenerate = psMax - psMin < 4.0
             local adopted, fail = self:findAnchorColumn(ps, axis, partPos,
                 bestStep, degenerate)
@@ -307,9 +276,7 @@ function Geometry:derive(slotStart, partPos)
                     axis = axis,
                     sign = 1,
                     stepSize = adopted.st,
-                    -- the anchor as an absolute projection: every settle snaps
-                    -- every pin DIRECTLY onto the grid around this center
-                    cpProj = adopted.c,
+                    cpProj = adopted.c, -- anchor as an absolute projection
                     rotStart = {},
                     hintGeometry = true,
                 }

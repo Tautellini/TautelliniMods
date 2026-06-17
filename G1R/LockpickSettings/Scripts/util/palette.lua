@@ -1,13 +1,4 @@
--- palette.lua  --  the lockpick hint/partner palette (mod-specific).
---
--- Resolves the config color triples into the {R,G,B,A} structs the Tinter
--- applies, via the generic kit color decoder. Built once at load by main.lua
--- and handed (frozen) to the Tinter. The default colors are the mod's:
---   hintLeft  green  = turn the hinted piece left
---   hintRight blue   = turn it right
---   hintNeutral yellow = direction not yet measured, do not gamble
---   partnerSame purple = dragged WITH the selected piece
---   partnerOpp  red    = dragged AGAINST it
+-- palette.lua -- resolve config color triples into {R,G,B,A} structs for the Tinter.
 
 local kit = require("kit")
 

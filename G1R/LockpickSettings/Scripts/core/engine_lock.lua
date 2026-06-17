@@ -1,17 +1,13 @@
--- engine_lock.lua  --  the lockpicking engine adapter (mod-specific)
---
--- The ONLY file that holds Gothic-lockpick domain literals (MPC_Lockpicking,
--- Slot_, HighlightColor, m_Lock, GameplayAbility, PlayerState). It RE-EXPORTS
--- the generic kit primitives so session/tinter/boost see one `engine` surface,
--- identical to before the shared split (MOVE-AND-PRESERVE call sites).
---
--- pcall does NOT catch native access violations. The banned-ops rules in
--- kit/engine.lua and G1R/LuaModdingSurface.md still apply here.
+-- engine_lock.lua -- the lockpicking engine adapter (the only file with Gothic
+-- domain literals). Re-exports the generic kit primitives so session/tinter/boost
+-- see one `engine` surface. pcall does NOT catch native AVs; the IsValid gates here
+-- are the real guard (banned-ops rules live in kit/engine.lua + LuaModdingSurface.md).
 
 local ipairs = ipairs
 local string = string
 local os = os
 local pcall = pcall
+local type = type
 local tostring = tostring
 local FName = FName
 local StaticFindObject = StaticFindObject
@@ -19,32 +15,12 @@ local StaticFindObject = StaticFindObject
 local kit = require("kit")
 
 local engine = {}
--- generic primitives, re-exported verbatim from the shared kit
 engine.liveInstances = kit.engine.liveInstances
 engine.readRootPos = kit.engine.readRootPos
 local isValid = kit.engine.isValid
 
--- Process-stable singletons resolved once and reused. Re-scanning them with
--- FindAllOf (a full UObject sweep) on every chest/lock open was a measurable
--- open-time hitch. Each is IsValid-gated (re-resolved if it dies) and cleared on
--- a world change (engine.resetCache, called from main's InitGameState backstop),
--- so a stale handle from a previous world can never be read.
-local cache = {}
-function engine.resetCache() cache.sub, cache.lib, cache.mpc = nil, nil, nil end
-
--- the LockPickSubsystem singleton (carries the live lock scene actor and the
--- pending piece actors). Cached: FindAllOf runs only on first use or after the
--- handle goes invalid, not on every open.
-function engine.lockSubsystem()
-    if isValid(cache.sub) then return cache.sub end
-    cache.sub = engine.liveInstances("LockPickSubsystem")[1]
-    return cache.sub
-end
-
--- the active lock's FName. The TASK is the only object guaranteed to belong to
--- the current minigame; its owning Ability carries m_Lock. Ability objects are
--- REUSED across interactions, so take freshTask/freshAbility (main-owned notify
--- caches) so identity comes from the freshest spawn.
+-- the active lock's FName, via the current task's owning Ability (m_Lock). Abilities
+-- are reused, so prefer the freshest notify-captured spawn.
 function engine.currentLockName(freshTask, freshAbility)
     if freshTask and os.clock() - freshTask.t < 30.0 then
         local name
@@ -76,41 +52,53 @@ function engine.currentLockName(freshTask, freshAbility)
     return nil
 end
 
--- the three handles the MPC slot reads need: the KismetMaterialLibrary CDO, the
--- MPC_Lockpicking collection, and the live lock scene actor. Returns
--- lib, mpc, scene or nil.
+-- the KismetMaterialLibrary CDO, the MPC_Lockpicking asset, and the live scene actor
+-- (off the subsystem). Returns lib, mpc, scene or nil. The subsystem scan is a ~30ms
+-- FindAllOf, so main resolves this once per open and passes it on.
 function engine.mpcHandles()
-    -- lib + mpc are name-stable CDOs/assets: StaticFindObject once, then reuse.
-    if not isValid(cache.lib) then
-        pcall(function() cache.lib = StaticFindObject("/Script/Engine.Default__KismetMaterialLibrary") end)
-    end
-    if not isValid(cache.mpc) then
-        pcall(function() cache.mpc = StaticFindObject("/Game/Blueprints/LockPick/MPC_Lockpicking.MPC_Lockpicking") end)
-    end
-    -- the scene actor is per-minigame, so read it fresh off the cached subsystem
-    -- (a cheap property read, not a scan) every open.
-    local scene
-    local sub = engine.lockSubsystem()
-    if sub then
+    local lib, mpc, scene
+    pcall(function() lib = StaticFindObject("/Script/Engine.Default__KismetMaterialLibrary") end)
+    pcall(function() mpc = StaticFindObject("/Game/Blueprints/LockPick/MPC_Lockpicking.MPC_Lockpicking") end)
+    for _, sub in ipairs(engine.liveInstances("LockPickSubsystem")) do
         pcall(function()
             local sc = sub.m_LockSceneActor
             if sc and sc:IsValid() then scene = sc end
         end)
+        if scene then break end
     end
-    if isValid(cache.lib) and isValid(cache.mpc) and scene then
-        return cache.lib, cache.mpc, scene
+    if lib and lib:IsValid() and mpc and mpc:IsValid() and scene then
+        return lib, mpc, scene
+    end
+    return nil
+end
+
+-- player's lockpicking GAS attributes (native, safe read): LockpickPrecision (=
+-- connections the game prunes) and LockpickDurability. GAS exposes each as an
+-- FGameplayAttributeData (CurrentValue/BaseValue) or a bare number.
+function engine.lockpickAttributes()
+    local function valueOf(a)
+        if type(a) == "number" then return a end
+        if a == nil then return nil end
+        local v
+        pcall(function() v = a.CurrentValue end)
+        if type(v) ~= "number" then pcall(function() v = a.BaseValue end) end
+        return type(v) == "number" and v or nil
+    end
+    for _, set in ipairs(engine.liveInstances("AttributeSet_Lockpicking")) do
+        local out
+        pcall(function()
+            out = { precision = valueOf(set.LockpickPrecision),
+                    durability = valueOf(set.LockpickDurability) }
+        end)
+        if out and (out.precision or out.durability) then return out end
     end
     return nil
 end
 
 -- read MPC Slot_i as {R,G,B} (the live per-piece world position). h carries the
--- .lib/.scene/.mpc handles from mpcHandles (the Session passes itself). Only
--- Slot_0..N-1 per the mined piece count are valid; higher slots keep stale
--- values from earlier scenes.
+-- lib/scene/mpc handles. IsValid-gate the scene: it can die mid-open and pcall can't
+-- catch the AV reading a dead scene.
 function engine.readSlot(h, i)
-    -- gate the live scene actor before the native MPC read: on a rapid open/close it
-    -- can die between the tick's liveness check and here, and pcall cannot catch the
-    -- access violation reading a dead scene raises (IsValid is a safe slot read).
     if not isValid(h.scene) then return nil end
     local v
     local ok = pcall(function()
@@ -121,13 +109,8 @@ function engine.readSlot(h, i)
     return v
 end
 
--- write the HighlightColor parameter on every MID of a piece entry. The game's
--- hover highlight writes the same parameter, so persistent tints are re-applied
--- per tick by the caller. A MID captured when the pieces settled can be torn
--- down before a later write (lock scene teardown, GC, the F7 toggle firing just
--- as the pick ends), and pcall does NOT catch the native access violation a
--- dangling MID raises, so re-check :IsValid() per call: the liveness gate is the
--- real guard, exactly as engine.pressInput does on the live task.
+-- write HighlightColor on every MID of a piece (re-applied per tick; the game's hover
+-- overwrites it). IsValid-gate per MID: a cached MID can die and pcall can't catch the AV.
 function engine.writeColor(e, color)
     for _, mid in ipairs(e.mids) do
         pcall(function()
@@ -138,14 +121,11 @@ function engine.writeColor(e, color)
     end
 end
 
--- read / write the lock scene's piece-move interpolation speed, a reflected float
--- on GothicLockSceneActor (baseline 20, m_UseConstantInterpolationSpeed = true).
--- Cranking it collapses the move glide to a near-instant SNAP (the fast auto-solve
--- lever; probe-confirmed the written value sticks, the game does not re-assert it).
--- Per-minigame scene actor, so it never leaks across locks; fast mode restores the
--- original on stop. getSceneInterp returns the number or nil; setSceneInterp
--- returns ok.
+-- read/write the scene's piece interpolation speed (baseline 20). Cranking it snaps
+-- the move glide (the auto-solve speed lever; restored on stop). IsValid-gate: the
+-- scene actor is torn down on open and pcall can't catch the AV indexing a dead AActor.
 function engine.getSceneInterp(scene)
+    if not isValid(scene) then return nil end
     local v
     local ok = pcall(function() v = scene.m_LockPieceInterpolationSpeed end)
     if ok then return v end
@@ -153,14 +133,12 @@ function engine.getSceneInterp(scene)
 end
 
 function engine.setSceneInterp(scene, value)
+    if not isValid(scene) then return false end
     return (pcall(function() scene.m_LockPieceInterpolationSpeed = value end))
 end
 
--- read the current HighlightColor off a single MID, or nil. Used to observe the
--- game's selected-glow signature and to tell our own paint apart from it. Same
--- staleness risk as engine.writeColor: a MID cached at capture can die before a
--- later read, so gate on :IsValid() before the native deref (pcall alone cannot
--- catch the access violation a dangling MID raises).
+-- read a MID's current HighlightColor (to spot the game's glow vs our own paint).
+-- IsValid-gate per call, same staleness risk as writeColor.
 function engine.readHighlight(mid)
     local c
     local ok = pcall(function()
@@ -172,17 +150,10 @@ function engine.readHighlight(mid)
     return nil
 end
 
--- The ONLY write that DRIVES the minigame: call one of the lockpick task's input
--- UFunctions to move the selection (up/down) or turn the selected piece
--- (left/right). Same functions the game's own input dispatch fires. An early
--- LockProbe build moved the lock from a Lua call, but LuaModdingSurface.md
--- records the behaviour as INPUT-STATE DEPENDENT: it moved pieces in one session
--- and was inert in another, unresolved. The caller must therefore confirm each
--- press from the measured state, never assume it landed. Every call is liveness
--- checked on the LIVE task per call (never on a stale cache) and pcall-wrapped:
--- pcall does not catch a native access violation, so the IsValid gate is the real
--- guard. Returns true if the call dispatched (NOT that a piece moved), false
--- otherwise. which is one of "up"/"down"/"left"/"right".
+-- the ONLY write that DRIVES the minigame: press a task input UFunction (up/down move
+-- selection, left/right turn the piece). INPUT-STATE DEPENDENT (moves in some sessions,
+-- inert in others), so the caller confirms each press from the measured state. Liveness
+-- checked per call (pcall can't catch the AV on a dead task). Returns true if dispatched.
 function engine.pressInput(freshTask, which)
     if not freshTask or not freshTask.obj then return false end
     local ok = pcall(function()

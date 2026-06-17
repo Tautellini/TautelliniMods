@@ -18,11 +18,11 @@ package.path = DIR .. "/../Scripts/?.lua;"
 
 local MODULES = {
     "kit",
-    "config", "data.lockgraphs",
-    "util.palette",
-    "core.engine_lock", "core.session", "core.tinter",
+    "config", "data.lockgraphs", "data.lockpolicies_index",
+    "util.palette", "util.inflate",
+    "core.engine_lock", "core.session", "core.tinter", "core.settings",
     "tries.boost",
-    "nextmove.solver", "nextmove.geometry", "nextmove.hint",
+    "nextmove.policy", "nextmove.geometry", "nextmove.hint",
     "connections.connections",
     "autosolve.driver",
 }

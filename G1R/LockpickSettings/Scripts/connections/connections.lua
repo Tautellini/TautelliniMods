@@ -1,8 +1,5 @@
--- connections.lua  --  Connection Display feature: the partner tint map (PURE).
---
--- The pieces the currently selected piece would drag along glow, direction
--- coded: purple = travel WITH the selected piece (dir 1), red = travel AGAINST
--- it (dir -1). No engine, separately testable. The Tinter applies the map.
+-- connections.lua -- the partner tint map (PURE, no engine). purple = drags WITH the
+-- selected piece (dir 1), red = AGAINST (dir -1). The Tinter applies it.
 
 local ipairs = ipairs
 

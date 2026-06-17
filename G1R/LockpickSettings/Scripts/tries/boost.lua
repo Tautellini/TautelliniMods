@@ -1,11 +1,5 @@
--- boost.lua  --  the Extra-Tries feature (stateless module)
---
--- Independent of the hint/connection features: runs once per minigame start,
--- idempotent, no per-lock state, so it is a module, not a class. When the
--- lockpicking minigame starts and LockpickDurability sits at a known vanilla
--- tier base, raise it to base + that tier's extra. Already-boosted values are
--- recognized and left alone; unknown values are left untouched and logged.
--- Nothing can stack across sessions, saves or reloads.
+-- boost.lua -- the Extra-Tries feature: raise LockpickDurability once per minigame
+-- start. Stateless, idempotent; nothing stacks across sessions/saves/reloads.
 
 local ipairs, pairs = ipairs, pairs
 local type, tonumber = type, tonumber
@@ -13,17 +7,11 @@ local string, table = string, table
 
 local boost = {}
 
--- The vanilla LockpickDurability per skill tier. These are GAME CONSTANTS, not
--- user config: the boost recognizes these exact values to identify the player's
--- tier, so a user changing them would break detection. They live here in code
--- on purpose, OUT of the user-editable config.lua. If a game patch ever changes
--- the vanilla values, fix them here.
+-- vanilla LockpickDurability per tier. GAME CONSTANTS used to detect the tier, so
+-- they live here, not in config.lua. Fix here if a game patch changes them.
 boost.BASE_TRIES = { untrained = 2, trained = 4, master = 6 }
 
--- Normalize the configured extra into a per-tier number table. extraTries is a
--- per-tier table ({ untrained = 5, trained = 10, master = 20 }); a missing or
--- non-positive entry leaves that tier at its vanilla value. Anything that is not
--- a table boosts nothing (the single-number-for-all-tiers form was dropped).
+-- normalize the configured extra into a per-tier number table; non-table boosts nothing.
 function boost.perTier(extra)
     local out = {}
     if type(extra) == "table" then
@@ -37,17 +25,11 @@ function boost.perTier(extra)
     return out
 end
 
--- Build the lookup plan from the configured extra. Detection MUST stay
--- unambiguous: the boost recognizes a tier purely by its durability value, so a
--- boosted total that equals another tier's vanilla base (or another tier's
--- boosted total) could be misread and raised again (stacking). Any tier whose
--- total would collide is EXCLUDED from boosting and reported, never guessed.
--- Returns:
---   bases     : every vanilla base value -> tier name (all tiers are "known")
---   boostable : base -> { name, target } for tiers with a safe, positive boost
---   targets   : boosted total -> name (recognized later as already done)
---   effective : tier name -> the value the boost leaves it at (target or base)
---   skipped   : tier names dropped for a collision (sorted)
+-- build the lookup plan. A boosted total that collides with another tier's base or
+-- another boosted total is ambiguous (could be re-boosted = stacking), so that tier
+-- is excluded and reported, never guessed. Returns bases (base->name), boostable
+-- (base->{name,target}), targets (total->name), effective (name->resulting value),
+-- skipped (collided tiers, sorted).
 function boost.plan(extra)
     local perTier = boost.perTier(extra)
     local bases, boostable, targets, effective = {}, {}, {}, {}
@@ -55,8 +37,6 @@ function boost.plan(extra)
         bases[base] = name
         effective[name] = base
     end
-    -- a total is ambiguous if it lands on a vanilla base of another tier, or if
-    -- two boosted tiers reach the same total
     local total, hits = {}, {}
     for name, base in pairs(boost.BASE_TRIES) do
         total[name] = base + perTier[name]
@@ -66,7 +46,7 @@ function boost.plan(extra)
     for name, base in pairs(boost.BASE_TRIES) do
         local t = total[name]
         if perTier[name] <= 0 then
-            -- no boost requested for this tier; it stays vanilla but is "known"
+            -- no boost; stays vanilla but known
         elseif (bases[t] and bases[t] ~= name) or hits[t] > 1 then
             skipped[#skipped + 1] = name
         else
@@ -90,10 +70,8 @@ function boost.findPlayerAttrSet(engine)
     return nil
 end
 
--- raise the tries. deps are injected so the boost is decoupled from the engine:
--- extra (number OR per-tier table, from config), the engine facade, num (for the
--- float-tolerant lookup), and log. The durability value identifies the skill
--- tier; the read tolerates float fuzz via num.lookup.
+-- raise the tries. The durability value identifies the tier (num.lookup tolerates
+-- float fuzz); already-boosted and unknown values are left alone.
 function boost.apply(extra, engine, num, log)
     local attr = boost.findPlayerAttrSet(engine)
     if not attr then
@@ -109,15 +87,14 @@ function boost.apply(extra, engine, num, log)
     local dur = attr.LockpickDurability
     local cur = dur.CurrentValue
     if num.lookup(plan.targets, cur) then
-        return -- already boosted, nothing to do
+        return -- already boosted
     end
     local entry = num.lookup(plan.boostable, cur)
     if entry then
         dur.BaseValue, dur.CurrentValue = entry.target, entry.target
         log(string.format("Minigame: %s tier, tries %.0f -> %d", entry.name, cur, entry.target))
     elseif num.lookup(plan.bases, cur) then
-        -- a known vanilla tier we are deliberately not boosting (0 or skipped)
-        return
+        return -- known vanilla tier we are deliberately not boosting (0 or skipped)
     else
         log(string.format("Minigame: durability %.2f not a known vanilla tier, "
             .. "leaving it alone (a game patch or another mod may have changed "
