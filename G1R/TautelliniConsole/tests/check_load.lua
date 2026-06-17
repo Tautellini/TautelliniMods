@@ -18,9 +18,9 @@ package.path = DIR .. "/../Scripts/?.lua;"
 
 local MODULES = {
     "kit", "config",
-    "core.engine", "core.registry", "core.output", "util.args",
-    "cheats.resources", "cheats.stats", "cheats.lockpick",
-    "cheats.movement", "cheats.time", "cheats.generic",
+    "core.engine", "core.registry", "core.output", "core.menu", "util.args",
+    "cheats.resources", "cheats.stats", "cheats.items", "cheats.skills",
+    "cheats.movement", "cheats.time", "cheats.world", "cheats.generic",
 }
 
 local fail, absent = 0, 0

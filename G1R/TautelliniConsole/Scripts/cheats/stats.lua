@@ -15,13 +15,18 @@ local stats = {}
 -- attribute field; canSet gates the absolute form; fmt picks integer vs float
 -- display. The class names follow the AttributeSet_Lockpicking precedent and are
 -- confirmed in-game (a wrong name just logs "no player set", never crashes).
+-- label + menu drive the SharedModMenu row (stats.menu): a settable stat becomes a
+-- num slider over menu.min/max/step; an additive-only stat (xp) becomes a one-shot
+-- "Add menu.add" action.
 local DEFS = {
-    { name = "str",         setName = "AttributeSet_Strength",         attr = "Strength",     canSet = true,  fmt = "int" },
-    { name = "dex",         setName = "AttributeSet_Dexterity",        attr = "Dexterity",    canSet = true,  fmt = "int" },
-    { name = "level",       setName = "AttributeSet_LevelProgression", attr = "Level",        canSet = true,  fmt = "int" },
-    { name = "skillpoints", setName = "AttributeSet_LevelProgression", attr = "SkillPoints",  canSet = true,  fmt = "int" },
-    { name = "xp",          setName = "AttributeSet_LevelProgression", attr = "Experience",   canSet = false, fmt = "int" },
-    { name = "speed",       setName = "AttributeSet_Movement",         attr = "SpeedModifier", canSet = true, fmt = "float" },
+    { name = "str",         setName = "AttributeSet_Strength",         attr = "Strength",      canSet = true,  fmt = "int",   label = "Strength",     menu = { min = 0,   max = 200, step = 1 } },
+    { name = "dex",         setName = "AttributeSet_Dexterity",        attr = "Dexterity",     canSet = true,  fmt = "int",   label = "Dexterity",    menu = { min = 0,   max = 200, step = 1 } },
+    { name = "level",       setName = "AttributeSet_LevelProgression", attr = "Level",         canSet = true,  fmt = "int",   label = "Level",        menu = { min = 1,   max = 100, step = 1 } },
+    { name = "skillpoints", setName = "AttributeSet_LevelProgression", attr = "SkillPoints",   canSet = true,  fmt = "int",   label = "Skill Points", menu = { min = 0,   max = 200, step = 1 } },
+    { name = "xp",          setName = "AttributeSet_LevelProgression", attr = "Experience",    canSet = false, fmt = "int",   label = "XP" },
+    -- speed has no menu row: it does not apply yet and will live under Movement, not
+    -- Stats, once it works (the `speed` command stays for testing).
+    { name = "speed",       setName = "AttributeSet_Movement",         attr = "SpeedModifier", canSet = true,  fmt = "float" },
 }
 
 local function fmtVal(v, kind)
@@ -98,6 +103,32 @@ function stats.specs()
         }
     end
     return list
+end
+
+-- SharedModMenu section: one num slider per settable stat (get reads the live
+-- attribute, set writes it absolutely). xp is console-only (no menu row); reads and
+-- writes go through the same engine seam the commands use.
+function stats.menu(engine)
+    local items = {}
+    for _, def in ipairs(DEFS) do
+        local m = def.menu
+        if def.canSet and m then
+            items[#items + 1] = {
+                name = def.label, kind = "num",
+                min = m.min, max = m.max, step = m.step,
+                get = function()
+                    local set = engine.findPlayerAttrSet(def.setName)
+                    if not set then return 0 end
+                    return engine.readAttr(set, def.attr) or 0
+                end,
+                set = function(v)
+                    local set = engine.findPlayerAttrSet(def.setName)
+                    if set then engine.writeAttr(set, def.attr, v, v) end
+                end,
+            }
+        end
+    end
+    return { title = "Stats", items = items }
 end
 
 return stats

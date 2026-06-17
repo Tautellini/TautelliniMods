@@ -17,24 +17,44 @@ Open a console and type commands. Two front-ends, either works:
 Type `help` for the full list. Command names take an optional global prefix
 (`config.lua` -> `commandPrefix`, empty by default, e.g. set `"tc_"`).
 
-### Commands (v1)
+### Commands
 
-| Command | Effect |
+The full, maintained command reference is **[`COMMANDS.md`](COMMANDS.md)** (every
+command, its arguments, and whether it has a menu control). In short: player/combat
+(`god`, `heal`, `mana`, `oxygen`, `nofatigue`, `parrycheat`, `onehit`), stats (`str`,
+`dex`, `level`, `skillpoints`, `xp`, `speed`), items (`additem`, `removeitem`),
+skills (`addskill`, `removeskill`), time (`time`, `skiptime`, `freezetime`,
+`timescale`), world (`setweather`), movement (`fly`, `noclip`, `runspeed`), and the
+generic `set` / `dumpobj` / `help`.
+
+The cheats call the game's own functions rather than writing GAS internals, so the
+HUD updates; the approach is documented in
+[`docs/cheat-techniques.md`](docs/cheat-techniques.md).
+
+## In-game menu (SharedModMenu)
+
+If the optional [SharedModMenu](../SharedModMenu) mod is installed, this mod adds a
+**TautelliniConsole** tab so the cheats are clickable as well as typeable. With
+SharedModMenu absent, the integration is a harmless no-op, you lose nothing. Open
+the menu with its key (default `F2`).
+
+| Sub-tab | Items |
 |---|---|
-| `god [on\|off]` | Invulnerability toggle (fills health, sets DamageMultiplier 0). |
-| `heal` / `mana` / `oxygen` | Refill that resource to max. |
-| `nofatigue` | Clear tiredness. |
-| `str` / `dex` / `level` / `skillpoints` | `add`/`remove`/`set <n>`; bare prints current. |
-| `xp` | `add`/`remove <n>` (additive only). |
-| `speed` | `add`/`remove`/`set <n>` movement multiplier. |
-| `lockmaster` | Max lockpick durability + precision. |
-| `time` | Print the clock, or `time 8:30` to set it (24h, absolute). |
-| `set <class> <prop> <value>` | Generic reflection write (ALL instances of a class). |
-| `dumpobj <name>` | Print an object's properties. |
-| `help` | List all commands. |
+| **Player** | God Mode, Auto-Parry, One-Hit Kills (toggles); Heal, Restore Mana, Restore Oxygen, Clear Fatigue (buttons) |
+| **Stats** | Strength, Dexterity, Level, Skill Points (sliders) |
+| **Movement** | Fly Mode, No-Clip (toggles); Run Speed (slider) |
+| **Time** | Hour 0-23 (slider); Set 08:00 / 12:00 / 20:00 (buttons); Freeze Clock (toggle); Game Speed (slider) |
+| **Weather** | Sunny / Rain / Storm / Cloudy (buttons) |
 
-`time` sets the clock exactly; NPCs resume their routine over time rather than
-snapping (that seamless reposition is the separate SleepAnywhere problem).
+The menu and the console drive the **same** code, so a toggle flipped either way
+stays in sync. Some commands stay console-only because they do not fit a
+toggle/slider/button: `additem`/`removeitem` and `addskill`/`removeskill` (text ids),
+`set`/`dumpobj`/`help` (text + arguments), `skiptime`, and minute-precise time
+(use `time HH:MM`).
+
+Adding the tab is opt-in per module: a cheat module exposes a `menu(engine)`
+returning one `{ title, items }` section, and `core/menu.lua` collects them, so a
+future command lands in the menu by adding that one function.
 
 ## Build / deploy
 
@@ -52,11 +72,13 @@ powershell -File G1R\TautelliniConsole\tests\run.ps1
 ```
 
 Runs `check_load.lua` (every module loads under bare LuaJIT) plus the pure-logic
-suites (`args`, `registry`, `stats`). The engine-touching code is verified
+suites (`args`, `registry`, `stats`, `menu`). The engine-touching code is verified
 in-game.
 
 ## Status
 
-v1, alpha. The command mechanisms are either proven (attribute writes, the
-`GameTimeSubsystem` clock, the stock reflection `set`) or best-effort with a
-documented fallback (native console surfacing). In-game smoke test pending.
+v0.3.0, alpha. Adds combat toggles (parry, one-hit), items, skills, time
+(skip/freeze/speed) and weather on top of the v1 set, all driven through the game's
+own functions (see `docs/cheat-techniques.md`) so the HUD stays in sync. god and heal
+are play-confirmed; the newly added commands need an in-game smoke test. NPC/spawn/
+world commands are on the roadmap in `COMMANDS.md`.

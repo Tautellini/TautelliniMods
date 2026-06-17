@@ -22,7 +22,7 @@ local ipairs, pairs, tostring = ipairs, pairs, tostring
 local type, pcall, print, require = type, pcall, print, require
 local rawget, debug, string = rawget, debug, string
 
-local ModVersion = "0.1.0-alpha"
+local ModVersion = "0.3.0-alpha"
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
@@ -43,9 +43,9 @@ end
 -- BEFORE the first require so edits to any file take effect.
 local MODULES = {
     "kit", "config",
-    "core.engine", "core.registry", "core.output", "util.args",
-    "cheats.resources", "cheats.stats", "cheats.lockpick",
-    "cheats.movement", "cheats.time", "cheats.generic",
+    "core.engine", "core.registry", "core.output", "core.menu", "util.args",
+    "cheats.resources", "cheats.stats", "cheats.items", "cheats.skills",
+    "cheats.movement", "cheats.time", "cheats.world", "cheats.generic",
 }
 for _, m in ipairs(MODULES) do package.loaded[m] = nil end
 do
@@ -73,10 +73,13 @@ local registry  = tryRequire("core.registry")
 local output    = tryRequire("core.output")
 local resources = tryRequire("cheats.resources")
 local stats     = tryRequire("cheats.stats")
-local lockpick  = tryRequire("cheats.lockpick")
+local itemsCmd  = tryRequire("cheats.items")
+local skillsCmd = tryRequire("cheats.skills")
 local movement  = tryRequire("cheats.movement")
 local timeCmd   = tryRequire("cheats.time")
+local worldCmd  = tryRequire("cheats.world")
 local generic   = tryRequire("cheats.generic")
+local menuSpec  = tryRequire("core.menu")
 
 if not (engine and registry and output) then
     log("FATAL: core modules failed to load; aborting")
@@ -88,9 +91,11 @@ local prefix = Config.commandPrefix or ""
 local reg = registry.new(prefix)
 if resources then reg:addAll(resources.specs()) end
 if stats     then reg:addAll(stats.specs())     end
-if lockpick  then reg:addAll(lockpick.specs())  end
+if itemsCmd  then reg:addAll(itemsCmd.specs())  end
+if skillsCmd then reg:addAll(skillsCmd.specs()) end
 if movement  then reg:addAll(movement.specs())  end
 if timeCmd   then reg:addAll(timeCmd.specs())   end
+if worldCmd  then reg:addAll(worldCmd.specs())  end
 if generic   then reg:addAll(generic.specs(reg)) end -- generic.help reads reg
 
 -- =============================== registration (tail) ======================= --
@@ -165,32 +170,37 @@ local function trySurfaceConsole(reason)
             .. "]; use the UE4SS console window")
     end
 end
-if ExecuteInGameThread then
-    ExecuteInGameThread(function() trySurfaceConsole("load") end)
-else
+-- restore the pawn if a hot reload happened mid-flight (collision/flying left on),
+-- then surface the console -- both on the game thread.
+local function onLoad()
+    if movement then pcall(movement.recover, engine) end
     trySurfaceConsole("load")
 end
+if ExecuteInGameThread then
+    ExecuteInGameThread(onLoad)
+else
+    onLoad()
+end
 
--- re-surface after a level/world load. ClientRestart runs on the game thread.
+-- re-surface after a level/world load, and drop the engine's cached live handles:
+-- a save-load / respawn / level change replaces the player attribute sets and the
+-- clock, and a stale cached handle can pass isValid() yet deref to nil (this is what
+-- silently broke god/heal/stats until a CTRL+R). ClientRestart runs on the game thread.
 if RegisterHook and not _G.__TautelliniConsole_consoleHook then
     _G.__TautelliniConsole_consoleHook = true
     pcall(RegisterHook, "/Script/Engine.PlayerController:ClientRestart",
-        function() trySurfaceConsole("ClientRestart") end)
+        function() pcall(engine.clearCaches); trySurfaceConsole("ClientRestart") end)
 end
 
--- fly-hold tick: while fly is on, re-assert flying + zero gravity so an up/down
--- launch (which drops you into falling mode) leaves you HOVERING at the new
--- altitude instead of dropping. Flying is stable, so this does not oscillate.
--- Refreshed each (re)load via _G so the STABLE loop (started once) calls the
--- current code; a `pending` guard keeps game-thread work from backing up.
+-- flight driver: this ONE LoopAsync runs movement.holdTick each frame while fly is
+-- on (the authoritative-position step). We never start a second loop, so nothing
+-- dangles across a hot reload. Refreshed each (re)load via _G so the STABLE loop
+-- (started once) calls the current code; a `pending` guard keeps game-thread work
+-- from backing up.
 _G.__TautelliniConsole_flyHold = {
-    active = function()
-        return movement ~= nil and (movement.isFlying() or movement.isWatching())
-    end,
+    active = function() return movement ~= nil and movement.isFlying() end,
     tick = function()
-        if not (movement and engine) then return end
-        if movement.isFlying() then pcall(movement.holdTick, engine) end
-        if movement.isWatching() then pcall(movement.watchTick, engine, log) end
+        if movement and engine then pcall(movement.holdTick, engine) end
     end,
 }
 if LoopAsync and ExecuteInGameThread and not _G.__TautelliniConsole_flyLoop then
@@ -204,6 +214,26 @@ if LoopAsync and ExecuteInGameThread and not _G.__TautelliniConsole_flyLoop then
         end
         return false -- never stop
     end)
+end
+
+-- ------------------------------------------- shared mod menu (optional) --
+-- Publish every cheat module's menu() section into the optional SharedModMenu.
+-- UE4SS runs each mod in its OWN Lua state, so kit.menu serializes this spec over
+-- UE4SS shared variables; SharedModMenu renders it and pushes edits back, which
+-- kit.menu applies through these get/set closures (its ~250 ms poll runs them on
+-- the game thread). With SharedModMenu not installed the publish is a harmless
+-- no-op. Guarded on kit.menu so an older vendored kit just skips the tab. The
+-- live reads behind the num/bool get()s cache their resolved handles in the engine
+-- adapter, so the in-game poll stays lean (no per-tick FindAllOf once resolved).
+if menuSpec and kit.menu and kit.menu.register then
+    -- items and skills are console-only (their args do not fit a toggle/slider/
+    -- button), so they contribute no menu section.
+    local sections = menuSpec.build(engine, resources, stats, movement, timeCmd, worldCmd)
+    if #sections > 0 then
+        pcall(kit.menu.register, "TautelliniConsole", sections)
+        log("SharedModMenu: registered " .. #sections .. " section(s) (a tab "
+            .. "appears if the SharedModMenu mod is installed)")
+    end
 end
 
 log("loaded v" .. ModVersion .. ". Open the console and type '" .. prefix

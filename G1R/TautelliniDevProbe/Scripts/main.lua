@@ -26,7 +26,7 @@ local rawget, rawset = rawget, rawset
 -- 'gamepad' is SHELVED (file kept): UE4SS on this build cannot marshal an FKey parameter into
 -- IsInputKeyDown/GetInputAnalogKeyState (real OR constructed FKey -> "Array failed invariants"),
 -- so polling controller input from Lua is a dead end. Re-add it only to resume that hunt.
-local MODULES = { "archery", "asread", "lockbuild", "sleep", "tickfind" }
+local MODULES = { "archery", "asread", "cheats", "lockbuild", "sleep", "tickfind" }
 
 -- ---- bootstrap the vendored kit + hot-reload reset (the mod main.lua pattern) ----
 local here   = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")
@@ -36,6 +36,7 @@ if ModDir then
 end
 do  -- nil the kit + every probe module before re-requiring, and full-sweep the path cache
     package.loaded["kit"] = nil
+    package.loaded["config"] = nil
     for _, m in ipairs(MODULES) do package.loaded["probes." .. m] = nil end
     local reg = rawget(_G, "ue4ss_loaded_modules")
     if type(reg) == "table" then for k in pairs(reg) do reg[k] = nil end end
@@ -211,6 +212,17 @@ local function armInit()
     end)
     if ok then P.initArmed = true; root("init-post hook armed")
     else root("init-post hook NOT armed  (" .. tostring(err) .. ")") end
+end
+
+-- ---- opt-in gate: DevProbe is inert unless config.active is true ----
+-- P.fn was reset to {} above, so when inactive any keys bound in a PRIOR active session fire into
+-- nothing (CTRL+R makes them no-ops; a full restart drops the bindings entirely).
+local okCfg, Config = pcall(require, "config")
+if not okCfg or type(Config) ~= "table" then Config = {} end
+if not Config.active then
+    root("INACTIVE (config.active = false): no hotkeys bound, no probes armed. "
+        .. "Set active = true in Scripts/config.lua and reload (CTRL+R) for a probe session.")
+    return
 end
 
 -- ---- load every module and register centrally ----
