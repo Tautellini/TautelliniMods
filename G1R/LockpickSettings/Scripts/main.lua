@@ -10,7 +10,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, rawset, debug = rawget, rawset, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.3"
+local ModVersion = "3.2.4"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -196,6 +196,10 @@ local liveSession = nil
 local FreshTask = nil   -- the CURRENT minigame task
 local StartSnap = nil   -- previous start attempt's slot snapshot (scramble gate)
 local OpenedLocks = {}  -- locks opened this session; cleared on world change
+-- live GothicLockPieceActor handles, filled by the construction notify (below) and reused
+-- on every open so the hot path does NO world-wide FindAllOf. The ~21 pieces are pre-pooled
+-- in PersistentLevel and stable for the world; cleared on a world change.
+local PiecePool = {}
 
 -- the auto-solver. getTask returns nil once the lock is opening, so a press never
 -- dereferences a tearing-down task (native AV pcall can't catch).
@@ -307,14 +311,22 @@ local function tryStart(attempt)
             end
         end
     end
-    -- Piece actors come from the world-wide FindAllOf. The fresh-spawn notify and the
-    -- subsystem's pending-piece list were always empty in practice (the game pre-pools the
-    -- pieces), so those two paths were dead and are gone. FindAllOf can return dead actors from
-    -- a finished minigame, but Session.start IsValid-gates each one, and the OpenedLocks gate
-    -- above already turns away re-opens before we get here.
-    local actorList = Engine.liveInstances("GothicLockPieceActor")
+    -- Piece actors come from PiecePool, filled event-driven by the GothicLockPieceActor
+    -- construction notify (re-measured 2026-06-18: that notify DOES fire for all ~21 pre-pooled
+    -- pieces, a few seconds after world load; the old "never fires" note was a load-time/hot-
+    -- reload timing artifact). So the hot path does NO world-wide FindAllOf. Use the live pool
+    -- entries; only if the pool cannot satisfy this lock (opened before the pieces constructed,
+    -- or a missed notify) fall back to one scan for this open. Session.start IsValid-gates each.
+    local actorList, source = {}, "pool"
+    for _, a in ipairs(PiecePool) do
+        if Engine.isValid(a) then actorList[#actorList + 1] = a end
+    end
+    if #actorList < #graph.pieces then
+        actorList = Engine.liveInstances("GothicLockPieceActor")
+        source = "FindAllOf fallback (pool not ready)"
+    end
     if DebugSolver then
-        log("solver: " .. #actorList .. " piece actors (FindAllOf)")
+        log("solver: " .. #actorList .. " piece actors (" .. source .. ")")
     end
     -- LockpickPrecision = how many connections the game pruned (the first k); open
     -- that precomputed variant.
@@ -583,18 +595,31 @@ if not NextMoveBroken then
         function() pcall(onOpenSignal, "MemorizeLockpick") end)
 end
 
--- world change: kill any session without touching stored object wrappers
+-- world change: kill any session without touching stored object wrappers, and drop the
+-- cached engine handles (the subsystem / attribute set are recreated on a new world).
 pcall(RegisterInitGameStatePostHook, function()
     local s = liveSession
     liveSession = nil
     if s then s.stop = true end
     OpenedLocks = {}
+    for i = #PiecePool, 1, -1 do PiecePool[i] = nil end -- pieces reconstruct on the new world
+    if Engine and Engine.dropHandles then Engine.dropHandles() end
 end)
 
 -- --------------------------------------------------------------- triggers --
--- NOTE: NotifyOnNewObject for GothicLockPieceActor was removed too. Its FreshPieces cache was
--- always empty in practice (the game pre-pools pieces, so no "new object" fires), and tryStart
--- now reads pieces straight from FindAllOf. One fewer per-construction notify dispatching to Lua.
+-- Build the piece pool event-driven: the GothicLockPieceActor construction notify fires once
+-- per pre-pooled piece a few seconds after world load (re-measured 2026-06-18), so we hold the
+-- handles and never scan the object array on a lock open. Cleared above on a world change.
+if not NextMoveBroken then
+    local okPieces = pcall(NotifyOnNewObject, "/Script/G1R.GothicLockPieceActor", function(piece)
+        pcall(function()
+            if piece and piece:IsValid() then PiecePool[#PiecePool + 1] = piece end
+        end)
+    end)
+    if not okPieces then
+        log("Note: piece-construction notify not registered; lock-open falls back to a scan")
+    end
+end
 -- NOTE: NotifyOnNewObject for GameplayAbilityOpen/Door was removed. Those fire on every
 -- container/door interaction (not just lockpicking), and UE4SS crashes marshaling the
 -- new-object notify into Lua on an already-unlocked chest open. The lock name comes from

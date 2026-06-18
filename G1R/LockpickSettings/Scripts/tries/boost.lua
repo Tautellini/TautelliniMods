@@ -60,8 +60,11 @@ function boost.plan(extra)
         effective = effective, skipped = skipped }
 end
 
--- the player's lockpicking attribute set (the one under PlayerState).
+-- the player's lockpicking attribute set (the one under PlayerState). Prefer the engine
+-- adapter's cached resolver so Boost and the precision read share one scan (and later
+-- opens cost none); fall back to a direct scan if the adapter lacks it.
 function boost.findPlayerAttrSet(engine)
+    if engine.playerLockAttrSet then return engine.playerLockAttrSet() end
     for _, s in ipairs(engine.liveInstances("AttributeSet_Lockpicking")) do
         if string.find(s:GetFullName(), "PlayerState", 1, true) then
             return s

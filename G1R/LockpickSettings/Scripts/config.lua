@@ -35,7 +35,7 @@ return {
     -- Move rate / stability knob: ms per solved move. Lower = faster but pokes
     -- UE4SS's buggy action queue harder = more crash-prone. Clamped 25..500.
     -- Live in the menu as "Tick (DANGER)".
-    autoSolveTickMs        = 100,
+    autoSolveTickMs        = 50,
 
     -- Log solver internals to UE4SS.log (a few lines per lock).
     debugSolver = true,

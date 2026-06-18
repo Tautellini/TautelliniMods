@@ -9,6 +9,8 @@ local math, table = math, table
 
 local SELECT_TICKS = 4   -- settled ticks allowed to reach the target piece
 local STUCK_LIMIT = 3    -- pressed moves with no state change before giving up
+local CYCLE_LIMIT = 3    -- a distinct post-move state revisited this often = looping
+local MAX_STEPS = 90     -- absolute per-lock settled-tick budget; final anti-churn backstop
 local FAST_INTERP = 250.0 -- default solve-time animation speed; config overrides
 
 local Driver = {}
@@ -39,6 +41,8 @@ function Driver:reset()
     self.stuck = 0
     self.noMove = 0          -- consecutive settled states with no policy move
     self.awaitingMove = false
+    self.seen = {}           -- distinct post-move states visited, for cycle detection
+    self.totalSteps = 0      -- settled steps this run (hard anti-churn cap)
     self.origInterp = nil
 end
 
@@ -85,9 +89,18 @@ function Driver:step(s)
     if s.stateUnknown or not s.lockPolicy then
         self:finish(s, "lock state not usable", false); return
     end
+    -- hard backstop: a settled step that finds neither the goal nor a stop must still be
+    -- bounded. Every non-finishing path below falls through to another step, so cap the
+    -- total. This alone guarantees we never spin the game-thread queue forever.
+    self.totalSteps = self.totalSteps + 1
+    if self.totalSteps > MAX_STEPS then
+        self:finish(s, "exceeded the per-lock step budget (giving up to avoid churn)", false)
+        return
+    end
 
     -- judge the previous press: unchanged state = stuck (refused move = the live edges
-    -- disagree with the chosen variant)
+    -- disagree with the chosen variant); a distinct state we have already moved through =
+    -- the policy is cycling, never converging (same root cause, but the state changes).
     local state = self:stateKey(s)
     if self.awaitingMove then
         self.awaitingMove = false
@@ -100,6 +113,12 @@ function Driver:step(s)
             end
         else
             self.stuck = 0
+            self.seen[state] = (self.seen[state] or 0) + 1
+            if self.seen[state] >= CYCLE_LIMIT then
+                self:finish(s, "lock state cycling, not converging (live lock "
+                    .. "disagrees with the precision variant)", false)
+                return
+            end
         end
     end
     self.lastState = state
@@ -125,12 +144,17 @@ function Driver:step(s)
             self:finish(s, "selection is not observable on this lock", false)
             return
         end
-        if self.phase ~= "selecting" or self.target ~= move.piece then
-            self.phase, self.target, self.selectTicks = "selecting", move.piece, 0
+        -- count selecting ticks since the last EXECUTED move, not per target: a target
+        -- that flips every tick (an unstable live read) used to reset this each tick and
+        -- hid the runaway. A real drive reaches the piece in one tick, so the budget is
+        -- only spent when selection genuinely cannot settle.
+        if self.phase ~= "selecting" then
+            self.phase, self.selectTicks = "selecting", 0
         end
+        self.target = move.piece
         self.selectTicks = self.selectTicks + 1
         if self.selectTicks > SELECT_TICKS then
-            self:finish(s, "could not select the target piece", false)
+            self:finish(s, "could not reach the target piece (selection unstable)", false)
             return
         end
         self:driveSelection(s, move.piece)

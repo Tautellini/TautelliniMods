@@ -18,6 +18,14 @@ local engine = {}
 engine.liveInstances = kit.engine.liveInstances
 engine.readRootPos = kit.engine.readRootPos
 local isValid = kit.engine.isValid
+engine.isValid = isValid
+
+-- Cached singleton handles. A FindAllOf scan walks the whole object array and is a frame
+-- hitch, so the session-long singletons (the LockPickSubsystem and the player's attribute
+-- set) are resolved once and reused. Each resolver revalidates with isValid() on use, and
+-- engine.dropHandles() clears them on a world change (main's InitGameStatePost hook).
+local subsysCache = nil
+local attrSetCache = nil
 
 -- the active lock's FName, via the current task's owning Ability (m_Lock). Abilities
 -- are reused, so prefer the freshest notify-captured spawn.
@@ -52,22 +60,56 @@ function engine.currentLockName(freshTask, freshAbility)
     return nil
 end
 
--- the KismetMaterialLibrary CDO, the MPC_Lockpicking asset, and the live scene actor
--- (off the subsystem). Returns lib, mpc, scene or nil. The subsystem scan is a ~30ms
--- FindAllOf, so main resolves this once per open and passes it on.
+-- the live LockPickSubsystem, CACHED: a session-long singleton, so the ~30ms FindAllOf
+-- runs once instead of every lock open. The scene actor it owns IS per-minigame and is
+-- read fresh by mpcHandles below; only the subsystem handle is cached here.
+local function lockPickSubsystem()
+    if subsysCache and isValid(subsysCache) then return subsysCache end
+    subsysCache = nil
+    for _, sub in ipairs(engine.liveInstances("LockPickSubsystem")) do
+        subsysCache = sub
+        return sub
+    end
+    return nil
+end
+
+-- the KismetMaterialLibrary CDO, the MPC_Lockpicking asset (both cheap StaticFindObject
+-- hash lookups), and the live scene actor read off the CACHED subsystem. Returns
+-- lib, mpc, scene or nil. No FindAllOf once the subsystem is cached.
 function engine.mpcHandles()
     local lib, mpc, scene
     pcall(function() lib = StaticFindObject("/Script/Engine.Default__KismetMaterialLibrary") end)
     pcall(function() mpc = StaticFindObject("/Game/Blueprints/LockPick/MPC_Lockpicking.MPC_Lockpicking") end)
-    for _, sub in ipairs(engine.liveInstances("LockPickSubsystem")) do
+    local sub = lockPickSubsystem()
+    if sub then
         pcall(function()
             local sc = sub.m_LockSceneActor
             if sc and sc:IsValid() then scene = sc end
         end)
-        if scene then break end
     end
     if lib and lib:IsValid() and mpc and mpc:IsValid() and scene then
         return lib, mpc, scene
+    end
+    return nil
+end
+
+-- the player's lockpicking AttributeSet (the one under PlayerState), CACHED. Boost and
+-- the precision read both need it, so resolving it here makes them share ONE scan, and
+-- the cache makes later opens free. isValid() plus the PlayerState identity check
+-- re-resolve a stale handle after a save-load / respawn.
+function engine.playerLockAttrSet()
+    local hit = attrSetCache
+    if hit and isValid(hit) then
+        local ok, full = pcall(function() return hit:GetFullName() end)
+        if ok and full and string.find(full, "PlayerState", 1, true) then return hit end
+    end
+    attrSetCache = nil
+    for _, s in ipairs(engine.liveInstances("AttributeSet_Lockpicking")) do
+        local ok, full = pcall(function() return s:GetFullName() end)
+        if ok and full and string.find(full, "PlayerState", 1, true) then
+            attrSetCache = s
+            return s
+        end
     end
     return nil
 end
@@ -84,14 +126,14 @@ function engine.lockpickAttributes()
         if type(v) ~= "number" then pcall(function() v = a.BaseValue end) end
         return type(v) == "number" and v or nil
     end
-    for _, set in ipairs(engine.liveInstances("AttributeSet_Lockpicking")) do
-        local out
-        pcall(function()
-            out = { precision = valueOf(set.LockpickPrecision),
-                    durability = valueOf(set.LockpickDurability) }
-        end)
-        if out and (out.precision or out.durability) then return out end
-    end
+    local set = engine.playerLockAttrSet()
+    if not set then return nil end
+    local out
+    pcall(function()
+        out = { precision = valueOf(set.LockpickPrecision),
+                durability = valueOf(set.LockpickDurability) }
+    end)
+    if out and (out.precision or out.durability) then return out end
     return nil
 end
 
@@ -166,6 +208,13 @@ function engine.pressInput(freshTask, which)
         else error("unknown press '" .. tostring(which) .. "'") end
     end)
     return ok
+end
+
+-- drop the cached singleton handles. Call on a world change: the isValid() revalidation in
+-- the resolvers already self-heals, this just avoids carrying a dead wrapper across a GC.
+function engine.dropHandles()
+    subsysCache = nil
+    attrSetCache = nil
 end
 
 return engine
