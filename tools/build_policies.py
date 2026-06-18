@@ -28,6 +28,18 @@ GRAPHS = ROOT / "G1R/reference/lock-graphs.lua"
 OUT_DATA = ROOT / "G1R/LockpickSettings/Scripts/data/lockpolicies.lua"
 OUT_IDX = ROOT / "G1R/LockpickSettings/Scripts/data/lockpolicies_index.lua"
 
+# Lock renames across game builds. The puzzle is byte-identical, so the new
+# build name reuses the old name's precomputed blob (same offsets). The oracle
+# lock-graphs.lua is keyed by the historical name, but the shipped game build
+# emits the new name, so without the alias a player on the current build gets a
+# graph hit (data/lockgraphs.lua carries both keys) but a policy miss. Mirror
+# the same alias here so a regen never drops it. new build name -> oracle name.
+ALIASES = {
+    # 2026-06-12 build (buildid 23682495) renamed this orc dig-site chest from
+    # AM_Chest_05_Lock to FM_Chest_Digginggallery_02_Lock; identical puzzle.
+    "FM_Chest_Digginggallery_02_Lock": "AM_Chest_05_Lock",
+}
+
 
 def policy_bytes(n, conns):
     """Dense next-move array for one edge set. conns = list of (a,b,dir)."""
@@ -97,6 +109,10 @@ def main():
             variants.append((off, len(comp)))
         index[name] = (n, variants)
 
+    for alias, oracle in ALIASES.items():
+        if oracle in index and alias not in index:
+            index[alias] = index[oracle]   # same blob offsets, renamed lock
+
     # Ship the blob as a Lua ARRAY OF INTEGERS (one per byte), not an opaque .bin
     # and not a base64/escaped string: malware scanners flag high-entropy binaries
     # and can read a long base64/escaped string as obfuscation, but a plain numeric
@@ -111,7 +127,7 @@ def main():
              "-- lockName -> { n = pieces, v = { {off,len} per precision 0,1,2 } }",
              "-- into the decoded data/lockpolicies blob (raw-DEFLATE next-move arrays).",
              "return {"]
-    for name in names:
+    for name in sorted(index):
         n, vs = index[name]
         vtxt = ", ".join("{%d,%d}" % (o, l) for o, l in vs)
         lines.append('  ["%s"] = { n = %d, v = { %s } },' % (name, n, vtxt))
