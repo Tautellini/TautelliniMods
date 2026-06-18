@@ -1,4 +1,4 @@
--- cheats/stats.lua  --  str, dex, level, skillpoints, xp, speed.
+-- cheats/stats.lua  --  str, dex, level, skillpoints, xp, speed, lockprecision.
 --
 -- Subcommand grammar: `<stat> add|remove|set <n>`, bare `<stat>` prints the
 -- current value. Additive (add/remove) is the standard and always available;
@@ -27,6 +27,10 @@ local DEFS = {
     -- speed has no menu row: it does not apply yet and will live under Movement, not
     -- Stats, once it works (the `speed` command stays for testing).
     { name = "speed",       setName = "AttributeSet_Movement",         attr = "SpeedModifier", canSet = true,  fmt = "float" },
+    -- lockpicking skill (0/1/2 = untrained/trained/master): LockpickPrecision is the count
+    -- of connections the game prunes, so setting it makes the game prune the next lock to
+    -- match (LockpickSettings then reads it back and picks the matching solve variant).
+    { name = "lockprecision", setName = "AttributeSet_Lockpicking", attr = "LockpickPrecision", canSet = true, fmt = "int", label = "Lockpick Precision", menu = { min = 0, max = 2, step = 1 } },
 }
 
 local function fmtVal(v, kind)

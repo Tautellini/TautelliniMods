@@ -10,7 +10,7 @@
 --
 -- Commands type into either the native ~ console (Tilde / F10, surfaced below) or
 -- the UE4SS console window. v1 is the proven core: god, heal, mana, oxygen,
--- nofatigue, str/dex/level/skillpoints/xp, speed, lockmaster, time, plus the
+-- nofatigue, str/dex/level/skillpoints/xp, speed, lockprecision, time, plus the
 -- generic set/dumpobj/help. All over the reflected surface in
 -- ../../LuaModdingSurface.md; nothing depends on the game's stripped Marvin/cheat
 -- exec functions.
@@ -22,7 +22,7 @@ local ipairs, pairs, tostring = ipairs, pairs, tostring
 local type, pcall, print, require = type, pcall, print, require
 local rawget, debug, string = rawget, debug, string
 
-local ModVersion = "0.3.0-alpha"
+local ModVersion = "0.3.1-alpha"
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
