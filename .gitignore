@@ -36,6 +36,9 @@ G1R/LockpickSettings/release/
 # notes); distribution is via GitHub Releases, not the repo.
 G1R/SharedModMenu/release/
 
+# FastTravelAnywhere release/ is likewise local; distribution is via GitHub Releases, not the repo.
+G1R/FastTravelAnywhere/release/
+
 # crash dumps / logs users send for triage: kept locally, never committed
 G1R/LockpickSettings/user-reported-logs/
 
@@ -56,6 +59,10 @@ tools/.env-backup/
 *.preview.html
 tools/sim_variants.py
 .claude/scheduled_tasks.lock
+
+# investigation scratch: ad-hoc skeptic/policy comparison scripts and their text dumps from the
+# lockpick work. Kept local, never committed.
+tools/_*
 
 # third-party reference mod kept locally for technique study, never shipped or tracked
 G1R/TautelliniConsole/reference/
