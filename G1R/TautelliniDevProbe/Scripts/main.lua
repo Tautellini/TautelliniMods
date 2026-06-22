@@ -26,7 +26,11 @@ local rawget, rawset = rawget, rawset
 -- 'gamepad' is SHELVED (file kept): UE4SS on this build cannot marshal an FKey parameter into
 -- IsInputKeyDown/GetInputAnalogKeyState (real OR constructed FKey -> "Array failed invariants"),
 -- so polling controller input from Lua is a dead end. Re-add it only to resume that hunt.
-local MODULES = { "archery", "asread", "cheats", "lockbuild", "sleep", "tickfind" }
+-- Which probes load, and the hotkey for each of their actions, live in config.lua under `probes`
+-- (an enabled flag + per-action key strings). A probe is armed only when its config entry has
+-- enabled = true, and an action binds only if config gives it a non-empty key. This file no longer
+-- hardcodes a probe list or any hotkey. Probe files in probes/ with no config entry (archery,
+-- asread, cheats, lockbuild, sleep, tickfind, gamepad, menu) stay as references and do not load.
 
 -- ---- bootstrap the vendored kit + hot-reload reset (the mod main.lua pattern) ----
 local here   = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")
@@ -34,10 +38,12 @@ local ModDir = here and here:match("^(.*)[/\\][^/\\]*$") or nil
 if ModDir then
     package.path = ModDir .. "/shared/?/?.lua;" .. ModDir .. "/shared/?.lua;" .. package.path
 end
-do  -- nil the kit + every probe module before re-requiring, and full-sweep the path cache
+do  -- nil the kit, config + every loaded probe module before re-requiring; full-sweep path cache
     package.loaded["kit"] = nil
     package.loaded["config"] = nil
-    for _, m in ipairs(MODULES) do package.loaded["probes." .. m] = nil end
+    for name in pairs(package.loaded) do
+        if type(name) == "string" and name:sub(1, 7) == "probes." then package.loaded[name] = nil end
+    end
     local reg = rawget(_G, "ue4ss_loaded_modules")
     if type(reg) == "table" then for k in pairs(reg) do reg[k] = nil end end
 end
@@ -134,6 +140,7 @@ local ctx = {
     StaticConstructObject = rawget(_G, "StaticConstructObject"),
     RegisterHook         = rawget(_G, "RegisterHook"),
     ExecuteWithDelay     = rawget(_G, "ExecuteWithDelay"),
+    LoopAsync            = rawget(_G, "LoopAsync"),
 }
 
 -- ---- persistent registration state (survives CTRL+R) ----
@@ -164,7 +171,8 @@ local function bindKey(keyName, mod, label)
     if not (Key and Key[keyName] and RegisterKeyBind) then return false end
     local fire = function() onGameThread(function() local f = P.fn[label]; if f then f() end end) end
     local ok
-    if mod and ModifierKey and ModifierKey[mod] then
+    if mod then
+        if not (ModifierKey and ModifierKey[mod]) then return false end
         ok = pcall(RegisterKeyBind, Key[keyName], { ModifierKey[mod] }, fire)
     else
         ok = pcall(RegisterKeyBind, Key[keyName], fire)
@@ -225,44 +233,62 @@ if not Config.active then
     return
 end
 
--- ---- load every module and register centrally ----
-local keymap = {}
-for _, modName in ipairs(MODULES) do
-    local okReq, modFn = pcall(require, "probes." .. modName)
-    if not okReq or type(modFn) ~= "function" then
-        root("module '" .. modName .. "' failed to load: " .. tostring(modFn))
-    else
-        local okSetup, spec = pcall(modFn, ctx)
-        if not okSetup or type(spec) ~= "table" then
-            root("module '" .. modName .. "' setup error: " .. tostring(spec))
+-- ---- load every ENABLED probe and register centrally ----
+-- A probe declares actions = {{ id, desc, fn }}; the hotkey for each action comes from
+-- config.probes[name].keys[id] ("" = unbound). Key format: "F3", "HOME", or "MOD+KEY"
+-- (e.g. "SHIFT+F10"). Key assignment lives in config, never hardcoded in a probe file.
+local function parseKey(s)
+    local mod, key = s:match("^(%w+)%s*%+%s*(.+)$") -- "SHIFT+F10" -> "SHIFT","F10"
+    if key then return mod, key end
+    return nil, s
+end
+
+local keymap = {}   -- "MOD+KEY" combo -> owner string, for conflict detection + the keymap log
+for probeName, pcfg in pairs(Config.probes or {}) do
+    if type(pcfg) == "table" and pcfg.enabled then
+        local okReq, modFn = pcall(require, "probes." .. probeName)
+        if not okReq or type(modFn) ~= "function" then
+            root("probe '" .. probeName .. "' failed to load: " .. tostring(modFn))
         else
-            for _, k in ipairs(spec.keys or {}) do
-                local label = (k.mod and (k.mod .. "+") or "") .. k.key
-                if keymap[label] then
-                    root("KEY CONFLICT " .. label .. ": " .. keymap[label] .. " vs " .. spec.name .. " (skipped)")
-                else
-                    keymap[label] = spec.name .. " (" .. tostring(k.desc) .. ")"
-                    P.fn[label] = k.fn
-                    bindKey(k.key, k.mod, label)
+            local okSetup, spec = pcall(modFn, ctx)
+            if not okSetup or type(spec) ~= "table" then
+                root("probe '" .. probeName .. "' setup error: " .. tostring(spec))
+            else
+                local keys = (type(pcfg.keys) == "table") and pcfg.keys or {}
+                if spec.keys and not spec.actions then
+                    root("probe '" .. probeName .. "' uses legacy keys=; convert it to "
+                        .. "actions = {{ id, desc, fn }} and bind via config (nothing bound)")
                 end
+                for _, a in ipairs(spec.actions or {}) do
+                    local keyStr = keys[a.id]
+                    if type(keyStr) ~= "string" or keyStr == "" then
+                        root("  " .. probeName .. "/" .. tostring(a.id) .. " UNBOUND (set config.probes."
+                            .. probeName .. ".keys." .. tostring(a.id) .. ")")
+                    else
+                        local mod, key = parseKey(keyStr)
+                        local combo = (mod and (mod .. "+") or "") .. key
+                        if keymap[combo] then
+                            root("KEY CONFLICT " .. combo .. ": " .. keymap[combo] .. " vs "
+                                .. probeName .. "/" .. a.id .. " (skipped)")
+                        else
+                            local label = probeName .. ":" .. a.id
+                            P.fn[label] = a.fn
+                            if bindKey(key, mod, label) then
+                                keymap[combo] = probeName .. "/" .. a.id .. " (" .. tostring(a.desc) .. ")"
+                            else
+                                root("  " .. probeName .. "/" .. a.id .. ": could not bind '"
+                                    .. keyStr .. "' (unknown key or modifier)")
+                            end
+                        end
+                    end
+                end
+                for _, h in ipairs(spec.hooks or {}) do P.hookcb[h.path] = h.cb; armHook(h.path, h.tag) end
+                for _, e in ipairs(spec.events or {}) do P.evtcb[e.name] = e.cb; armEvent(e.name) end
+                for _, n in ipairs(spec.notifies or {}) do P.notifycb[n.path] = n.cb; armNotify(n.path) end
+                for _, fn in ipairs(spec.inits or {}) do P.initcb[#P.initcb + 1] = fn end
+                if #(spec.inits or {}) > 0 then armInit() end
+                if type(spec.autorun) == "function" then pcall(spec.autorun) end
             end
-            for _, h in ipairs(spec.hooks or {}) do
-                P.hookcb[h.path] = h.cb
-                armHook(h.path, h.tag)
-            end
-            for _, e in ipairs(spec.events or {}) do
-                P.evtcb[e.name] = e.cb
-                armEvent(e.name)
-            end
-            for _, n in ipairs(spec.notifies or {}) do
-                P.notifycb[n.path] = n.cb
-                armNotify(n.path)
-            end
-            for _, fn in ipairs(spec.inits or {}) do
-                P.initcb[#P.initcb + 1] = fn
-            end
-            if #(spec.inits or {}) > 0 then armInit() end
-            if type(spec.autorun) == "function" then pcall(spec.autorun) end
         end
     end
 end
@@ -275,4 +301,4 @@ do
     table.sort(labels)
     for _, label in ipairs(labels) do root("  " .. label .. " = " .. keymap[label]) end
 end
-root("DEV-ONLY. asread sweep (F12) can crash on bad targets; use a throwaway save.")
+root("DEV-ONLY. Some probe actions mutate live gameplay (e.g. lockopen call tests); use a throwaway save.")
