@@ -16,8 +16,10 @@ Session.__index = Session
 
 -- current absolute rotations (0-indexed), or nil if any pin is off the rail (a
 -- garbage mid-glide read; the caller pauses and the next settle heals it).
+-- Writes into a session-held scratch buffer (fully overwritten each call, consumed
+-- synchronously by the policy lookup) to avoid a per-call table on the solve path.
 local function currentRots(s)
-    local r = {}
+    local r = s.rotScratch
     for id = 0, s.pieceCount - 1 do
         local v = s.rotStart[id] + s.sign * (s.steps[id] or 0)
         if v < -3 or v > 3 then return nil end
@@ -26,12 +28,31 @@ local function currentRots(s)
     return r
 end
 
+-- inflate this lock's policy ON FIRST USE, never inside Session.start. Session.start runs in
+-- the chest-open's game-thread dispatch; the DEFLATE decompress builds a multi-MB transient
+-- table, and that GC spike landing inside UE4SS's open-time object marshaling is the suspected
+-- 3.2.x chest-open crash (3.1.x amortized the same work over many ticks via its budgeted
+-- search). Deferring the inflate to the first session-loop tick moves the spike clear of that
+-- window. Cached per session: a Lock once loaded, false once a load fails (no retry storm).
+local function ensurePolicy(s)
+    local p = s.lockPolicy
+    if p ~= nil then return p or nil end
+    if not (s.policySource and s.lockName) then s.lockPolicy = false; return nil end
+    local okp, lock = pcall(function()
+        return s.policySource:open(s.lockName, s.precisionK or 0)
+    end)
+    s.lockPolicy = (okp and lock) or false
+    return s.lockPolicy or nil
+end
+
 -- the next move by policy lookup ({piece,dir}, or nil at goal / off-rail / no policy)
 local function planMove(s)
-    if s.stateUnknown or not s.lockPolicy then return nil end
+    if s.stateUnknown then return nil end
+    local pol = ensurePolicy(s)
+    if not pol then return nil end
     local r = currentRots(s)
     if not r then return nil end
-    return s.lockPolicy:move(r)
+    return pol:move(r)
 end
 
 -- selection ground truth: the piece wearing the game's selected-look (not our tint)
@@ -107,7 +128,7 @@ end
 -- Build the session from the collected actors. Returns the session (even when
 -- geometry fails: hint off, connection display still runs), nil+"retry" (too few
 -- pieces), or nil+"fail" (unrecoverable read, already logged).
--- ctx: lockName, graph, precisionK, lockPolicy, actorList, engine, num, tinter,
+-- ctx: lockName, graph, precisionK, policySource, actorList, engine, num, tinter,
 -- handles, flags, log, debug, schedule, onStop, unreliableActors.
 function Session.start(ctx)
     local log, debug = ctx.log, ctx.debug
@@ -182,12 +203,13 @@ function Session.start(ctx)
     local s = setmetatable({
         lib = lib, mpc = mpc, scene = scene, lifeActor = lifeActor,
         pieces = pieces, pieceCount = #graph.pieces,
-        edges = {}, rotStart = {}, steps = {},
-        slotStart = {}, slotNow = {},
+        edges = {}, rotStart = {}, steps = {}, rotScratch = {},
+        slotStart = {}, slotNow = {}, slotBufA = {}, slotBufB = {},
         sign = 1, axis = nil, nextMove = nil, tinted = {}, painted = {},
         selectedRow = 0, selectedSig = selectedSig, lastTickSel = 0,
         wasMoving = false, stop = false,
-        lockName = ctx.lockName, lockPolicy = ctx.lockPolicy,
+        lockName = ctx.lockName,
+        policySource = ctx.policySource, precisionK = ctx.precisionK,
         engine = engine, num = num, tinter = ctx.tinter,
         flags = ctx.flags, log = log, debug = debug,
         schedule = ctx.schedule, onStop = ctx.onStop,
@@ -205,8 +227,10 @@ function Session.start(ctx)
         s.rotStart[p.id] = p.rot
         s.steps[p.id] = 0
     end
-    pcall(function() s.stepSize = scene.m_LockPieceTranslationStep end)
-    if not s.stepSize or s.stepSize <= 0 then s.stepSize = 6.3 end
+    -- stepSize placeholder only: on geometry success frame.stepSize overwrites it before any
+    -- read (snapRot is s.axis-gated), and on failure s.axis stays nil so it is never read. The
+    -- old live scene read here was dead, so it is dropped (one fewer native read per open).
+    s.stepSize = 6.3
     for id = 0, s.pieceCount - 1 do
         local slot = engine.readSlot(s, id)
         if not slot then
@@ -280,7 +304,10 @@ function Session.start(ctx)
             .. ", next-move hint disabled for this lock (connection display "
             .. "unaffected)")
     end
-    s.nextMove = s.flags.nextMove and planMove(s) or nil
+    -- defer the first hint to the first session-loop tick: planMove here would inflate the
+    -- policy inside the open dispatch (see ensurePolicy). The tick plans it off that window.
+    s.nextMove = nil
+    s.needInitialPlan = s.flags.nextMove and true or false
     return s
 end
 
@@ -329,9 +356,16 @@ function Session:tick()
         end
         return
     end
-    selSync(s)
-    -- read slots; wait for motion to settle before measuring
-    local now, moving = {}, false
+    -- selection ground truth. Skip while auto-solving: the driver runs its own
+    -- resyncSelection() inside step(), so a second scan here is redundant native work
+    -- (one readHighlight per piece) on the highest-frequency, game-thread-marshaled path.
+    if not s.autopilot then selSync(s) end
+    -- read slots; wait for motion to settle before measuring. Ping-pong two reusable buffers
+    -- so the previous frame (s.slotNow) survives the compare below; avoids a fresh ~21-entry
+    -- table every tick on the fast-solve path. now is fully overwritten for every id, so no
+    -- stale entry leaks across frames.
+    local now = (s.slotNow == s.slotBufA) and s.slotBufB or s.slotBufA
+    local moving = false
     for id = 0, s.pieceCount - 1 do
         now[id] = s.engine.readSlot(s, id)
         if now[id] and s.slotNow[id] then
@@ -353,6 +387,12 @@ function Session:tick()
         s.wasMoving = false
         measureRots(s, now)
         if s.flags.nextMove and not s.autopilot then s.nextMove = planMove(s) end
+    end
+    -- first hint after open: plan once, on this settled session-loop tick (NOT the open
+    -- dispatch). ensurePolicy inflates here, clear of the chest-open marshaling window.
+    if s.needInitialPlan and not s.autopilot then
+        if s.flags.nextMove then s.nextMove = planMove(s) end
+        s.needInitialPlan = false
     end
     s.lastTickSel = s.selectedRow
     -- mode exclusivity: while driving, the driver is the only active execution; the
@@ -376,6 +416,9 @@ end
 function Session:lookupMove()
     return planMove(self)
 end
+
+-- inflate-on-first-use guard the driver calls before its first step (off the open dispatch)
+function Session:ensurePolicy() return ensurePolicy(self) ~= nil end
 
 -- restore every painted piece to default; the driver calls this on engage so the
 -- lock looks untouched while solving

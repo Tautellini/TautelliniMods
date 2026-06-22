@@ -14,6 +14,23 @@ local StaticFindObject = StaticFindObject
 
 local kit = require("kit")
 
+-- FNames are process-global and never torn down, so build each MPC/material parameter name
+-- ONCE and reuse it. The hot path (readSlot/readHighlight/writeColor per piece per tick)
+-- otherwise re-interns the name on every native call. Lazy so construction happens after
+-- the engine is up, never at require time. Built inside the callers' pcalls.
+local slotFNames = {}
+local function slotName(i)
+    local fn = slotFNames[i]
+    if not fn then fn = FName("Slot_" .. i); slotFNames[i] = fn end
+    return fn
+end
+local highlightFName
+local function highlightName()
+    local fn = highlightFName
+    if not fn then fn = FName("HighlightColor"); highlightFName = fn end
+    return fn
+end
+
 local engine = {}
 engine.liveInstances = kit.engine.liveInstances
 engine.readRootPos = kit.engine.readRootPos
@@ -33,9 +50,14 @@ function engine.currentLockName(freshTask, freshAbility)
     if freshTask and os.clock() - freshTask.t < 30.0 then
         local name
         local ok = pcall(function()
-            if freshTask.obj:IsValid() then
-                name = freshTask.obj.Ability.m_Lock:ToString()
-            end
+            local obj = freshTask.obj
+            if not obj:IsValid() then return end
+            -- IsValid-gate the Ability sub-object before reading m_Lock off it: a freed
+            -- Ability is an uncatchable native AV (pcall does not catch it), and this runs
+            -- first on the open, before any other gate.
+            local ability = obj.Ability
+            if not (ability and ability:IsValid()) then return end
+            name = ability.m_Lock:ToString()
         end)
         if ok and name and name ~= "" and name ~= "None" then return name end
     end
@@ -144,7 +166,7 @@ function engine.readSlot(h, i)
     if not isValid(h.scene) then return nil end
     local v
     local ok = pcall(function()
-        local c = h.lib:GetVectorParameterValue(h.scene, h.mpc, FName("Slot_" .. i))
+        local c = h.lib:GetVectorParameterValue(h.scene, h.mpc, slotName(i))
         v = { c.R, c.G, c.B }
     end)
     if not ok then return nil end
@@ -157,7 +179,7 @@ function engine.writeColor(e, color)
     for _, mid in ipairs(e.mids) do
         pcall(function()
             if mid:IsValid() then
-                mid:SetVectorParameterValue(FName("HighlightColor"), color)
+                mid:SetVectorParameterValue(highlightName(), color)
             end
         end)
     end
@@ -185,7 +207,7 @@ function engine.readHighlight(mid)
     local c
     local ok = pcall(function()
         if mid:IsValid() then
-            c = mid:K2_GetVectorParameterValue(FName("HighlightColor"))
+            c = mid:K2_GetVectorParameterValue(highlightName())
         end
     end)
     if ok and c then return c end

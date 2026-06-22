@@ -10,7 +10,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, rawset, debug = rawget, rawset, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.5"
+local ModVersion = "3.2.6"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -113,6 +113,21 @@ do
     -- only the compact ~1.3MB blob STRING (a single cheap GC object) stays resident.
     package.loaded["data.lockpolicies"] = nil
     collectgarbage("collect")
+    -- Switch this mod's Lua state to GENERATIONAL GC for the play session. This is a pure Lua
+    -- 5.4 collector mode (collectgarbage is stdlib, NOT a UE4SS setting; the call goes straight
+    -- to the embedded Lua VM, which UE4SS neither honors-as-config nor reverts). Generational
+    -- does cheap MINOR collections that scan only young objects, so short-lived garbage -- the
+    -- per-open inflate's multi-MB table, per-tick scratch -- is reclaimed WITHOUT rescanning the
+    -- resident policy blob / lock graphs / index every cycle. That per-cycle full rescan (the
+    -- incremental-mode default) is the GC cost that raced UE4SS's object marshaling and drove the
+    -- chest-open AVs. Each mod runs in its OWN isolated Lua state, so this only affects
+    -- LockpickSettings. pcall-guarded so a Lua build without the mode degrades to the default;
+    -- revert by deleting this line (or collectgarbage("incremental")).
+    if pcall(collectgarbage, "generational") then
+        log("GC: generational mode (cheap minor collections; resident policy data not rescanned)")
+    else
+        log("Note: generational GC unavailable, using the default collector")
+    end
     if PolicyMod and okIdx and type(Index) == "table" and blob and #blob > 0 then
         Policy = PolicyMod.new({
             index = Index, log = log,
@@ -196,6 +211,12 @@ local liveSession = nil
 local FreshTask = nil   -- the CURRENT minigame task
 local StartSnap = nil   -- previous start attempt's slot snapshot (scramble gate)
 local OpenedLocks = {}  -- locks opened this session; cleared on world change
+-- consecutive geometry-read failures per lock. An already-unlocked or stale chest fails
+-- every open, so after GEOM_FAIL_CACHE_AT we cache it into OpenedLocks to skip the scan; a
+-- one-off bad read on a still-locked chest stays uncached and retries next open. Cleared on
+-- world change.
+local GeometryFails = {}
+local GEOM_FAIL_CACHE_AT = 3
 -- live GothicLockPieceActor handles, filled by the construction notify (below) and reused
 -- on every open so the hot path does NO world-wide FindAllOf. The ~21 pieces are pre-pooled
 -- in PersistentLevel and stable for the world; cleared on a world change.
@@ -322,27 +343,41 @@ local function tryStart(attempt)
         if Engine.isValid(a) then actorList[#actorList + 1] = a end
     end
     if #actorList < #graph.pieces then
+        -- The pool fills from the GothicLockPieceActor construction notify, which LAGS world
+        -- load (worse on slow machines, or a beeline to the first lock after an area change).
+        -- Falling straight to a world-wide FindAllOf here walks a possibly-still-constructing
+        -- object array, the native-AV surface behind cold first-open crashes. Wait for the pool
+        -- a few times first; FindAllOf stays ONLY as the last resort once it clearly never fills.
+        if attempt < 10 then
+            if DebugSolver then
+                log("solver: piece pool not ready (" .. #actorList .. "/" .. #graph.pieces
+                    .. "), waiting before any world scan (attempt " .. attempt .. ")")
+            end
+            schedule(450, function() pcall(tryStart, attempt + 1) end)
+            return
+        end
         actorList = Engine.liveInstances("GothicLockPieceActor")
-        source = "FindAllOf fallback (pool not ready)"
+        source = "FindAllOf fallback (pool never filled)"
     end
     if DebugSolver then
         log("solver: " .. #actorList .. " piece actors (" .. source .. ")")
     end
-    -- LockpickPrecision = how many connections the game pruned (the first k); open
-    -- that precomputed variant.
+    -- LockpickPrecision = how many connections the game pruned (the first k); the session
+    -- inflates that precomputed variant lazily on its first tick, NOT here in the open
+    -- dispatch (the inflate's multi-MB GC spike must stay clear of UE4SS's open-time
+    -- object marshaling; see session.ensurePolicy).
     local attrs = Engine.lockpickAttributes()
     local k = math.floor((attrs and attrs.precision or 0) + 0.5)
     if k < 0 then k = 0 elseif k > 2 then k = 2 end
-    local lockPolicy = Policy and Policy:open(lockName, k) or nil
     if DebugSolver then
-        log(string.format("lock '%s': precision=%s durability=%s -> variant %d, "
-            .. "policy %s", lockName, tostring(attrs and attrs.precision),
-            tostring(attrs and attrs.durability), k,
-            lockPolicy and "loaded" or "MISSING"))
+        log(string.format("lock '%s': precision=%s durability=%s -> variant %d "
+            .. "(policy inflates on first move, off the open dispatch)", lockName,
+            tostring(attrs and attrs.precision),
+            tostring(attrs and attrs.durability), k))
     end
     local session, reason = Session.start({
         lockName = lockName, graph = graph, actorList = actorList,
-        engine = Engine, num = Num, lockPolicy = lockPolicy, precisionK = k,
+        engine = Engine, num = Num, policySource = Policy, precisionK = k,
         handles = lib and { lib = lib, mpc = mpc, scene = scene } or nil,
         tinter = tinterInstance,
         flags = flags, log = log, debug = DebugSolver, schedule = schedule,
@@ -359,18 +394,25 @@ local function tryStart(attempt)
         return -- reason == "fail": already logged
     end
     local s = session
-    -- stale re-entry guard: actors from FindAllOf with no readable geometry = the contaminated
-    -- actor cloud of a finished minigame; polling it per tick is a native AV surface. Don't track.
+    -- stale re-entry guard: actors from FindAllOf with no readable geometry = EITHER an
+    -- already-unlocked/stale chest (fails every open) OR a transient bad read on a still-locked
+    -- chest. We must not cache the latter, or one bad read disables this lock for the whole
+    -- world. Count failures per lock and only cache after a few, so a real lock retries; an
+    -- already-unlocked chest still stops scanning after GEOM_FAIL_CACHE_AT opens.
     if s.stateUnknown then
-        -- Cache the verdict: an already-unlocked chest yields this same stale, geometry-less
-        -- state every time it is opened. Mark it so the OpenedLocks gate at the top of tryStart
-        -- turns away future opens BEFORE the scan. Net: this scan happens once per chest per
-        -- session, not on every open.
-        OpenedLocks[lockName] = true
-        log("Skipping tracking for '" .. lockName .. "': no readable geometry (already-unlocked "
-            .. "or stale actors); caching so re-opens skip the scan")
+        local fails = (GeometryFails[lockName] or 0) + 1
+        GeometryFails[lockName] = fails
+        if fails >= GEOM_FAIL_CACHE_AT then
+            OpenedLocks[lockName] = true
+            log("Skipping tracking for '" .. lockName .. "': no readable geometry after "
+                .. fails .. " opens (already-unlocked or stale actors); caching so re-opens skip the scan")
+        elseif DebugSolver then
+            log("solver: '" .. lockName .. "' geometry not readable (open " .. fails .. "/"
+                .. GEOM_FAIL_CACHE_AT .. "), will retry on the next open")
+        end
         return
     end
+    GeometryFails[lockName] = nil  -- geometry read fine this open; clear any prior transient failures
     -- bind THIS minigame's task: its death is the authoritative "minigame over" signal
     -- (an opened lock's piece/scene actors linger for minutes).
     s.task = FreshTask
@@ -602,6 +644,7 @@ pcall(RegisterInitGameStatePostHook, function()
     liveSession = nil
     if s then s.stop = true end
     OpenedLocks = {}
+    GeometryFails = {}
     for i = #PiecePool, 1, -1 do PiecePool[i] = nil end -- pieces reconstruct on the new world
     if Engine and Engine.dropHandles then Engine.dropHandles() end
 end)

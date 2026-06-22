@@ -86,8 +86,13 @@ function Driver:step(s)
     -- the game-confirmed open beats any measurement: stop now, never press a
     -- tearing-down task (a native AV pcall can't catch)
     if s.opened then self:finish(s, "lock solved", true); return end
-    if s.stateUnknown or not s.lockPolicy then
+    if s.stateUnknown then
         self:finish(s, "lock state not usable", false); return
+    end
+    -- inflate the policy on the first step (off the open dispatch; see session.ensurePolicy).
+    -- Bail cleanly if it cannot load instead of pressing blind.
+    if not s:ensurePolicy() then
+        self:finish(s, "lock policy not available", false); return
     end
     -- hard backstop: a settled step that finds neither the goal nor a stop must still be
     -- bounded. Every non-finishing path below falls through to another step, so cap the

@@ -52,12 +52,17 @@ function Policy:has(lockName)
     return self.index[lockName] ~= nil
 end
 
--- open the lock's policy at precision (clamped 0..2); nil if absent or decode fails
+-- open the lock's policy at precision (clamped 0..2); nil if absent or decode fails.
+-- Lock objects are immutable, so the most recently inflated variant is cached and reused:
+-- retrying an exited lock (one not in the opened set) re-opens the same lock+variant, and
+-- the inflate is by far the heaviest per-open step. The cache holds one arr (<=0.8MB).
 function Policy:open(lockName, precision)
     local e = self.index[lockName]
     if not e or not self.readBlob then return nil end
     local k = floor((precision or 0) + 0.5)
     if k < 0 then k = 0 elseif k > 2 then k = 2 end
+    local key = lockName .. "#" .. k
+    if self._lastKey == key and self._lastLock then return self._lastLock end
     local v = e.v[k + 1]
     if not v then return nil end
     local comp = self.readBlob(v[1], v[2])
@@ -67,7 +72,9 @@ function Policy:open(lockName, precision)
     local place = {}
     local p = 1
     for id = 0, e.n - 1 do place[id] = p; p = p * 7 end
-    return setmetatable({ arr = arr, n = e.n, place = place }, Lock)
+    local lock = setmetatable({ arr = arr, n = e.n, place = place }, Lock)
+    self._lastKey, self._lastLock = key, lock
+    return lock
 end
 
 Policy._encode = encode -- for the test suite
