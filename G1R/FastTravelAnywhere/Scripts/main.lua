@@ -11,7 +11,7 @@ local ipairs, pairs, tostring, type = ipairs, pairs, tostring, type
 local pcall, require, os, string = pcall, require, os, string
 local rawget, rawset, debug = rawget, rawset, debug
 
-local ModVersion = "0.1.0"
+local ModVersion = "0.2.0"
 
 -- vendored kit lives at <Mod>/shared/; add it from this file's own location.
 local here = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")
@@ -41,7 +41,8 @@ local function tryRequire(name) return kit.boot.tryRequire(name, log) end
 local okCfg, Config = pcall(require, "config")
 if not okCfg or type(Config) ~= "table" then
     log("ERROR in config.lua, using built-in defaults (" .. tostring(Config) .. ")")
-    Config = { onMapTeleport = true, hotkey = "T", debug = false }
+    Config = { onMapTeleport = true, safeLanding = true, cancelIfUnsafe = true, expandSearch = true,
+        maxSearchRange = 3000, minFlatness = 0.85, maxElevationDelta = 1500, hotkey = "T", debug = false }
 end
 
 local Engine    = tryRequire("core.engine_travel")
@@ -57,7 +58,7 @@ if type(Locations) ~= "table" then Locations = {} end
 
 -- ----------------------------------------------------------- persistence --
 local SavedPath = ModDir and (ModDir .. "/saved_settings.lua") or nil
-local SAVED_KEYS = { "onMapTeleport" }
+local SAVED_KEYS = { "onMapTeleport", "safeLanding", "cancelIfUnsafe", "expandSearch" }
 if Settings and SavedPath then
     local saved = Settings.load(SavedPath)
     for _, key in ipairs(SAVED_KEYS) do
@@ -115,9 +116,20 @@ local function doMapTeleport()
     if not M then return end
     local off = (MapCalib.world and MapCalib.world.cursorOffset) or { x = 0, y = 0 }
     local wx, wy = Pipeline.mapToWorld(M, mapX + (off.x or 0), mapY + (off.y or 0))
-    local form = Engine.teleport(wx, wy)
-    if Config.debug then
-        log(string.format("t: -> world(%.0f, %.0f) %s", wx, wy, form and ("via " .. form) or "FAILED"))
+    local form, reason = Engine.teleport(wx, wy, nil, {
+        safeLanding    = Config.safeLanding ~= false,
+        cancelIfUnsafe = Config.cancelIfUnsafe ~= false,
+        expandSearch      = Config.expandSearch ~= false,
+        maxSearchRange    = Config.maxSearchRange,
+        minFlatness       = Config.minFlatness,
+        maxElevationDelta = Config.maxElevationDelta,
+        dbg               = Config.debug and log or nil,
+    })
+    if reason == "unsafe" then
+        log("No safe spot near the cursor; teleport skipped. Turn off Safe Landing or Cancel If Unsafe to force it.")
+    elseif Config.debug then
+        log(string.format("t: -> world(%.0f, %.0f) %s", wx, wy,
+            form and ("via " .. form) or ("FAILED (" .. tostring(reason) .. ")")))
     end
 end
 
@@ -138,17 +150,11 @@ local function doQuickTravel(loc)
 end
 
 -- ----------------------------------------------- shared mod menu (optional) --
+-- Sections render in the order listed here: the quick-travel list first, then the on-map teleport
+-- options below it.
 if kit.menu and kit.menu.register then
     local sections = {}
-    sections[#sections + 1] = { title = "Fast Travel", items = {
-        { name = "On-Map Teleport", kind = "bool",
-          get = function() return Config.onMapTeleport == true end,
-          set = function(v)
-              Config.onMapTeleport = v and true or false
-              log("On-map teleport " .. (Config.onMapTeleport and "ON" or "OFF"))
-              saveSettings()
-          end },
-    } }
+
     local quick = {}
     for _, loc in ipairs(Locations) do
         if type(loc) == "table" and loc.name and loc.x and loc.y then
@@ -156,6 +162,38 @@ if kit.menu and kit.menu.register then
         end
     end
     if #quick > 0 then sections[#sections + 1] = { title = "Quick Travel", items = quick } end
+
+    sections[#sections + 1] = { title = "World Map Options", items = {
+        { name = "On-Map Teleport", kind = "bool",
+          get = function() return Config.onMapTeleport == true end,
+          set = function(v)
+              Config.onMapTeleport = v and true or false
+              log("On-map teleport " .. (Config.onMapTeleport and "ON" or "OFF"))
+              saveSettings()
+          end },
+        { name = "Safe Landing", kind = "bool",
+          get = function() return Config.safeLanding ~= false end,
+          set = function(v)
+              Config.safeLanding = v and true or false
+              log("Safe landing " .. (Config.safeLanding and "ON" or "OFF"))
+              saveSettings()
+          end },
+        { name = "Cancel If Unsafe", kind = "bool",
+          get = function() return Config.cancelIfUnsafe ~= false end,
+          set = function(v)
+              Config.cancelIfUnsafe = v and true or false
+              log("Cancel if unsafe " .. (Config.cancelIfUnsafe and "ON" or "OFF"))
+              saveSettings()
+          end },
+        { name = "Expand Search", kind = "bool",
+          get = function() return Config.expandSearch ~= false end,
+          set = function(v)
+              Config.expandSearch = v and true or false
+              log("Expand search " .. (Config.expandSearch and "ON" or "OFF"))
+              saveSettings()
+          end },
+    } }
+
     pcall(kit.menu.register, "FastTravelAnywhere", sections)
     log("SharedModMenu: registered " .. #sections .. " section(s) (a tab appears if the "
         .. "SharedModMenu mod is installed)")
@@ -208,4 +246,7 @@ end
 -- ----------------------------------------------------------------- banner --
 log("Loaded " .. ModVersion .. " (kit " .. tostring(kit.version) .. "): on-map teleport "
     .. (Config.onMapTeleport and "on" or "off") .. " (key " .. (rawget(_G, "__ftw_bound") or HotkeyName)
-    .. "), " .. #Locations .. " quick-travel location(s)")
+    .. "), safe landing " .. (Config.safeLanding ~= false and "on" or "off")
+    .. (Config.expandSearch ~= false and " +expand" or "")
+    .. (Config.cancelIfUnsafe ~= false and " (cancel-if-unsafe)" or "")
+    .. ", " .. #Locations .. " quick-travel location(s)")
