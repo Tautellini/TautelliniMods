@@ -66,3 +66,6 @@ tools/_*
 
 # third-party reference mod kept locally for technique study, never shipped or tracked
 G1R/TautelliniConsole/reference/
+
+# offline UFunction dump (large PDF/zip) used to find the map projection API; kept local
+G1R/reference/Gothic 1 Remake Hook Candidate Collection/
