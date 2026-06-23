@@ -34,7 +34,7 @@ return {
         -- safe; tele MOVES the player, so use a throwaway save.
         map = {
             enabled = true,
-            keys = { read = "PAGE_UP", calib = "SHIFT+PAGE_UP", tele = "SHIFT+PAGE_DOWN", clear = "CONTROL+PAGE_UP", hunt = "CONTROL+PAGE_DOWN", testmove = "ALT+PAGE_DOWN", validate = "ALT+PAGE_UP", jump = "ALT+HOME", ptele = "CONTROL+HOME" },
+            keys = { read = "PAGE_UP", calib = "SHIFT+PAGE_UP", tele = "SHIFT+PAGE_DOWN", clear = "CONTROL+PAGE_UP", hunt = "CONTROL+PAGE_DOWN", testmove = "ALT+PAGE_DOWN", validate = "ALT+PAGE_UP", jump = "ALT+HOME", ptele = "CONTROL+HOME", gread = "SHIFT+END", gtele = "CONTROL+END", gcal = "ALT+END", genum = "SHIFT+HOME" },
         },
     },
 }

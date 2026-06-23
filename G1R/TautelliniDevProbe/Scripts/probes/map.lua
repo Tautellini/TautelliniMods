@@ -668,6 +668,169 @@ return function(ctx)
         log("jump: " .. (form and ("moved via " .. form) or "move failed"))
     end
 
+    -- ------------------------------------------------- game map projection --
+    -- THE CLEAN PATH (UFunction dump 2026-06-23): /Script/G1R.MapData exposes the game's OWN
+    -- map<->world projection, which would drop the baked affine AND per-map calibration AND give city
+    -- maps for free:
+    --   GetNormalized2DPositionAndRotationFromActor(actor) -> the actor's 0..1 pos on the active map
+    --   TeleportActorToNormalized2DPosition(actor, FVector2D norm) -> teleport there (game fast-travel)
+    -- gread reads + verifies (SAFE, no move); gtele teleports to the cursor via the game func (MOVES).
+    local function gameMapData()
+        local cdo = lib("/Script/G1R.Default__MapData")
+        if isValid(cdo) then
+            local inst = try(function() return cdo:GetInstance() end)
+            if isValid(inst) then return inst, "GetInstance" end
+        end
+        local mm = firstLive("MapMain")
+        if mm then
+            local md = try(function() return mm.m_MapData end)
+            if isValid(md) then return md, "MapMain.m_MapData" end
+        end
+        local live = firstLive("MapData")
+        if isValid(live) then return live, "firstLive" end
+        return nil
+    end
+
+    -- the MapData of the CURRENTLY DISPLAYED map (area/city if that one is open, else world), so the
+    -- teleport normalizes over THAT map and not the global world. Falls back to the global instance.
+    local function activeMapData()
+        local mm = firstLive("MapMain")
+        if mm then
+            for _, wn in ipairs({ "Map_Area", "Map_World" }) do
+                local w = try(function() return mm[wn] end)
+                if isValid(w) and try(function() return w.m_IsEmpty end) == false then
+                    local md = try(function() return w.m_MapData end)
+                    if isValid(md) then return md, wn .. ".m_MapData" end
+                    md = try(function() return w.m_ActiveMapData end)
+                    if isValid(md) then return md, wn .. ".m_ActiveMapData" end
+                end
+            end
+        end
+        return gameMapData()
+    end
+
+    local function classOrName(o)
+        if not isValid(o) then return "nil" end
+        return (fullName(o) or "?") .. "  [" .. (classPath(o) or "?") .. "]"
+    end
+
+    -- genum: with a map open, list every live MapData instance + the displayed widgets' data objects,
+    -- so we can see whether a city map has its OWN MapData to teleport against. SAFE, no move.
+    local function gameEnum()
+        log("=== MAP DATA ENUM (open the map first) ===")
+        local gi = gameMapData()
+        log("GetInstance -> " .. classOrName(gi))
+        local all = try(function() return FindAllOf("MapData") end) or {}
+        log("FindAllOf('MapData'): " .. tostring(#all))
+        for _, o in ipairs(all) do if isValid(o) then log("  " .. classOrName(o)) end end
+        local mm = firstLive("MapMain")
+        if mm then
+            for _, wn in ipairs({ "Map_World", "Map_Area" }) do
+                local w = try(function() return mm[wn] end)
+                if isValid(w) then
+                    log(string.format("%s isEmpty=%s", wn, tostring(try(function() return w.m_IsEmpty end))))
+                    log("   m_MapData       = " .. classOrName(try(function() return w.m_MapData end)))
+                    log("   m_ActiveMapData = " .. classOrName(try(function() return w.m_ActiveMapData end)))
+                end
+            end
+        end
+        log("=== end ===")
+    end
+
+    local function gameMapRead()
+        log("=== GAME MAP API (read, SAFE) ===")
+        local md, how = gameMapData()
+        log("MapData instance: " .. (md and (fullName(md) .. " via " .. how) or "NOT FOUND"))
+        if not md then log("=== end ==="); return end
+        local pawn = playerPawn()
+        if not isValid(pawn) then log("no player pawn"); log("=== end ==="); return end
+        -- the func wants 3 params: (actor, outPos, outRot). Pass placeholders and read BOTH the
+        -- return values and the in-place tables. Try a few rotation types until one does not throw.
+        local forms = {
+            { "pos{X,Y}, rot 0", function() local p = { X = 0, Y = 0 }
+                return p, table.pack(md:GetNormalized2DPositionAndRotationFromActor(pawn, p, 0)) end },
+            { "pos{X,Y}, rot{}", function() local p = { X = 0, Y = 0 }
+                return p, table.pack(md:GetNormalized2DPositionAndRotationFromActor(pawn, p, {})) end },
+            { "pos{}, rot{}", function() local p = {}
+                return p, table.pack(md:GetNormalized2DPositionAndRotationFromActor(pawn, p, {})) end },
+            { "pos{X,Y}, rot{Pitch,Yaw,Roll}", function() local p = { X = 0, Y = 0 }
+                return p, table.pack(md:GetNormalized2DPositionAndRotationFromActor(pawn, p, { Pitch = 0, Yaw = 0, Roll = 0 })) end },
+        }
+        for _, f in ipairs(forms) do
+            local ok, p, packed = pcall(f[2])
+            if ok then
+                log("GetNormalized OK [" .. f[1] .. "]  pos in-place = ("
+                    .. tostring(p and p.X) .. ", " .. tostring(p and p.Y) .. ")")
+                for i = 1, (packed and packed.n or 0) do
+                    log(string.format("  ret[%d] %s = %s", i, type(packed[i]), fmt(packed[i])))
+                end
+                break
+            else
+                log("GetNormalized [" .. f[1] .. "] threw: " .. tostring(p))
+            end
+        end
+        -- the readable dot / UICustomSize is our cursor-normalize basis; compare it to the game value
+        local w
+        for _, e in ipairs((mapWidgets())) do
+            if try(function() return e[2].m_IsWorldMap end) == true then w = e[2] end
+        end
+        if w then
+            local dx = tonumber(try(function() return w.m_PlayerPosMapCorrected.X end))
+            local dy = tonumber(try(function() return w.m_PlayerPosMapCorrected.Y end))
+            local uw, uh = uiCustomSize()
+            if dx and uw then
+                log(string.format("  player dot/UICustomSize = (%.4f, %.4f)  (compare to GetNormalized above)",
+                    dx / uw, dy / uh))
+            end
+        end
+        log("=== end ===")
+    end
+
+    local function gameTele()
+        local md, how = activeMapData()
+        if not md then log("gtele: MapData instance not found"); return end
+        log("gtele: using " .. how .. " -> " .. classOrName(md))
+        local pawn = playerPawn()
+        if not isValid(pawn) then log("gtele: no pawn"); return end
+        -- cursor -> normalized (0..1) via the DPI math, no calibration (same basis as the dot above)
+        local cx, cy = cursorRaw()
+        local vw, vh = viewportSize()
+        local dpi = viewportScale()
+        local uw, uh = uiCustomSize()
+        if not (cx and vw and dpi and dpi > 0 and uw) then log("gtele: missing cursor/viewport/DPI/ui"); return end
+        local mapX = (cx - (vw - uw * dpi) / 2) / dpi
+        local mapY = (cy - (vh - uh * dpi) / 2) / dpi
+        local nx, ny = mapX / uw, mapY / uh
+        local bx, by, bz = playerWorldPos()
+        log(string.format("gtele: cursor(%.0f,%.0f) -> norm(%.4f, %.4f) via %s; from (%.0f,%.0f,%.0f)",
+            cx, cy, nx, ny, how, bx or -1, by or -1, bz or -1))
+        local ok, err = pcall(function() md:TeleportActorToNormalized2DPosition(pawn, { X = nx, Y = ny }) end)
+        if not ok then log("gtele: CALL THREW " .. tostring(err)) end
+        local ax, ay, az = playerWorldPos()
+        local moved = (ax and bx) and ((ax - bx) ^ 2 + (ay - by) ^ 2) ^ 0.5 or -1
+        log(string.format("gtele: now (%.0f, %.0f, %.0f), moved %.0f units%s",
+            ax or -1, ay or -1, az or -1, moved, ok and "" or " (call threw, see above)"))
+    end
+
+    -- gcal: cycle-teleport to KNOWN normalized points and read where we land in WORLD, to nail down
+    -- the basis TeleportActorToNormalized2DPosition uses (its norm->world transform). World is read
+    -- immediately and is reliable (the dots lag a frame, so they are not used here). Press repeatedly
+    -- (paced, throwaway save): each press jumps to the next point and logs (norm -> world).
+    local GCAL_PTS = { { 0.25, 0.25 }, { 0.75, 0.25 }, { 0.25, 0.75 }, { 0.75, 0.75 }, { 0.50, 0.50 } }
+    local function gameCal()
+        local md = gameMapData()
+        if not md then log("gcal: no MapData"); return end
+        local pawn = playerPawn()
+        if not isValid(pawn) then log("gcal: no pawn"); return end
+        local i = ((tonumber(_G.__gcal) or 0) % #GCAL_PTS) + 1
+        _G.__gcal = i
+        local nx, ny = GCAL_PTS[i][1], GCAL_PTS[i][2]
+        local ok, err = pcall(function() md:TeleportActorToNormalized2DPosition(pawn, { X = nx, Y = ny }) end)
+        local wx, wy, wz = playerWorldPos()
+        log(string.format("gcal %d/%d: norm(%.3f, %.3f) -> world(%.0f, %.0f, %.0f)%s",
+            i, #GCAL_PTS, nx, ny, wx or -1, wy or -1, wz or -1, ok and "" or (" THREW " .. tostring(err))))
+    end
+
     return {
         name = "map",
         actions = {
@@ -680,6 +843,10 @@ return function(ctx)
             { id = "validate", desc = "VALIDATE zero-cal pipeline (cursor on your dot)",         fn = validate },
             { id = "jump",     desc = "JUMP to next map-region preset (spread, no calibration)", fn = jumpPreset },
             { id = "ptele",    desc = "PORTABLE teleport: DPI-computed cursor + baked map->world (NO calib)", fn = portableTele },
+            { id = "gread",    desc = "READ game MapData + player's normalized map pos (SAFE, no move)", fn = gameMapRead },
+            { id = "gtele",    desc = "DANGER: teleport to cursor via game MapData func (throwaway save)", fn = gameTele },
+            { id = "gcal",     desc = "CALIBRATE: cycle-teleport known norm points, log world (throwaway save)", fn = gameCal },
+            { id = "genum",    desc = "ENUM live MapData instances + the open widgets' data (SAFE)", fn = gameEnum },
         },
     }
 end
