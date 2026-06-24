@@ -43,6 +43,7 @@ function Driver:reset()
     self.awaitingMove = false
     self.seen = {}           -- distinct post-move states visited, for cycle detection
     self.totalSteps = 0      -- settled steps this run (hard anti-churn cap)
+    self.varsTried = nil     -- precision variants the sweep has tried this run
     self.origInterp = nil
 end
 
@@ -62,7 +63,7 @@ end
 function Driver:toggleFast(s)
     self:freshen(s)
     if self.mode == "fast" then
-        self:finish(s, "cancelled", false)
+        self:finish(s, "cancelled", false, false) -- user cancel: never count against the lock
         return
     end
     if not s or s.stop or s.opened then
@@ -112,6 +113,7 @@ function Driver:step(s)
         if state == self.lastState then
             self.stuck = self.stuck + 1
             if self.stuck >= STUCK_LIMIT then
+                if self:trySweep(s, "no progress") then return end
                 self:finish(s, "no progress (live lock disagrees with the "
                     .. "precision variant)", false)
                 return
@@ -120,6 +122,7 @@ function Driver:step(s)
             self.stuck = 0
             self.seen[state] = (self.seen[state] or 0) + 1
             if self.seen[state] >= CYCLE_LIMIT then
+                if self:trySweep(s, "state cycling") then return end
                 self:finish(s, "lock state cycling, not converging (live lock "
                     .. "disagrees with the precision variant)", false)
                 return
@@ -135,6 +138,7 @@ function Driver:step(s)
         if self:atGoal(s) then self:finish(s, "lock solved", true); return end
         self.noMove = (self.noMove or 0) + 1
         if self.noMove >= 2 then
+            if self:trySweep(s, "no move for the state") then return end
             self:finish(s, "no move for this state (off the policy's reachable "
                 .. "set, likely a precision/variant mismatch)", false)
         end
@@ -231,9 +235,40 @@ function Driver:restoreInterp()
     self.origInterp = nil
 end
 
-function Driver:finish(s, why, success)
+-- on a "disagrees" give-up, retry the lock with the OTHER precision variants before quitting: the
+-- live lock's real pruning can differ from the precision read (some chests appear not to prune at
+-- all, whatever the skill). Tries k=0 first (least pruned, the full graph), then the rest; resets
+-- the per-attempt counters and keeps the run going from the current live state. Returns true if it
+-- switched (caller returns), false when every variant is exhausted (caller gives up for real).
+function Driver:trySweep(s, reason)
+    if not s.usePrecision then return false end
+    self.varsTried = self.varsTried or { [s.precisionK or 0] = true }
+    for k = 0, 2 do
+        if not self.varsTried[k] then
+            self.varsTried[k] = true
+            if s:usePrecision(k) then
+                self.stuck, self.noMove = 0, 0
+                self.lastState, self.awaitingMove, self.seen = nil, false, {}
+                self.phase = "idle"
+                self.log("Auto-solve: variant disagreed (" .. reason
+                    .. "), retrying as precision variant k=" .. k)
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- gaveUp (default: any non-success) marks the SESSION as "auto-solve could not solve this
+-- lock", which main reads to stop re-arming it. A user cancel passes gaveUp=false so a
+-- deliberate toggle-off never counts against the lock.
+function Driver:finish(s, why, success, gaveUp)
+    if gaveUp == nil then gaveUp = not success end
     self:restoreInterp()
-    if s then s.autopilot = nil end
+    if s then
+        s.autopilot = nil
+        if gaveUp then s.autoFails = (s.autoFails or 0) + 1 end
+    end
     self:reset()
     if success then
         self.log("Auto-solve: " .. why)

@@ -10,7 +10,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, rawset, debug = rawget, rawset, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.6"
+local ModVersion = "3.2.7"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -29,7 +29,7 @@ local MODULES = {
     "core.settings", "util.palette", "util.inflate", "util.bytes",
     "data.lockgraphs", "data.lockpolicies", "data.lockpolicies_index",
     "tries.boost", "nextmove.policy", "nextmove.geometry", "nextmove.hint",
-    "connections.connections", "autosolve.driver",
+    "connections.connections", "autosolve.driver", "autosolve.edgemap",
 }
 for _, m in ipairs(MODULES) do package.loaded[m] = nil end
 do
@@ -93,6 +93,7 @@ local Connections = tryRequire("connections.connections")
 local Tinter = tryRequire("core.tinter")
 local Session = tryRequire("core.session")
 local Driver = tryRequire("autosolve.driver")
+local EdgeMap = tryRequire("autosolve.edgemap")
 
 -- shipped solution policies: data/lockpolicies.lua (DEFLATE next-move tables per lock
 -- x precision variant, built by tools/build_policies.py) + lockpolicies_index. Shipped
@@ -147,6 +148,7 @@ local HotkeyName     = Config.nextMoveHotkey
 local ConnHotkeyName = Config.connectionsHotkey
 local DebugSolver    = Config.debugSolver == true
 local AutoKey        = Config.autoSolveHotkey
+local EdgeMapKey     = Config.debugEdgeMapHotkey
 local AutoEveryMod   = Config.autoSolveEveryModifier
 local AutoEveryDefault = Config.autoSolveEvery == true
 
@@ -154,6 +156,12 @@ local AutoEveryDefault = Config.autoSolveEvery == true
 local AutoAnimSpeed = Config.autoSolveAnimationSpeed
 if type(AutoAnimSpeed) ~= "number" then AutoAnimSpeed = 250 end
 if AutoAnimSpeed < 10 then AutoAnimSpeed = 10 elseif AutoAnimSpeed > 500 then AutoAnimSpeed = 500 end
+
+-- after this many auto-solve give-ups on the SAME live lock, main stops re-arming the driver on
+-- it. A lock whose live wiring disagrees with our precision variant can never be auto-solved, and
+-- re-driving it just breaks lockpicks and can wedge the minigame. Reopen the chest (a fresh
+-- session resets the count) or pick it manually.
+local AUTO_FAIL_CAP = 1
 
 -- POLL_MS = the loop's fixed base wake. TickRateMs = auto-solve move rate: fast
 -- solve marshals a tick every round(TickRateMs/POLL_MS) wakes. Each tick is one
@@ -236,12 +244,31 @@ local driver = (not AutoSolveBroken) and Driver.new({
     speed = AutoAnimSpeed,
 }) or nil
 
+-- DEV diagnostic (debug-gated key): maps the live lock's active edges and compares them to the
+-- shipped variants, to explain a "disagrees with the precision variant" lock. Inert until armed.
+local edgemap = (EdgeMap and not NextMoveBroken) and EdgeMap.new({
+    engine = Engine,
+    getTask = function()
+        local s = liveSession
+        if not s or s.stop or s.opened then return nil end
+        return s.task
+    end,
+    getGraph = function(name) return name and LockGraphs[name] or nil end,
+    log = log,
+}) or nil
+
 -- run fn on the game thread after ms (documented one-shot delay; the inner
 -- ExecuteInGameThread marshals onto the game thread).
 local function schedule(ms, fn)
     ExecuteWithDelay(ms, function()
         ExecuteInGameThread(function() pcall(fn) end)
     end)
+end
+
+-- a lock is "auto-capped" once the driver has given up on it AUTO_FAIL_CAP times this session;
+-- main then refuses to re-arm the driver on it (see AUTO_FAIL_CAP).
+local function autoCapped(s)
+    return s ~= nil and (s.autoFails or 0) >= AUTO_FAIL_CAP
 end
 
 -- --------------------------------------------------------------- start flow --
@@ -422,8 +449,8 @@ local function tryStart(attempt)
     log(string.format("Next-move hint: %s, %d pieces, %d connections, first hint: %s",
         lockName, s.pieceCount, #graph.connections,
         s.nextMove and ("piece " .. s.nextMove.piece) or "none"))
-    -- full-auto: drive this lock the instant it's tracked, when usable
-    if autoEvery and driver and not s.stateUnknown and s.hintGeometry then
+    -- full-auto: drive this lock the instant it's tracked, when usable (and not already given up on)
+    if autoEvery and driver and not s.stateUnknown and s.hintGeometry and not autoCapped(s) then
         pcall(function() driver:toggleFast(s) end)
     end
 end
@@ -438,11 +465,11 @@ end
 -- with the loop's own pass) -> "Abort signal received". One dispatcher = no collision. Flags are
 -- set on the keybind thread and drained on the game thread; booleans, so the cross-thread write
 -- is safe. The per-key 0.3s debounce below still kills held-key repeat.
-local Pending = { hint = false, conn = false, auto = false, every = false }
+local Pending = { hint = false, conn = false, auto = false, every = false, diag = false }
 local lastToggle = 0
 local function cancelDriverFor(s)
     if driver and s and not s.stop and driver:running() then
-        driver:finish(s, "stopped: a display was toggled", false)
+        driver:finish(s, "stopped: a display was toggled", false, false) -- UI cancel, not a give-up
     end
 end
 
@@ -468,10 +495,27 @@ local function doConnToggle()
     if not ok then log("Connection toggle error: " .. tostring(err)) end
 end
 
--- F6: solve the current lock now (or cancel an in-progress solve)
+-- F6: solve the current lock now (or cancel an in-progress solve). Refuse a re-arm once the
+-- driver has given up on this lock: re-driving a lock whose live wiring disagrees with our data
+-- breaks lockpicks and can wedge the minigame (reopening the chest resets the count).
 local function doAutoToggle()
     if not driver then return end
-    pcall(function() driver:toggleFast(liveSession) end)
+    local s = liveSession
+    if not driver:running() and autoCapped(s) then
+        log("Auto-solve: '" .. tostring(s.lockName) .. "' could not be solved (the live lock "
+            .. "disagrees with our data). Pick it manually, or reopen the chest to retry.")
+        return
+    end
+    pcall(function() driver:toggleFast(s) end)
+end
+
+-- F10 (debug only): map the live lock's edges to explain a "disagrees" lock (see edgemap.lua)
+local function doEdgeMap()
+    if not edgemap then return end
+    local s = liveSession
+    if not s or s.stop then log("EdgeMap: no active lock"); return end
+    if driver and driver:running() then log("EdgeMap: stop auto-solve (F6) first"); return end
+    edgemap:start(s)
 end
 
 -- Shift+F6: flip full-auto-every-lock, arming/cancelling the current lock to match
@@ -483,7 +527,7 @@ local function doEveryToggle()
         local s = liveSession
         if autoEvery then
             if s and not s.stop and not s.opened and not s.stateUnknown
-                and s.hintGeometry and not driver:running() then
+                and s.hintGeometry and not driver:running() and not autoCapped(s) then
                 driver:toggleFast(s)
             end
         elseif driver:running() then
@@ -555,6 +599,23 @@ elseif driver and type(AutoKey) == "string" and AutoKey ~= "" then
         .. "', auto-solve disabled")
 end
 
+-- DEV diagnostic key, only when debugSolver is on: maps the live lock's edges. Flag-only like the
+-- others; the session loop drains Pending.diag on its one game-thread pass.
+local lastEdgeMap = 0
+if DebugSolver and edgemap and type(EdgeMapKey) == "string" and EdgeMapKey ~= "" then
+    if Key[EdgeMapKey] then
+        pcall(RegisterKeyBind, Key[EdgeMapKey], function()
+            local now = os.clock()
+            if now - lastEdgeMap < 0.3 then return end
+            lastEdgeMap = now
+            Pending.diag = true
+        end)
+        log("Debug: edge-map diagnostic armed on " .. EdgeMapKey)
+    else
+        log("ERROR: unknown debugEdgeMapHotkey '" .. EdgeMapKey .. "', edge-map diagnostic disabled")
+    end
+end
+
 
 -- ------------------------------------------------------------------- input --
 -- selection tracking off the task's Up/Down handlers (keyboard AND controller). Tiny
@@ -585,56 +646,32 @@ local function retryPendingHooks()
 end
 
 if not NextMoveBroken then
-    -- NOTE: the four directional press hooks (Up/Down/Left/Right) are intentionally NOT
-    -- registered. The auto-solve driver presses those keys, so hooking them made the game
-    -- fire our own hooks REENTRANTLY inside the game-thread tick, tripping UE4SS's
-    -- deferred-queue abort (#1180, "Abort signal received" mid-solve). They were redundant:
-    -- selection is polled every tick (selSync) and every driver step (resyncSelection), and
-    -- the move-press handler was a no-op. Open/exit signals below fire from the GAME, rarely,
-    -- so they stay.
-    -- BackPressed = player exited: stop the session and any solve NOW, before the task
-    -- tears down, so nothing presses a dying task.
+    -- We register NO hook on any UFunction the auto-solver triggers. The driver presses
+    -- Up/Down/Left/Right, and those presses run the game's turn/open logic synchronously, so a
+    -- hook on a driven function fires REENTRANTLY: the game calls back into the SAME Lua state
+    -- to run our hook while UE4SS is still mid-flight executing our queued async tick
+    -- (process_simple_actions). That corrupts the shared Lua stack and aborts on the next
+    -- queued action ("Abort signal received", #1180), nearly instantly after a lock opens. This
+    -- already cost us the four directional hooks. The open hooks (TryOpenLock, MemorizeLockpick)
+    -- had the SAME flaw, since the driver's winning press is what fires them, so they are gone
+    -- too. Open detection is now the session's own settled measurement (every pin at the bar
+    -- column = open; see session.lua), which re-enters nothing.
+    --
+    -- BackPressed is the ONE safe hook: we never press Back, so it fires only on a real player
+    -- exit from the game's own input frame, never nested inside our callback. It stops the
+    -- session and any solve at once, before the task tears down, so nothing presses a dying task.
     tryHook("/Script/G1R.AbilityTask_LockPick:BackPressed", function()
         pcall(function()
             local s = liveSession
             if not s or s.stop then return end
             if driver and driver:running() then
-                driver:finish(s, "minigame exited by player", false)
+                driver:finish(s, "minigame exited by player", false, false) -- player exit, not a give-up
             end
             s.stop = true
             liveSession = nil
             if DebugSolver then log("solver: BackPressed exit, session stopped") end
         end)
     end)
-    tryHook("/Script/G1R.AbilityTask_LockPick:TryOpenLock", function()
-        pcall(function()
-            local s = liveSession
-            if s and not s.stop then
-                s.openSignalT = os.clock()
-                if DebugSolver then log("solver: TryOpenLock fired") end
-            end
-        end)
-    end)
-    -- authoritative open signals (idempotent). GameplayAbilityOpen:Server_SuccessLockEvent
-    -- was removed in the 2026-06-12 update; the Open success still arrives via its
-    -- NetMulticast_OnSetLockUnlocked.
-    local function onOpenSignal(src)
-        local s = liveSession
-        if s and not s.stop then
-            s.openSignalT = os.clock()
-            s.opened = s.opened or os.clock()
-            if DebugSolver then log("solver: OPEN signal: " .. src) end
-        end
-    end
-    -- Open signal: ONLY the AbilityTask_LockPick function, which fires solely during a real
-    -- minigame. The GameplayAbilityOpen/Door NetMulticast/Success/Fail hooks were dropped:
-    -- they fire on EVERY container/door interaction, and UE4SS crashes marshaling that
-    -- dispatch into Lua when opening an already-unlocked chest (the chest-open AV, before any
-    -- of our code runs). MemorizeLockpick plus the session's own settle detection cover open
-    -- detection; pick-break re-scramble is left to the session. Net: we hook nothing outside
-    -- an actual minigame.
-    tryHook("/Script/G1R.AbilityTask_LockPick:MemorizeLockpick",
-        function() pcall(onOpenSignal, "MemorizeLockpick") end)
 end
 
 -- world change: kill any session without touching stored object wrappers, and drop the
@@ -710,6 +747,7 @@ if not NextMoveBroken then
         if Pending.conn then Pending.conn = false; pcall(doConnToggle) end
         if Pending.auto then Pending.auto = false; pcall(doAutoToggle) end
         if Pending.every then Pending.every = false; pcall(doEveryToggle) end
+        if Pending.diag then Pending.diag = false; pcall(doEdgeMap) end
         local s = liveSession
         if seenSession and (s ~= seenSession or seenSession.stop) then
             local ended = seenSession
@@ -750,7 +788,7 @@ if not NextMoveBroken then
             end
         end
         if seenSession and (s ~= seenSession or seenSession.stop) then due = true end
-        if Pending.hint or Pending.conn or Pending.auto or Pending.every then due = true end
+        if Pending.hint or Pending.conn or Pending.auto or Pending.every or Pending.diag then due = true end
         if not due then return false end
         ticking = true
         ExecuteInGameThread(function()
@@ -788,7 +826,7 @@ if kit.menu and kit.menu.register then
         local s = liveSession
         if v then
             if s and not s.stop and not s.opened and not s.stateUnknown
-                and s.hintGeometry and not driver:running() then
+                and s.hintGeometry and not driver:running() and not autoCapped(s) then
                 pcall(function() driver:toggleFast(s) end)
             end
         elseif driver:running() then

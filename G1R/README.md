@@ -50,7 +50,11 @@ Hard-won facts about this game's tech. Read before writing any mod code.
   hooks on AbilityTask_LockPick:UpPressed/DownPressed/LeftPressed/
   RightPressed fire reliably for keyboard AND controller input
   (verified in-game). Rule of thumb: hook G1R natives only where the
-  caller is the engine, never where the caller is script logic. An
+  caller is the engine, never where the caller is script logic, AND
+  never where YOUR OWN code is the originating caller even via the
+  engine (a hook on a UFunction your driver presses fires reentrantly
+  inside your async tick and stomps the shared Lua stack; see the
+  #1180 note below). An
   earlier load crash blamed on these hooks did not reproduce and likely
   belonged to the 2026-06-06 instability (frame generation, stale UE4SS
   after a game patch)
@@ -101,3 +105,21 @@ Hard-won facts about this game's tech. Read before writing any mod code.
   the per-mod compliance audit: `UE4SS-Lua-Best-Practices.md`. Dumps:
   `%LOCALAPPDATA%/G1R/Saved/Crashes/UECC-*/` and `%LOCALAPPDATA%/CrashDumps/`
   (parse with `tools/parse_minidump.py`)
+- SELF-TRIGGERED-HOOK REENTRANCY is the #1180 trigger we kept missing (measured
+  2026-06-24, the dense-lock Old Camp castle, `process_simple_actions ->
+  get_function_ref` abort on nearly every auto-solved lock). The one-game-thread
+  driver is NECESSARY BUT NOT SUFFICIENT. The OTHER reentrancy is a `RegisterHook`
+  on a UFunction your OWN code triggers. LockpickSettings drives a lock by calling
+  `obj:RightPressed()` from inside its queued tick; that press runs the game's open
+  logic synchronously, the game then dispatches `TryOpenLock` / `MemorizeLockpick`,
+  and UE4SS re-enters the SHARED `lua_newthread` stack to run our hook WHILE
+  `process_simple_actions` is still mid-callback. The stomp surfaces as the next
+  action's `get_function_ref` reading a non-function. It looks innocent because the
+  hook fires "from the engine" (true) and "rarely" (false: it fires on every lock
+  the driver opens). The fix is not to drop `LoopAsync`/`ExecuteInGameThread` and not
+  to drive everything off a `PlayerTick` hook: it is to NEVER hook a UFunction your
+  own driven input triggers, and read that state by MEASUREMENT instead (we detect
+  open from the settled all-pins-at-the-bar-column read). This is the same lesson
+  that earlier removed the Up/Down/Left/Right hooks, applied to the open hooks.
+  Manual play never hit it: the player's keypress dispatches those hooks from the
+  engine's own input frame, not nested inside our async callback.

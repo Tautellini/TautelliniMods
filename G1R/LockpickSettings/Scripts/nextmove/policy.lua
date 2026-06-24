@@ -67,8 +67,17 @@ function Policy:open(lockName, precision)
     if not v then return nil end
     local comp = self.readBlob(v[1], v[2])
     if not comp or #comp == 0 then return nil end
-    local arr = Inflate.inflate(comp)
-    if not arr or #arr ~= 7 ^ e.n then return nil end -- size mismatch = corrupt
+    -- Pause automatic GC across the DEFLATE inflate. inflate builds a transient table of one
+    -- integer PER OUTPUT BYTE (117k entries for a 6-piece lock, millions for a big one). On the
+    -- game thread that huge young-allocation otherwise triggers a mid-build collection that races
+    -- UE4SS's action-queue drain -- the residual #1180 abort, and it can corrupt the inflate's own
+    -- result (the live "policy not available" while the same blob inflates fine offline). Stopping
+    -- GC for the inflate keeps the collection out of that queue-critical window; restart resumes the
+    -- generational mode set at boot. restart always runs (no early return between).
+    pcall(collectgarbage, "stop")
+    local okI, arr = pcall(Inflate.inflate, comp)
+    pcall(collectgarbage, "restart")
+    if not okI or not arr or #arr ~= 7 ^ e.n then return nil end -- error / size mismatch = corrupt
     local place = {}
     local p = 1
     for id = 0, e.n - 1 do place[id] = p; p = p * 7 end

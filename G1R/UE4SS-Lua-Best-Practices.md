@@ -124,8 +124,12 @@ do the minimum and hand off to the game thread (see Periodic and deferred work).
 - Known engine bug: the internal action queue behind all of these had a reentrancy defect
   (RE-UE4SS issue #1180, fixed in PR #1201, 2026-06-14) that can crash under heavy or
   overlapping deferred work on builds before the fix. The abort happens in UE4SS C++ and
-  `pcall` cannot catch it. The remedy is to update UE4SS; this is an engine bug, not
-  something to architect the mod around.
+  `pcall` cannot catch it. Updating UE4SS is the real remedy, but on a pinned older build
+  you DO architect around it: one long-lived game-thread driver, keybinds flag-only, no
+  nested deferral, and -- the part we kept missing (2026-06-24) -- never `RegisterHook` a
+  UFunction your own code triggers. Your driver pressing `RightPressed()` from inside a
+  queued callback re-dispatches the hooked open functions and re-enters the shared Lua stack
+  mid-callback. Read that state by measurement instead. See `G1R/README.md`.
 
 ## Hot reload (CTRL+R)
 

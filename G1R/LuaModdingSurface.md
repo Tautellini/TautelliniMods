@@ -32,7 +32,7 @@ inventories live in `reference/` (greppable, one line per class).
   walking the chain via `GetSuperStruct` to do so) NATIVE-CRASHES on a live
   `/Script/G1R` instance (measured 2026-06-19 on AbilityTask_LockPick: AV inside
   the iteration, pcall/try cannot catch it). Calling a known UFunction BY NAME is
-  fine (that is how UpPressed / TryOpenLock are invoked); only the ENUMERATION is
+  fine (that is how UpPressed / RightPressed are invoked); only the ENUMERATION is
   banned. Get function names OFFLINE from `UE4SS_ObjectDump.txt` (914 of 1680 G1R
   classes carry native functions), never by live ForEachFunction.
 - Safe event sources: `NotifyOnNewObject` (works on AS classes too),

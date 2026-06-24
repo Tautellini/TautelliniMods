@@ -95,6 +95,17 @@ local function measureRots(s, now)
     end
 end
 
+-- open == every pin aligned to the bar column (absolute rotation 0). The session derives
+-- "opened" from this settled read, NOT from an engine hook: a hook on the open UFunction fires
+-- inside the driver's winning press and re-enters the Lua VM (the #1180 abort), this does not.
+-- Same expression the driver's atGoal trusts.
+local function isOpenArrangement(s)
+    for id = 0, s.pieceCount - 1 do
+        if s.rotStart[id] + s.sign * (s.steps[id] or 0) ~= 0 then return false end
+    end
+    return true
+end
+
 -- the open arrangement should measure all-0; a mismatch is the canary for a broken
 -- read path (log it, nothing to fix live).
 local function verifyOpenState(s)
@@ -388,6 +399,15 @@ function Session:tick()
         measureRots(s, now)
         if s.flags.nextMove and not s.autopilot then s.nextMove = planMove(s) end
     end
+    -- open detection by measurement, replacing the removed TryOpenLock/MemorizeLockpick hooks
+    -- (they fired inside the driver's winning press and re-entered the Lua VM -- the #1180
+    -- abort). Hook-free, covers manual and auto alike. Gated on hintGeometry so a state-unknown
+    -- lock (no axis, steps never measured) cannot false-positive.
+    if s.hintGeometry and not s.opened and isOpenArrangement(s) then
+        s.opened = os.clock()
+        s.openSignalT = s.opened
+        if s.debug then s.log("solver: open detected (all pins at the bar column)") end
+    end
     -- first hint after open: plan once, on this settled session-loop tick (NOT the open
     -- dispatch). ensurePolicy inflates here, clear of the chest-open marshaling window.
     if s.needInitialPlan and not s.autopilot then
@@ -419,6 +439,19 @@ end
 
 -- inflate-on-first-use guard the driver calls before its first step (off the open dispatch)
 function Session:ensurePolicy() return ensurePolicy(self) ~= nil end
+
+-- swap this lock's active precision variant (re-inflate at k) and adopt it. The driver's variant
+-- sweep calls this when the read variant disagrees with the live lock: the actual pruning can
+-- differ from the precision read (measured: some locks read k>0 but behave like a lower k).
+-- Returns true if the variant loaded.
+function Session:usePrecision(k)
+    if not (self.policySource and self.lockName) then return false end
+    local okp, lock = pcall(function() return self.policySource:open(self.lockName, k) end)
+    if not (okp and lock) then return false end
+    self.lockPolicy = lock
+    self.precisionK = k
+    return true
+end
 
 -- restore every painted piece to default; the driver calls this on engage so the
 -- lock looks untouched while solving

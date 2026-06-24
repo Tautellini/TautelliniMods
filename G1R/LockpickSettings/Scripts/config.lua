@@ -39,4 +39,10 @@ return {
 
     -- Log solver internals to UE4SS.log (a few lines per lock).
     debugSolver = true,
+
+    -- DEV diagnostic: when debugSolver is on, this key maps the live lock's active edges and
+    -- compares them to the shipped variants (explains a "disagrees with the precision variant"
+    -- lock). "" disables. It drives reversible probe moves on the open lock, so use a save you
+    -- do not mind poking.
+    debugEdgeMapHotkey = "F10",
 }
