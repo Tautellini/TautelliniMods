@@ -20,6 +20,10 @@ T.add("available() reflects ModRef presence", function()
     T.ok(M.available(), "ModRef is mocked")
 end)
 
+T.add("exposes an integer bridge API version", function()
+    T.ok(type(M.VERSION) == "number" and M.VERSION >= 2, "modmenu.VERSION is an int >= 2")
+end)
+
 T.add("a flat item list registers as one untitled section", function()
     local cfg = { on = false }
     M.register("Flat", { { name = "On", kind = "bool", get = function() return cfg.on end, set = function(v) cfg.on = v end } })

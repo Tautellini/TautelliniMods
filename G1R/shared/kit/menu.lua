@@ -1,3 +1,6 @@
+-- modmenu / SharedModMenu bridge. Copy this ONE file into your mod's Scripts/ to integrate.
+-- API VERSION 2  (a plain integer, +1 on each additive spec change: v1 = original, v2 = item `desc`).
+--
 -- Cross-mod menu bridge over UE4SS shared variables (the SharedModMenu integration file).
 --
 -- Every UE4SS Lua mod runs in its OWN isolated state, so a consumer's get/set callbacks can
@@ -20,6 +23,11 @@ local tconcat = table.concat
 local sfind, ssub, sgsub = string.find, string.sub, string.gsub
 
 local M = {}
+
+-- Bridge API version (see the banner up top): a plain integer, bumped by 1 on every additive change
+-- to the item/spec format. Vendored copies expose it as `modmenu.VERSION`, so a consumer can log or
+-- assert which bridge it has, e.g. local apiVer = (modmenu.VERSION or 1). Keep in sync with the banner.
+M.VERSION = 2
 
 -- shared-variable store (guarded; ModRef is a UE4SS per-mod global)
 local function modRef() return rawget(_G, "ModRef") end

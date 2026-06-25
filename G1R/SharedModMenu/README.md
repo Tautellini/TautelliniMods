@@ -78,6 +78,13 @@ and nothing changes, and a player on a SharedModMenu older than 1.3.0 simply wil
 field is ignored, your mod still works). So you can add descriptions today without forcing anyone
 to update. `color`/`enum` kinds are planned.
 
+### Bridge version
+
+The file you copy declares its API version at the very top (`API VERSION 2`) and exposes it as
+`modmenu.VERSION`, a plain integer bumped on each additive format change (v1 was the original, v2
+added `desc`). You rarely need it, since the format degrades gracefully, but you can branch on it:
+`local v = (modmenu.VERSION or 1)`.
+
 ## Controls
 
 - Toggle with the configured key (default **F2**).
