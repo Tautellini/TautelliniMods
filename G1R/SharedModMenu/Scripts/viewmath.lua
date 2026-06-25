@@ -20,28 +20,45 @@ local VM = {}
 -- number of cells in a slider bar (|####------| style)
 VM.BAR_CHARS = 12
 
--- Panel layout in viewport pixels. The num-row columns are spaced so the [-] / bar / [+] click
--- zones never overlap (there is a gap between each), which is what makes a click on the bar's left
--- edge set the value instead of falling through to [-]:
---   [-] 234..258 | bar 266..378 | value 390..436 | [+] 446..470
+-- Fixed layout constants in viewport pixels. The item-row COLUMNS (name width, [-], bar, [+],
+-- value, description) are computed per section by VM.layout into lay.cols, because the name width
+-- now fits the section and the panel grows to fit descriptions. render and hitZone both read
+-- lay.cols, so the draw and the hit-test can never drift. The gaps below keep the [-] / bar / [+]
+-- click zones from overlapping (a click on the bar's left edge sets the value, not a step down).
 local L = {
     panelX = 50, panelY = 58,
-    closeW = 40, closeH = 18, closeY = 60,
-    modTabY = 68, tabH = 20, tabX0 = 60,
-    tabRowStep = 24,   -- vertical pitch when a tab row collapses onto the next
-    tabGap = 6,        -- horizontal gap between two tabs in a row
-    charW = 8.5,       -- approx px per char at the menu font, over-estimated so tabs never collide
-    tabPad = 10,       -- horizontal padding inside a tab on top of its text width
+    closeW = 28,       -- the [X] button; its Y / H are derived below to sit in the mod-tab row
+    modTabY = 68, tabH = 28, tabX0 = 60,
+    tabRowStep = 32,   -- vertical pitch when a tab row collapses onto the next
+    tabGap = 8,        -- horizontal gap between two tabs in a row
+    charW = 8.5,       -- approx px per char at the menu font, over-estimated so text never collides
+    tabPad = 22,       -- horizontal padding inside a tab on top of its text width
     tabNameMax = 28,   -- a tab name is ellipsized to this many chars so one long name can't dominate
-    maxPanelW = 1200,  -- the panel never grows wider than this (tab rows collapse to stay within it)
+    maxPanelW = 1200,  -- the panel never grows wider than this (tab rows collapse, descriptions clip)
     maxPanelH = 800,   -- the panel never grows taller than this (items page within it)
     subGap = 10,       -- gap between the mod-tab row and the sub-page row (a divider sits centered in it)
-    rowGap = 12,       -- gap below the tab blocks before the first item row (a divider sits centered in it)
-    rowH = 22, markX = 60, nameX = 78, nameW = 150,
-    decX = 234, barX = 266, barW = 112, valX = 390, valW = 46, incX = 446, colW = 24,
+    rowGap = 14,       -- gap below the tab blocks before the first item row (a divider sits centered in it)
+    pad = 12,          -- panel inner padding / gutter
+    rowH = 24,
+    markX = 60,        -- left gutter; the selection edge sits here
+    nameX = 78,
+    minNameW = 120, maxNameW = 300,  -- the name column fits the section, clamped to this range
+    nameGap = 18,      -- name column to the first control
+    colW = 24,         -- [-] / [+] button width
+    decBarGap = 8,     -- [-] to the bar
+    barW = 120,        -- slider track width (CONSTANT, so the bar never changes length)
+    barH = 10,         -- slider track thickness
+    barIncGap = 12,    -- bar to [+]
+    incValGap = 14,    -- [+] to the value readout
+    valW = 56,         -- numeric value readout width
+    valDescGap = 22,   -- value (or toggle) to the description column
+    toggleW = 66,      -- [ ON ] / [ OFF ] / [ RUN ] control width
+    maxDescW = 460,    -- description column width cap; longer text ellipsizes
+    brkLen = 14, brkW = 2, brkInset = 5,  -- corner-bracket arm length / thickness / inset from the edge
 }
--- item names are ellipsized to clear the value columns (the gap from the name to the [-] column)
-L.itemNameMax = floor((L.decX - L.nameX - 8) / L.charW)
+-- the [X] sits in the mod-tab row, right-aligned and the same height as a tab
+L.closeY = L.modTabY
+L.closeH = L.tabH
 -- a tab row fills names up to this width then collapses to a new row; sized so the panel (left
 -- offset + tabs + the [X] reserve) never passes maxPanelW.
 L.maxRowW = L.maxPanelW - (L.tabX0 - L.panelX) - L.closeW - 12
@@ -78,12 +95,15 @@ end
 
 -- The full computed layout for one frame. Inputs describe the view; outputs are every position
 -- render.lua draws at and hitZone tests against, so the two can never drift.
---   spec = { modNames = {..}, subNames = {..}, showSub = bool, itemCount = n }
+--   spec = { modNames = {..}, subNames = {..}, showSub = bool, items = {..} }
+-- `items` is the current section's list, used for the name width, the description width and whether
+-- any row carries a slider. spec.itemCount is still honoured for count-only callers (e.g. paging).
 function VM.layout(spec)
     local modNames  = spec.modNames or {}
     local showSub   = spec.showSub and true or false
     local subNames  = showSub and (spec.subNames or {}) or {}
-    local itemCount = max(spec.itemCount or 0, 0)
+    local items     = spec.items or {}
+    local itemCount = spec.itemCount or #items
 
     local modRects, modBottom, modRight = flow(modNames, L.modTabY)
     local subTabY = modBottom + L.subGap
@@ -91,6 +111,33 @@ function VM.layout(spec)
     if showSub then subRects, subBottom, subRight = flow(subNames, subTabY) end
 
     local rowTop = (showSub and subBottom or modBottom) + L.rowGap
+
+    -- item columns: the name fits the widest name in this section (clamped), every control lines up
+    -- under it, and the description sits past the controls. A section with no numeric row reserves
+    -- no slider/value run, so its description tucks in right after the toggle.
+    local widestName, widestDesc, hasNum = 0, 0, false
+    for _, it in ipairs(items) do
+        local nlen = #tostring(it.name or "")
+        if nlen > widestName then widestName = nlen end
+        if it.kind == "num" then hasNum = true end
+        if type(it.desc) == "string" and it.desc ~= "" and #it.desc > widestDesc then widestDesc = #it.desc end
+    end
+    local nameW = widestName * L.charW + 6
+    if nameW < L.minNameW then nameW = L.minNameW elseif nameW > L.maxNameW then nameW = L.maxNameW end
+
+    local nameX = L.nameX
+    local decX  = nameX + nameW + L.nameGap
+    local barX  = decX + L.colW + L.decBarGap
+    local incX  = barX + L.barW + L.barIncGap
+    local valX  = incX + L.colW + L.incValGap
+    local controlsRight = hasNum and (valX + L.valW) or (decX + L.toggleW)
+    local descX = controlsRight + L.valDescGap
+
+    local descW = 0
+    if widestDesc > 0 then
+        descW = widestDesc * L.charW + 6
+        if descW > L.maxDescW then descW = L.maxDescW end
+    end
 
     -- items page vertically so the panel never passes maxPanelH; one row is kept for the scroll
     -- indicator while paging.
@@ -101,15 +148,29 @@ function VM.layout(spec)
     local panelH = (rowTop - L.panelY) + shownRows * L.rowH + 14
     if panelH > L.maxPanelH then panelH = L.maxPanelH end
 
-    -- width fills to the widest tab row, leaves room for the [X] to its right, never shrinks below
-    -- the item-column area, and is capped at maxPanelW by maxRowW (the flow wrap threshold).
-    local usedRight = max(modRight, subRight, L.tabX0)
-    local panelRight = max(L.incX + L.colW + 20, usedRight + L.closeW + 12)
+    -- width fills to the widest of: the tab row (plus the [X] reserve), the control columns, and
+    -- the description column. Capped at maxPanelW; past the cap the description ellipsizes.
+    local usedRight    = max(modRight, subRight, L.tabX0)
+    local contentRight = (descW > 0) and (descX + descW) or controlsRight
+    local panelRight   = max(contentRight + L.pad, usedRight + L.closeW + 12)
+    if panelRight > L.panelX + L.maxPanelW then panelRight = L.panelX + L.maxPanelW end
     local panelW = panelRight - L.panelX
-    local closeX = panelRight - L.closeW - 2
+    -- the [X] right edge sits at the same inset from the panel as the left tab margin, so it lines
+    -- up with the content (and the border) pixel-for-pixel instead of poking out farther right.
+    local closeX = panelRight - L.closeW - (L.tabX0 - L.panelX)
+
+    local descAvailW = (panelRight - L.pad) - descX
+    if descAvailW < 0 then descAvailW = 0 end
+    local cols = {
+        markX = L.markX, nameX = nameX, nameW = nameW, nameChars = floor(nameW / L.charW),
+        decX = decX, colW = L.colW, barX = barX, barW = L.barW,
+        incX = incX, valX = valX, valW = L.valW, toggleW = L.toggleW, hasNum = hasNum,
+        descX = descX, descW = descW, descChars = floor(descAvailW / L.charW),
+    }
 
     return { modRects = modRects, subRects = subRects, subTabY = subTabY, rowTop = rowTop,
-             panelW = panelW, panelH = panelH, closeX = closeX, visible = visible, paging = paging }
+             panelW = panelW, panelH = panelH, closeX = closeX, visible = visible, paging = paging,
+             cols = cols }
 end
 
 -- Scroll offset (0-based) that keeps the selected item visible inside a window of `visible` rows.
@@ -135,12 +196,18 @@ end
 -- A num item carries a slider only when it is range-bounded.
 function VM.hasBar(it) return it.kind == "num" and it.min and it.max end
 
--- The slider's text: a filled fraction of BAR_CHARS, rounded to the nearest cell, clamped to [0,1].
-function VM.barString(it)
+-- The slider's filled fraction, clamped to [0,1]. The drawn bar uses this directly (fill width =
+-- barFrac * barW); the text bar below is kept for tests and any text-only consumer.
+function VM.barFrac(it)
     local lo, hi = it.min or 0, it.max or 1
     local frac = (hi > lo) and (((tonumber(it.value) or 0) - lo) / (hi - lo)) or 0
-    if frac < 0 then frac = 0 elseif frac > 1 then frac = 1 end
-    local filled = floor(frac * VM.BAR_CHARS + 0.5)
+    if frac < 0 then return 0 elseif frac > 1 then return 1 end
+    return frac
+end
+
+-- The slider as text: a filled fraction of BAR_CHARS, rounded to the nearest cell.
+function VM.barString(it)
+    local filled = floor(VM.barFrac(it) * VM.BAR_CHARS + 0.5)
     return "|" .. rep("#", filled) .. rep("-", VM.BAR_CHARS - filled) .. "|"
 end
 
@@ -164,10 +231,11 @@ function VM.stepValue(it, d)
 end
 
 -- New value for a num item from a click at pixel px inside its bar: pixel -> fraction -> value,
--- snapped to step and clamped. px at barX is the minimum, px at barX+barW is the maximum.
-function VM.valueFromBar(it, px)
+-- snapped to step and clamped. px at barX is the minimum, px at barX+barW is the maximum. barX/barW
+-- come from the computed columns (lay.cols), since the bar's position now depends on the section.
+function VM.valueFromBar(it, px, barX, barW)
     local lo, hi = it.min or 0, it.max or 1
-    local frac = (px - L.barX) / L.barW
+    local frac = (px - barX) / barW
     if frac < 0 then frac = 0 elseif frac > 1 then frac = 1 end
     local v = lo + frac * (hi - lo)
     if it.step and it.step > 0 then v = lo + floor((v - lo) / it.step + 0.5) * it.step end
@@ -193,6 +261,7 @@ end
 --   { zone = "item",   index = i, part = "select" | "toggle" | "dec" | "inc" | "bar" }
 function VM.hitZone(px, py, view)
     local lay = view.lay
+    local cols = lay.cols
     if px >= lay.closeX - 4 and px <= lay.closeX + L.closeW and py >= L.closeY - 2 and py <= L.closeY + L.closeH then
         return { zone = "close" }
     end
@@ -216,13 +285,25 @@ function VM.hitZone(px, py, view)
     local it = items[idx]
     local part = "select"
     if it.kind == "bool" or it.kind == "action" then
-        if px >= L.decX - 6 and px <= L.decX + 150 then part = "toggle" end
+        if px >= cols.decX - 6 and px <= cols.decX + cols.toggleW then part = "toggle" end
     elseif it.kind == "num" then
-        if px >= L.decX - 6 and px <= L.decX + L.colW then part = "dec"
-        elseif px >= L.incX - 6 and px <= L.incX + L.colW then part = "inc"
-        elseif VM.hasBar(it) and px >= L.barX and px <= L.barX + L.barW then part = "bar" end
+        if px >= cols.decX - 6 and px <= cols.decX + cols.colW then part = "dec"
+        elseif px >= cols.incX - 6 and px <= cols.incX + cols.colW then part = "inc"
+        elseif VM.hasBar(it) and px >= cols.barX and px <= cols.barX + cols.barW then part = "bar" end
     end
     return { zone = "item", index = idx, part = part }
+end
+
+-- The eight thin rectangles that make the four corner brackets for a panel rect { x, y, w, h }:
+-- each corner is a short horizontal arm and a short vertical arm (the spec-sheet frame motif).
+function VM.corners(p)
+    local x, y, w, h, n, t = p.x, p.y, p.w, p.h, L.brkLen, L.brkW
+    return {
+        { x = x,         y = y,         w = n, h = t }, { x = x,         y = y,         w = t, h = n },
+        { x = x + w - n, y = y,         w = n, h = t }, { x = x + w - t, y = y,         w = t, h = n },
+        { x = x,         y = y + h - t, w = n, h = t }, { x = x,         y = y + h - n, w = t, h = n },
+        { x = x + w - n, y = y + h - t, w = n, h = t }, { x = x + w - t, y = y + h - n, w = t, h = n },
+    }
 end
 
 return VM

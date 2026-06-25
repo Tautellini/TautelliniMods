@@ -63,13 +63,26 @@ end
 -- they can be unit-tested without the engine; render.lua keeps only the reflection/widget plumbing.
 local VM = require("viewmath")
 local L = VM.L
-local FONT = 11
--- premium-dark surface: a near-black, slightly translucent panel, with faint dividers between the
--- mod-tab row, the sub-page row, and the field list.
-local PANEL_BG  = { R = 0.02, G = 0.02, B = 0.03, A = 0.90 }
-local SEP_COLOR = { R = 0.35, G = 0.35, B = 0.42, A = 0.70 }
-local TAB_BG    = { R = 0.10, G = 0.10, B = 0.13, A = 0.92 }  -- a mod / section tab button (idle)
-local TAB_SEL   = { R = 0.24, G = 0.30, B = 0.40, A = 0.96 }  -- the active mod / section tab button
+local FONT = 12
+local ROW_TEXT_DY = 4  -- nudge row text down so it sits centered against the slider track
+local TAB_TEXT_DY = 6  -- vertical inset of a tab / close label inside its (taller) button
+
+-- Brand "Aurum" palette (premium-dark, gold accent). SetBrushColor / SetColorAndOpacity take a
+-- LINEAR FLinearColor, but the brand tokens are sRGB hex, so convert once here.
+local function lin(c) if c <= 0.04045 then return c / 12.92 end return ((c + 0.055) / 1.055) ^ 2.4 end
+local function rgb(r, g, b, a) return { R = lin(r / 255), G = lin(g / 255), B = lin(b / 255), A = a or 1 } end
+local PANEL_BG     = rgb(0x0a, 0x0a, 0x0c, 0.94)  -- near-black panel surface
+local SEP_COLOR    = rgb(0x3a, 0x3a, 0x46, 0.90)  -- neutral hairline dividers
+local BRACKET      = rgb(0x3a, 0x3a, 0x46, 0.90)  -- corner-bracket frame
+local TAB_BG       = rgb(0x19, 0x19, 0x20, 0.95)  -- an idle mod / section tab
+local TAB_SEL      = rgb(0xd4, 0xb0, 0x6a, 0.96)  -- the active tab (gold)
+local ACCENT       = rgb(0xd4, 0xb0, 0x6a, 1.00)  -- slider fill, selection edge
+local SLIDER_TRACK = rgb(0x2a, 0x2a, 0x33, 1.00)  -- the unfilled slider track
+local SEL_BG       = rgb(0x24, 0x20, 0x16, 0.55)  -- selected-row highlight (warm dark)
+local INK0         = rgb(0xec, 0xec, 0xef, 1.00)  -- primary text: names, values
+local INK1         = rgb(0xa6, 0xa6, 0xb0, 1.00)  -- secondary: descriptions, idle tab labels
+local INK2         = rgb(0x6e, 0x6e, 0x7a, 1.00)  -- tertiary: paging, hints
+local TAB_SEL_INK  = rgb(0x12, 0x0e, 0x07, 1.00)  -- dark text on the gold active tab
 
 -- ----------------------------------------------------------- data access --
 local function curMod() return S.tabs and S.tabs[S.tab] end
@@ -78,7 +91,7 @@ local function curItems() local s = curSections()[S.sub]; return s and s.items o
 local function modName() local m = curMod(); return m and m.name end
 local function tabCount() return S.tabs and #S.tabs or 0 end
 local function subCount() return #curSections() end
-local clamp, hasBar, barString, valText = VM.clampWrap, VM.hasBar, VM.barString, VM.valText
+local clamp, hasBar, barFrac, valText = VM.clampWrap, VM.hasBar, VM.barFrac, VM.valText
 
 -- send an edit to the owning mod and reflect it locally at once
 local function editItem(it, d)
@@ -89,7 +102,8 @@ local function editItem(it, d)
     menu.sendEdit(modName(), it.flat, it.kind, it.value)
 end
 local function setItemFromBar(it, px)
-    it.value = VM.valueFromBar(it, px)
+    local cols = S.lay and S.lay.cols
+    it.value = VM.valueFromBar(it, px, cols and cols.barX or L.markX, cols and cols.barW or L.barW)
     if menu then menu.sendEdit(modName(), it.flat, "num", it.value) end
 end
 
@@ -106,27 +120,34 @@ local function build()
     local function make(c) return try(function() return StaticConstructObject(c, tree) end) end
     local canvas = make(cpC); if not isValid(canvas) then return false end
     pcall(function() tree.RootWidget = canvas end)
-    local function addText(t, x, y, w, size, justify)
+    local function applyColor(tb, color)
+        if not color then return end
+        pcall(function() tb:SetColorAndOpacity({ SpecifiedColor = color, ColorUseRule = 0 }) end)
+    end
+    local function addText(t, x, y, w, size, justify, color)
         local tb = make(tbC); if not isValid(tb) then return nil end
         local ft = toText(t); if ft ~= nil then pcall(function() tb:SetText(ft) end) end
         local slot = try(function() return canvas:AddChildToCanvas(tb) end)
         if slot then pcall(function() slot:SetAutoSize(false); slot:SetPosition({ X = x, Y = y }); slot:SetSize({ X = w, Y = L.rowH }) end) end
         pcall(function() local f = tb.Font; f.Size = size or FONT; tb:SetFont(f) end)
         if justify then pcall(function() tb:SetJustification(justify) end) end
+        applyColor(tb, color)
         return tb
     end
-    local function addLine(x, y, w)  -- a thin horizontal divider (a 1px-tall Border)
-        local ln = make(brC); if not isValid(ln) then return end
-        pcall(function() ln:SetBrushColor(SEP_COLOR) end)
-        local slot = try(function() return canvas:AddChildToCanvas(ln) end)
-        if slot then pcall(function() slot:SetAutoSize(false); slot:SetPosition({ X = x, Y = y }); slot:SetSize({ X = w, Y = 1 }) end) end
-    end
-    local function addButton(r, selected)  -- a filled box behind a tab label
-        local b = make(brC); if not isValid(b) then return end
-        pcall(function() b:SetBrushColor(selected and TAB_SEL or TAB_BG) end)
+    -- a filled rectangle (Border); returns its canvas slot so the caller can move or resize it later
+    local function addBox(color, x, y, w, h)
+        local b = make(brC); if not isValid(b) then return nil end
+        pcall(function() b:SetBrushColor(color) end)
         local slot = try(function() return canvas:AddChildToCanvas(b) end)
-        if slot then pcall(function() slot:SetAutoSize(false); slot:SetPosition({ X = r.x, Y = r.y }); slot:SetSize({ X = r.w, Y = L.tabH }) end) end
+        if slot then pcall(function() slot:SetAutoSize(false); slot:SetPosition({ X = x, Y = y }); slot:SetSize({ X = w, Y = h }) end) end
+        return slot
     end
+    -- the four edges of a rectangle outline (panel frame, section buttons)
+    local function addRectBorder(color, x, y, w, h)
+        addBox(color, x, y, w, 1); addBox(color, x, y + h - 1, w, 1)
+        addBox(color, x, y, 1, h); addBox(color, x + w - 1, y, 1, h)
+    end
+    local function addButton(r, selected) addBox(selected and TAB_SEL or TAB_BG, r.x, r.y, r.w, L.tabH) end
 
     local sections, items = curSections(), curItems()
     S.showSub = #sections > 1 or (sections[1] and sections[1].title ~= nil) or false
@@ -134,64 +155,80 @@ local function build()
     for t = 1, tabCount() do modNames[t] = S.tabs[t].name end
     local subNames = {}
     if S.showSub then for s = 1, #sections do subNames[s] = sections[s].title or "Main" end end
-    local lay = VM.layout({ modNames = modNames, subNames = subNames, showSub = S.showSub, itemCount = #items })
+    local lay = VM.layout({ modNames = modNames, subNames = subNames, showSub = S.showSub, items = items })
     S.lay = lay
+    local cols = lay.cols
     S.off = VM.scrollOffset(S.sel, S.off or 0, lay.visible, #items)  -- keep the selection in view
 
-    local bg = make(brC)
-    if isValid(bg) then
-        pcall(function() bg:SetBrushColor(PANEL_BG) end)
-        local slot = try(function() return canvas:AddChildToCanvas(bg) end)
-        if slot then pcall(function() slot:SetAutoSize(false); slot:SetPosition({ X = L.panelX, Y = L.panelY }); slot:SetSize({ X = lay.panelW, Y = lay.panelH }) end) end
+    addBox(PANEL_BG, L.panelX, L.panelY, lay.panelW, lay.panelH)
+    -- a full hairline border framing the panel (in place of the internal section dividers)
+    addRectBorder(SEP_COLOR, L.panelX, L.panelY, lay.panelW, lay.panelH)
+    -- corner brackets, inset from the edge so they read as free-floating inner corners
+    local bi = L.brkInset
+    for _, c in ipairs(VM.corners({ x = L.panelX + bi, y = L.panelY + bi, w = lay.panelW - 2 * bi, h = lay.panelH - 2 * bi })) do
+        addBox(BRACKET, c.x, c.y, c.w, c.h)
     end
 
-    -- dividers: one between the mod-tab row and the sub-page row (when sub-pages exist), one below
-    -- the whole selector area, each centered in the gap the layout reserves (subGap / rowGap).
-    local lineX, lineW = L.panelX + 6, lay.panelW - 12
-    if S.showSub then addLine(lineX, (lay.subTabY - L.subGap) + math.floor(L.subGap / 2), lineW) end
-    addLine(lineX, (lay.rowTop - L.rowGap) + math.floor(L.rowGap / 2), lineW)
-
-    addText("[X]", lay.closeX, L.closeY, L.closeW, FONT, 2)
+    -- close: a square button sitting in the mod-tab row, right-aligned
+    addBox(TAB_BG, lay.closeX, L.closeY, L.closeW, L.closeH)
+    addText("X", lay.closeX, L.closeY + TAB_TEXT_DY, L.closeW, FONT, 1, INK1)
+    -- mod tabs (primary nav): solid filled buttons, gold when active
     for t = 1, tabCount() do
         local r = lay.modRects[t]
         addButton(r, t == S.tab)
-        addText(r.name, r.x, r.y + 2, r.w, FONT, 1)  -- centered label on the button
+        addText(r.name, r.x, r.y + TAB_TEXT_DY, r.w, FONT, 1, t == S.tab and TAB_SEL_INK or INK1)
     end
+    -- sub-tabs (sections, secondary nav): OUTLINED buttons, distinct from the FILLED mod buttons.
+    -- Active = gold outline + gold label; idle = a hairline outline + a muted label.
     if S.showSub then
         for s = 1, #sections do
             local r = lay.subRects[s]
-            addButton(r, s == S.sub)
-            addText(r.name, r.x, r.y + 2, r.w, FONT, 1)
+            local active = s == S.sub
+            addRectBorder(active and ACCENT or SEP_COLOR, r.x, r.y, r.w, L.tabH)
+            addText(r.name, r.x, r.y + TAB_TEXT_DY, r.w, FONT, 1, active and ACCENT or INK1)
         end
     end
 
-    S.marks, S.vals, S.bars = {}, {}, {}
+    S.vals, S.bars, S.selHi, S.selEdge = {}, {}, nil, nil
     if #items == 0 then
-        addText(tabCount() == 0 and "(no mods registered yet)" or "(no settings)", L.nameX, lay.rowTop, 320)
+        addText(tabCount() == 0 and "(no mods registered yet)" or "(no settings)", cols.nameX, lay.rowTop + ROW_TEXT_DY, 320, FONT, nil, INK1)
     else
         local off, vis = S.off, lay.visible
+        -- selected-row highlight + gold left edge: drawn once behind the rows, repositioned on nav
+        local sy = lay.rowTop + (S.sel - off - 1) * L.rowH
+        S.selHi   = addBox(SEL_BG, L.panelX + L.pad - 4, sy, lay.panelW - 2 * (L.pad - 4), L.rowH)
+        S.selEdge = addBox(ACCENT, L.panelX + 4, sy, 3, L.rowH)
         for row = 1, vis do
             local i = off + row
             local it = items[i]; if not it then break end
             local y = lay.rowTop + (row - 1) * L.rowH
-            S.marks[row] = addText(i == S.sel and ">" or "", L.markX, y, 14)
-            addText(VM.ellipsize(it.name, L.itemNameMax), L.nameX, y, L.nameW)
+            local ty = y + ROW_TEXT_DY  -- row text, centered against the slider track
+            addText(VM.ellipsize(it.name, cols.nameChars), cols.nameX, ty, cols.nameW, FONT, nil, INK0)
             if it.kind == "num" then
-                addText("[-]", L.decX, y, L.colW)
-                if hasBar(it) then S.bars[row] = addText(barString(it), L.barX, y, L.barW) end
-                S.vals[row] = addText(tostring(it.value), L.valX, y, L.valW)
-                addText("[+]", L.incX, y, L.colW)
+                addText("[-]", cols.decX, ty, cols.colW, FONT, nil, INK1)
+                if hasBar(it) then
+                    -- center the track on the text line: 2px below the geometric row center, tuned
+                    -- from screenshots (the engine renders the label a hair below dead center).
+                    local by = y + math.floor((L.rowH - L.barH) / 2) + 2
+                    addBox(SLIDER_TRACK, cols.barX, by, cols.barW, L.barH)
+                    S.bars[row] = addBox(ACCENT, cols.barX, by, barFrac(it) * cols.barW, L.barH)
+                end
+                addText("[+]", cols.incX, ty, cols.colW, FONT, nil, INK1)
+                S.vals[row] = addText(tostring(it.value), cols.valX, ty, cols.valW, FONT, nil, INK0)
             else
-                S.vals[row] = addText(valText(it), L.decX, y, 150)
+                S.vals[row] = addText(valText(it), cols.decX, ty, cols.toggleW + 24, FONT, nil, INK0)
+            end
+            if it.desc and it.desc ~= "" then
+                addText(VM.ellipsize(it.desc, cols.descChars), cols.descX, ty, cols.descW, FONT, nil, INK1)
             end
         end
         if lay.paging then
-            local y = lay.rowTop + vis * L.rowH
-            addText("[ ^ ]", L.markX, y, 30)
-            addText("[ v ]", L.markX + 34, y, 30)
+            local y = lay.rowTop + vis * L.rowH + ROW_TEXT_DY
+            addText("[ ^ ]", L.markX, y, 30, FONT, nil, INK1)
+            addText("[ v ]", L.markX + 34, y, 30, FONT, nil, INK1)
             -- floor the args: Lua 5.4's %d throws on a non-integer (LuaJIT silently truncated)
             local first, last = math.floor(off + 1), math.floor(math.min(off + vis, #items))
-            addText(string.format("%d-%d of %d", first, last, #items), L.markX + 74, y, 200, 9)
+            addText(string.format("%d-%d of %d", first, last, #items), L.markX + 74, y, 200, 10, nil, INK2)
         end
     end
 
@@ -212,7 +249,7 @@ local function showWidget(on)
     if not isValid(S.widget) then return end
     if on then pcall(function() S.widget:AddToViewport(50) end) else removeFromViewport() end
 end
-local function resetState() S.open = false; S.widget = nil; S.sig = nil; S.pc = nil; S.priorCursor = nil end
+local function resetState() S.open = false; S.widget = nil; S.sig = nil; S.pc = nil; S.priorCursor = nil; S.selHi = nil; S.selEdge = nil end
 
 local function readCursor(pc)
     local v; pcall(function() v = pc.bShowMouseCursor end)
@@ -255,6 +292,19 @@ local function setText(tb, s)
     local ft = toText(s); if ft ~= nil then pcall(function() tb:SetText(ft) end) end
 end
 
+-- resize a slider's gold fill to the item's current value (the reuse path's equivalent of redraw)
+local function setBarFill(row, it)
+    local slot = S.bars and S.bars[row]
+    local cols = S.lay and S.lay.cols
+    if slot and cols then pcall(function() slot:SetSize({ X = barFrac(it) * cols.barW, Y = L.barH }) end) end
+end
+-- move the selection highlight + gold edge to the currently selected row (no rebuild)
+local function moveSelection()
+    local sy = (S.lay and S.lay.rowTop or 0) + (S.sel - (S.off or 0) - 1) * L.rowH
+    if S.selHi   then pcall(function() S.selHi:SetPosition({ X = L.panelX + L.pad - 4, Y = sy }) end) end
+    if S.selEdge then pcall(function() S.selEdge:SetPosition({ X = L.panelX + 4, Y = sy }) end) end
+end
+
 -- the cached widget is reused only while this is unchanged; a registration / mod / sub-tab change
 -- forces one rebuild.
 local function computeSig()
@@ -268,23 +318,23 @@ local function computeSig()
     if m then
         for _, sec in ipairs(m.sections) do
             sig = sig .. "/" .. tostring(sec.title) .. ":" .. #sec.items
-            for _, it in ipairs(sec.items) do sig = sig .. "~" .. tostring(it.kind) .. tostring(it.name) end
+            for _, it in ipairs(sec.items) do sig = sig .. "~" .. tostring(it.kind) .. tostring(it.name) .. "#" .. tostring(it.desc) end
         end
     end
     return sig
 end
-local function syncRows() -- refresh the visible window's markers + values in place (reuse path)
+local function syncRows() -- refresh the visible window's values + slider fills in place (reuse path)
     local items, off = curItems(), S.off or 0
     local vis = (S.lay and S.lay.visible) or #items
     for row = 1, vis do
         local i = off + row
         local it = items[i]
         if it then
-            if S.marks[row] then setText(S.marks[row], i == S.sel and ">" or "") end
             if S.vals[row] then setText(S.vals[row], valText(it)) end
-            if S.bars and S.bars[row] then setText(S.bars[row], barString(it)) end
+            setBarFill(row, it)
         end
     end
+    moveSelection()
 end
 
 -- mods arrive in registration order (nondeterministic across isolated mod states), so show the
@@ -324,15 +374,14 @@ local function showSelection(newSel)
     if newSel < off + 1 or newSel > off + vis then  -- off the window: scroll, then redraw the rows
         S.sel = newSel; rebuild(); return
     end
-    if S.marks[rowOf(S.sel)] then setText(S.marks[rowOf(S.sel)], "") end
     S.sel = newSel
-    if S.marks[rowOf(S.sel)] then setText(S.marks[rowOf(S.sel)], ">") end
+    moveSelection()
 end
 local function showValue(i)
     local it = curItems()[i]; if not it then return end
     local row = rowOf(i)
     if S.vals[row] then setText(S.vals[row], valText(it)) end
-    if S.bars and S.bars[row] then setText(S.bars[row], barString(it)) end
+    setBarFill(row, it)
 end
 local function navItem(d) showSelection(S.sel + d) end
 local function navSub(d) if S.open and subCount() > 0 then S.sub = clamp(S.sub + d, 1, subCount()); S.sel = 1; S.off = 0; rebuild() end end

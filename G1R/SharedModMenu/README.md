@@ -15,7 +15,7 @@ this mod's `Scripts/`) into your own `Scripts/`, then:
 local ok, modmenu = pcall(require, "modmenu")
 if ok and modmenu then
   modmenu.register("MyMod", {
-    { name = "God Mode",  kind = "bool",
+    { name = "God Mode",  kind = "bool", desc = "Take no damage",
       get = function() return cfg.god end,
       set = function(v) cfg.god = v; applyGod() end },
 
@@ -61,7 +61,22 @@ modmenu.register("MyMod", {
 | `action` | `[ RUN ]` button | |
 
 `get()` returns the current value; `set(v)` applies it (your mod owns storage and persistence).
-`color`/`enum` kinds are planned.
+
+### Descriptions
+
+**New in 1.3.0.** Any item, of any kind, may carry an optional **`desc`**: a short one-line hint
+shown to the right of the value, so players understand a setting without leaving the game.
+
+```lua
+{ name = "Move Speed", kind = "num", min = 0.1, max = 5, step = 0.1,
+  desc = "How fast you run", get = ..., set = ... }
+```
+
+Keep it to a phrase. The panel widens to fit the longest description in a section, and an
+over-long one is trimmed with an ellipsis. `desc` is **fully optional and version-safe**: omit it
+and nothing changes, and a player on a SharedModMenu older than 1.3.0 simply will not see it (the
+field is ignored, your mod still works). So you can add descriptions today without forcing anyone
+to update. `color`/`enum` kinds are planned.
 
 ## Controls
 

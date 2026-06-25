@@ -9,13 +9,15 @@
 --
 -- A spec is a list of SECTIONS, each { title, items }, so one mod can present several sub-tabs.
 -- A bare item list is accepted too and wrapped as one untitled section. Item:
--- { name, kind = "bool"|"num"|"action", get, set, min, max, step }.
+-- { name, kind = "bool"|"num"|"action", get, set, min, max, step, desc }. `desc` is an optional
+-- one-line hint shown beside the value; it rides as a trailing schema field, so a menu that does
+-- not know it simply ignores it (older builds keep working, the description just does not show).
 
 local rawget, rawset = rawget, rawset
 local type, tostring, tonumber, pcall = type, tostring, tonumber, pcall
 local ipairs, pairs = ipairs, pairs
 local tconcat = table.concat
-local sfind, ssub = string.find, string.sub
+local sfind, ssub, sgsub = string.find, string.sub, string.gsub
 
 local M = {}
 
@@ -88,14 +90,20 @@ local function normalize(spec)
 end
 
 local function numOrEmpty(v) return type(v) == "number" and tostring(v) or "" end
+-- strip the GS/RS/FS framing bytes so a free-text description can never corrupt a record
+local function sanitize(s) return (sgsub(tostring(s), "[\29\30\31]", "")) end
 
 local function serializeSchema(sections)
     local secs = {}
     for _, s in ipairs(sections) do
         local parts = { s.title or "" }
         for _, it in ipairs(s.items) do
-            parts[#parts + 1] = tconcat({ tostring(it.name or "?"), tostring(it.kind or "num"),
-                numOrEmpty(it.min), numOrEmpty(it.max), numOrEmpty(it.step) }, FS)
+            local f = { tostring(it.name or "?"), tostring(it.kind or "num"),
+                numOrEmpty(it.min), numOrEmpty(it.max), numOrEmpty(it.step) }
+            -- desc is appended only when present, so the wire stays unchanged for mods that omit it
+            local d = type(it.desc) == "string" and sanitize(it.desc) or ""
+            if d ~= "" then f[6] = d end
+            parts[#parts + 1] = tconcat(f, FS)
         end
         secs[#secs + 1] = tconcat(parts, RS)
     end
@@ -110,7 +118,8 @@ local function deserializeSchema(str)
         for i = 2, #parts do
             local f = split(parts[i], FS)
             items[#items + 1] = { name = f[1] or "?", kind = f[2] or "num",
-                min = tonumber(f[3]), max = tonumber(f[4]), step = tonumber(f[5]) }
+                min = tonumber(f[3]), max = tonumber(f[4]), step = tonumber(f[5]),
+                desc = (f[6] ~= nil and f[6] ~= "") and f[6] or nil }
         end
         sections[#sections + 1] = { title = (parts[1] ~= "" and parts[1] or nil), items = items }
     end

@@ -1,7 +1,8 @@
 -- tests for viewmath  --  the menu's pure value, slider, layout and hit-test math.
 -- These are the parts that have actually broken in play (the [-]/bar click overlap, the bar fill,
--- the click-to-set clamping, tab overflow/overlap, the 1200x800 bounds and item paging), so they
--- get pinned here. viewmath names no engine globals, so it loads straight under Lua 5.4 with no mocks.
+-- the click-to-set clamping, tab overflow/overlap, the 1200x800 bounds and item paging) plus the
+-- computed item columns (name width, description growth) that drive the draw AND the hit-test, so
+-- the two can never drift. viewmath names no engine globals, so it loads straight under Lua 5.4.
 package.path = "./?.lua;../Scripts/?.lua;" .. package.path
 
 local T = require("tinytest")
@@ -11,32 +12,35 @@ local L = VM.L
 local function num(v, min, max, step)
     return { kind = "num", value = v, min = min, max = max, step = step }
 end
+local function named(name, v, min, max, step)
+    return { kind = "num", name = name, value = v, min = min, max = max, step = step }
+end
 local function names(prefix, n) local t = {} for i = 1, n do t[i] = prefix .. " " .. i end return t end
 
 -- a view with `mods` mod tabs, `subs` sub tabs (0 = none), and the given item list
 local function view(mods, subs, items)
     local showSub = subs > 0
     local lay = VM.layout({ modNames = names("Mod", mods), subNames = showSub and names("Sub", subs) or {},
-                            showSub = showSub, itemCount = #items })
+                            showSub = showSub, items = items })
     return { tabCount = mods, subCount = subs, showSub = showSub, items = items, lay = lay }
 end
 local function defView() return view(2, 2, { num(50, 0, 100, 5), { kind = "bool", value = true } }) end
 local function rowY(i, v) return v.lay.rowTop + (i - 1) * L.rowH + 4 end -- a few px into row i
 
--- ------------------------------------------------------------ bar string --
-T.add("barString is empty at min, full at max, half at midpoint", function()
-    T.eq(VM.barString(num(0, 0, 100)), "|------------|")            -- 12 cells, none filled
-    T.eq(VM.barString(num(100, 0, 100)), "|############|")          -- all filled
-    T.eq(VM.barString(num(50, 0, 100)), "|######------|")           -- 6 of 12
+-- ------------------------------------------------------------ bar fill --
+T.add("barFrac is 0 at min, 1 at max, half at the midpoint, clamped out of range", function()
+    T.eq(VM.barFrac(num(0, 0, 100)), 0)
+    T.eq(VM.barFrac(num(100, 0, 100)), 1)
+    T.eq(VM.barFrac(num(50, 0, 100)), 0.5)
+    T.eq(VM.barFrac(num(-20, 0, 100)), 0, "below min pins to 0")
+    T.eq(VM.barFrac(num(999, 0, 100)), 1, "above max pins to 1")
+    T.eq(VM.barFrac(num(5, 5, 5)), 0, "a degenerate range is empty")
 end)
 
-T.add("barString clamps out-of-range values instead of overflowing", function()
-    T.eq(VM.barString(num(-20, 0, 100)), "|------------|")
-    T.eq(VM.barString(num(999, 0, 100)), "|############|")
-end)
-
-T.add("barString tolerates a degenerate range (min == max)", function()
-    T.eq(VM.barString(num(5, 5, 5)), "|------------|")
+T.add("barString renders the text bar from the same fraction", function()
+    T.eq(VM.barString(num(0, 0, 100)), "|------------|")
+    T.eq(VM.barString(num(100, 0, 100)), "|############|")
+    T.eq(VM.barString(num(50, 0, 100)), "|######------|")
 end)
 
 -- ----------------------------------------------------------- value text --
@@ -64,28 +68,78 @@ T.add("stepValue steps by step and clamps to bounds", function()
 end)
 
 -- ----------------------------------------------------- click-to-set on bar --
+-- barX / barW now come from the computed columns, so feed them in from a real layout.
 T.add("valueFromBar maps the bar edges to min and max", function()
+    local c = defView().lay.cols
     local it = num(0, 0, 100)
-    T.eq(VM.valueFromBar(it, L.barX), 0, "left edge is min")
-    T.eq(VM.valueFromBar(it, L.barX + L.barW), 100, "right edge is max")
-    T.eq(VM.valueFromBar(it, L.barX + L.barW / 2), 50, "midpoint is the middle")
+    T.eq(VM.valueFromBar(it, c.barX, c.barX, c.barW), 0, "left edge is min")
+    T.eq(VM.valueFromBar(it, c.barX + c.barW, c.barX, c.barW), 100, "right edge is max")
+    T.eq(VM.valueFromBar(it, c.barX + c.barW / 2, c.barX, c.barW), 50, "midpoint is the middle")
 end)
 
 T.add("valueFromBar clamps clicks outside the bar", function()
+    local c = defView().lay.cols
     local it = num(0, 0, 100)
-    T.eq(VM.valueFromBar(it, L.barX - 40), 0, "left of the bar pins to min")
-    T.eq(VM.valueFromBar(it, L.barX + L.barW + 40), 100, "right of the bar pins to max")
+    T.eq(VM.valueFromBar(it, c.barX - 40, c.barX, c.barW), 0, "left of the bar pins to min")
+    T.eq(VM.valueFromBar(it, c.barX + c.barW + 40, c.barX, c.barW), 100, "right of the bar pins to max")
 end)
 
 T.add("valueFromBar snaps to step", function()
+    local c = defView().lay.cols
     local it = num(0, 0, 10, 1)
-    T.eq(VM.valueFromBar(it, L.barX + L.barW * 0.37), 4) -- ~3.7 snaps to 4
+    T.eq(VM.valueFromBar(it, c.barX + c.barW * 0.37, c.barX, c.barW), 4) -- ~3.7 snaps to 4
 end)
 
 -- ------------------------------------------------------------- ellipsize --
 T.add("ellipsize keeps short strings and truncates long ones with an ellipsis", function()
     T.eq(VM.ellipsize("Combat", 12), "Combat")
     T.eq(VM.ellipsize("abcdefghij", 5), "abcd…")
+end)
+
+-- --------------------------------------------------------------- columns --
+T.add("the name column fits the section and clamps to the range", function()
+    local tiny = VM.layout({ modNames = { "M" }, showSub = false, items = { num(1, 0, 9) } }).cols
+    T.eq(tiny.nameW, L.minNameW, "a section with no/short names floors at minNameW")
+    local mid = VM.layout({ modNames = { "M" }, showSub = false,
+        items = { named(string.rep("x", 22), 1, 0, 9) } }).cols
+    T.ok(mid.nameW > L.minNameW and mid.nameW < L.maxNameW, "a mid-length name sizes between the bounds")
+    T.lt(tiny.decX, mid.decX, "a wider name pushes the controls right")
+    local huge = VM.layout({ modNames = { "M" }, showSub = false,
+        items = { named(string.rep("x", 120), 1, 0, 9) } }).cols
+    T.eq(huge.nameW, L.maxNameW, "a very long name caps at maxNameW")
+end)
+
+T.add("a description grows the panel; no description leaves it narrower", function()
+    local none = VM.layout({ modNames = { "M" }, showSub = false, items = { named("Opt", 1, 0, 9) } })
+    local desc = VM.layout({ modNames = { "M" }, showSub = false,
+        items = { { kind = "num", name = "Opt", value = 1, min = 0, max = 9, desc = string.rep("d", 40) } } })
+    T.lt(none.panelW, desc.panelW, "a description widens the panel")
+    T.ok(desc.cols.descW > 0, "the description column has width")
+    T.ok(none.cols.descW == 0, "no description means no description column")
+end)
+
+T.add("a very long description is capped at maxPanelW and still leaves room to draw", function()
+    local lay = VM.layout({ modNames = { "M" }, showSub = false,
+        items = { { kind = "num", name = "Opt", value = 1, min = 0, max = 9, desc = string.rep("d", 400) } } })
+    T.ok(lay.panelW <= L.maxPanelW, "the panel never exceeds maxPanelW")
+    T.ok(lay.cols.descChars > 0, "there is still room to draw part of the description")
+end)
+
+T.add("a section with no numeric row tucks the description in after the toggle", function()
+    local c = VM.layout({ modNames = { "M" }, showSub = false,
+        items = { { kind = "bool", name = "Flag", value = true, desc = "hint" } } }).cols
+    T.eq(c.hasNum, false)
+    T.eq(c.descX, c.decX + L.toggleW + L.valDescGap, "no slider/value run is reserved")
+end)
+
+T.add("corners returns eight bracket segments inside the panel rect", function()
+    local p = { x = 50, y = 60, w = 400, h = 300 }
+    local cs = VM.corners(p)
+    T.eq(#cs, 8)
+    for _, r in ipairs(cs) do
+        T.ok(r.x >= p.x and r.x + r.w <= p.x + p.w, "a segment stays within the panel width")
+        T.ok(r.y >= p.y and r.y + r.h <= p.y + p.h, "a segment stays within the panel height")
+    end
 end)
 
 -- --------------------------------------------------------------- layout --
@@ -169,27 +223,30 @@ end)
 
 T.add("a num row resolves [-], the bar, [+], and a bare select by column", function()
     local v = defView()
+    local c = v.lay.cols
     local y = rowY(1, v)
-    T.eq(VM.hitZone(L.decX + 2, y, v).part, "dec", "[-] column")
-    T.eq(VM.hitZone(L.incX + 2, y, v).part, "inc", "[+] column")
-    T.eq(VM.hitZone(L.barX + 4, y, v).part, "bar", "bar interior")
-    T.eq(VM.hitZone(L.nameX + 2, y, v).part, "select", "name column just selects")
-    T.eq(VM.hitZone(L.barX + 4, y, v).index, 1, "row index")
+    T.eq(VM.hitZone(c.decX + 2, y, v).part, "dec", "[-] column")
+    T.eq(VM.hitZone(c.incX + 2, y, v).part, "inc", "[+] column")
+    T.eq(VM.hitZone(c.barX + 4, y, v).part, "bar", "bar interior")
+    T.eq(VM.hitZone(c.nameX + 2, y, v).part, "select", "name column just selects")
+    T.eq(VM.hitZone(c.barX + 4, y, v).index, 1, "row index")
 end)
 
 -- the regression that bit us: the [-] zone must not bleed onto the bar, or a click on the bar's
 -- left edge would step down by one instead of setting the value where you clicked.
 T.add("the [-] zone and the bar zone do not overlap", function()
     local v = defView()
+    local c = v.lay.cols
     local y = rowY(1, v)
-    T.eq(VM.hitZone(L.barX, y, v).part, "bar", "the bar's first pixel is bar, not dec")
-    T.lt(L.decX + L.colW, L.barX, "[-] right edge sits left of the bar's left edge")
-    T.lt(L.barX + L.barW, L.incX - 6, "bar right edge sits left of the [+] hit zone")
+    T.eq(VM.hitZone(c.barX, y, v).part, "bar", "the bar's first pixel is bar, not dec")
+    T.lt(c.decX + c.colW, c.barX, "[-] right edge sits left of the bar's left edge")
+    T.lt(c.barX + c.barW, c.incX - 6, "bar right edge sits left of the [+] hit zone")
 end)
 
 T.add("a bool row resolves its toggle zone", function()
     local v = defView()
-    local z = VM.hitZone(L.decX + 4, rowY(2, v), v)
+    local c = v.lay.cols
+    local z = VM.hitZone(c.decX + 4, rowY(2, v), v)
     T.eq(z.zone, "item")
     T.eq(z.index, 2)
     T.eq(z.part, "toggle")

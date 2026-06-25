@@ -882,28 +882,28 @@ if kit.menu and kit.menu.register then
     local sections = {}
     if not NextMoveBroken then
         sections[#sections + 1] = { title = "Hints", items = {
-            { name = "Next-Move Hint", kind = "bool",
+            { name = "Next-Move Hint", kind = "bool", desc = "Highlight the next move to make",
                 get = function() return flags.nextMove end, set = setHint },
-            { name = "Connections", kind = "bool",
+            { name = "Connections", kind = "bool", desc = "Show connected tumblers while picking",
                 get = function() return flags.connections end, set = setConn },
         } }
     end
     if not AutoSolveBroken then
         sections[#sections + 1] = { title = "Auto-Solve", items = {
-            { name = "Full Auto", kind = "bool",
+            { name = "Full Auto", kind = "bool", desc = "Auto-solve every lock you open",
                 get = function() return autoEvery end, set = setEvery },
-            { name = "Animation Speed", kind = "num", min = 10, max = 500, step = 10,
+            { name = "Animation Speed", kind = "num", min = 10, max = 500, step = 10, desc = "Pause between auto-solve moves (ms)",
                 get = function() return AutoAnimSpeed end, set = setSpeed },
-            { name = "Tick (DANGER)", kind = "num", min = 25, max = 500, step = 25,
+            { name = "Tick (DANGER)", kind = "num", min = 25, max = 500, step = 25, desc = "Solver tick (ms); lower is faster but riskier",
                 get = function() return TickRateMs end, set = setTickRate },
         } }
     end
     sections[#sections + 1] = { title = "Durability", items = {
-        { name = "Untrained", kind = "num", min = 0, max = 30, step = 1,
+        { name = "Untrained", kind = "num", min = 0, max = 30, step = 1, desc = "Extra lockpicks over vanilla, untrained skill",
             get = tierGet("untrained"), set = tierSet("untrained") },
-        { name = "Trained", kind = "num", min = 0, max = 30, step = 1,
+        { name = "Trained", kind = "num", min = 0, max = 30, step = 1, desc = "Extra lockpicks over vanilla, trained skill",
             get = tierGet("trained"), set = tierSet("trained") },
-        { name = "Master", kind = "num", min = 0, max = 30, step = 1,
+        { name = "Master", kind = "num", min = 0, max = 30, step = 1, desc = "Extra lockpicks over vanilla, master skill",
             get = tierGet("master"), set = tierSet("master") },
     } }
     pcall(kit.menu.register, "LockpickSettings", sections)

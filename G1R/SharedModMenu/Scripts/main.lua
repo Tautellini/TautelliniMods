@@ -12,7 +12,7 @@
 local print, pcall, ipairs, pairs, tostring, type = print, pcall, ipairs, pairs, tostring, type
 local rawget, rawset, os = rawget, rawset, os
 
-local ModVersion = "1.2.2"
+local ModVersion = "1.3.0"
 local function log(m) print("[SharedModMenu] " .. tostring(m) .. "\n") end
 
 -- hot-reload reset: nil our modules before re-require, and full-sweep UE4SS's path cache. Every

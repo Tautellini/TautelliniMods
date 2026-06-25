@@ -54,6 +54,23 @@ T.add("sections are published, read back with titles + flat indices + values", f
     T.eq(m.sections[2].items[1].value, 5)
 end)
 
+T.add("an item description round-trips and omits cleanly when absent", function()
+    M.register("Described", {
+        { name = "A", kind = "bool", desc = "explain A", get = function() return true end },
+        { name = "B", kind = "bool", get = function() return false end },
+    })
+    local m = tab("Described")
+    T.eq(m.sections[1].items[1].desc, "explain A", "desc survives the wire")
+    T.eq(m.sections[1].items[2].desc, nil, "no desc reads back as nil")
+end)
+
+T.add("a description is stripped of the GS/RS/FS framing bytes", function()
+    M.register("Dirty", {
+        { name = "A", kind = "bool", desc = "a\31b\30c\29d", get = function() return true end },
+    })
+    T.eq(tab("Dirty").sections[1].items[1].desc, "abcd", "control bytes removed so the record can't corrupt")
+end)
+
 T.add("sendEdit by flat index + pump applies through the local set()", function()
     local cfg = { speed = 1000, tries = 5, fired = false }
     M.register("Edits", {
