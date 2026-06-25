@@ -10,6 +10,9 @@ local math, table = math, table
 local SELECT_TICKS = 4   -- settled ticks allowed to reach the target piece
 local STUCK_LIMIT = 3    -- pressed moves with no state change before giving up
 local CYCLE_LIMIT = 3    -- a distinct post-move state revisited this often = looping
+local REFUSE_TICKS = 12  -- settled ticks to WAIT for a pressed move to take effect (input is
+                         -- async; on a low framerate it lands several ticks late) before we treat
+                         -- it as refused. Pressing again before it lands desyncs us from the lock.
 -- Absolute per-lock settled-tick backstop. The OPTIMAL solve runs up to ~92 moves from the
 -- authored start (138 from a worst-case scrambled start), measured across every lock at k=0 (the
 -- unskilled, full-graph variant, which is the longest); each move costs ~2-3 settled ticks (drive
@@ -47,6 +50,7 @@ function Driver:reset()
     self.selectTicks = 0
     self.lastState = nil
     self.stuck = 0
+    self.moveWait = 0        -- settled ticks waited so far for the pending press to take effect
     self.noMove = 0          -- consecutive settled states with no policy move
     self.awaitingMove = false
     self.seen = {}           -- distinct post-move states visited, for cycle detection
@@ -103,31 +107,19 @@ function Driver:step(s)
     if not s:ensurePolicy() then
         self:finish(s, "lock policy not available", false); return
     end
-    -- hard backstop: a settled step that finds neither the goal nor a stop must still be
-    -- bounded. Every non-finishing path below falls through to another step, so cap the
-    -- total. This alone guarantees we never spin the game-thread queue forever.
-    self.totalSteps = self.totalSteps + 1
-    if self.totalSteps > MAX_STEPS then
-        self:finish(s, "exceeded the per-lock step budget (giving up to avoid churn)", false)
-        return
-    end
-
-    -- judge the previous press: unchanged state = stuck (refused move = the live edges
-    -- disagree with the chosen variant); a distinct state we have already moved through =
-    -- the policy is cycling, never converging (same root cause, but the state changes).
+    -- judge the previous press. THE DESYNC ROOT: our input is dispatched ASYNCHRONOUSLY, so on a
+    -- low framerate the lock can take several settled ticks to actually move after we press. While
+    -- the state is unchanged the press is IN FLIGHT, not refused -- so we WAIT for it. The old code
+    -- pressed again here, queueing a SECOND identical move; when the game caught up the piece turned
+    -- twice and our tracked state desynced from the lock (the "way slower, wrong moves, crashes on
+    -- slow setups" report). Only after a generous no-change tolerance is the move really refused. A
+    -- wait returns early WITHOUT advancing the step budget below (waiting for the game is not churn).
     local state = self:stateKey(s)
     if self.awaitingMove then
-        self.awaitingMove = false
-        if state == self.lastState then
-            self.stuck = self.stuck + 1
-            if self.stuck >= STUCK_LIMIT then
-                if self:trySweep(s, "no progress") then return end
-                self:finish(s, "no progress (live lock disagrees with the "
-                    .. "precision variant)", false)
-                return
-            end
-        else
-            self.stuck = 0
+        if state ~= self.lastState then
+            -- the move took effect (the lock advanced): judge and continue
+            self.awaitingMove = false
+            self.moveWait, self.stuck = 0, 0
             self.seen[state] = (self.seen[state] or 0) + 1
             if self.seen[state] >= CYCLE_LIMIT then
                 if self:trySweep(s, "state cycling") then return end
@@ -135,9 +127,35 @@ function Driver:step(s)
                     .. "disagrees with the precision variant)", false)
                 return
             end
+        else
+            -- no change yet: WAIT for our press to land; do NOT press again
+            self.moveWait = (self.moveWait or 0) + 1
+            if self.moveWait < REFUSE_TICKS then
+                if self.debug and self.moveWait == 1 then
+                    self.log("solver: press in flight, waiting for the lock to respond")
+                end
+                return
+            end
+            -- waited the full tolerance with no change: the move really was refused
+            self.awaitingMove, self.moveWait = false, 0
+            self.stuck = self.stuck + 1
+            if self.stuck >= STUCK_LIMIT then
+                if self:trySweep(s, "no progress") then return end
+                self:finish(s, "no progress (live lock disagrees with the "
+                    .. "precision variant)", false)
+                return
+            end
         end
     end
     self.lastState = state
+
+    -- hard backstop on the WORK ticks only (a wait above already returned): a settled step that
+    -- finds neither the goal nor a stop must stay bounded so we never spin the game-thread queue.
+    self.totalSteps = self.totalSteps + 1
+    if self.totalSteps > MAX_STEPS then
+        self:finish(s, "exceeded the per-lock step budget (giving up to avoid churn)", false)
+        return
+    end
 
     local move = s:lookupMove()
     if not move then
@@ -256,7 +274,7 @@ function Driver:trySweep(s, reason)
         if not self.varsTried[k] then
             self.varsTried[k] = true
             if s:usePrecision(k) then
-                self.stuck, self.noMove = 0, 0
+                self.stuck, self.moveWait, self.noMove = 0, 0, 0
                 self.lastState, self.awaitingMove, self.seen = nil, false, {}
                 self.phase = "idle"
                 self.log("Auto-solve: variant disagreed (" .. reason
