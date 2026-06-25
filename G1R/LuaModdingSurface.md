@@ -207,11 +207,17 @@ Verified in-game 2026-06-06 (LockProbe sessions, see
   treated as a hypothesis and corrected from evidence: rail bounds,
   refused model-valid moves, planning dead ends, an unopened believed
   goal (LockpickSettings 2.6 does all four)
-- The game removes roughly LockpickPrecision connections per lock at
-  runtime, so mined graphs are upper bounds. Learn dead edges from
-  observed moved-sets: exact covers confirm a mover's edges as active,
-  and a contradiction-free unique superset candidate prunes its
-  missing edges
+- The game removes the FIRST round(LockpickPrecision.CurrentValue)
+  connections of the lock's authored-order list, computed ONCE at minigame
+  setup (confirmed 2026-06-25 by reversing UAbilityTask_LockPick in
+  G1R-Win64-Shipping.exe: it reads the AttributeSet, skip =
+  round(max(precision, 0)), then rebuilds the working connection map from
+  config.connections[skip..N); precision is at AttributeSet offset +0x50,
+  durability at +0x40). The code has NO cap, but LockpickPrecision is the
+  0/1/2 skill value -- it is not raised mid-minigame or on a broken pick --
+  so k is 0/1/2 in practice. The prune is pure first-k by precision, not a
+  per-connection selection; mined graphs are upper bounds. See
+  [[lockpick-prune-is-native-cpp]]
 - Bars visually track each piece's rotation continuously
   (m_RotationToBarOffset); they are NOT lock-in latches and carry no
   state worth reading. The slot grid is slightly nonuniform (~6.1-6.3

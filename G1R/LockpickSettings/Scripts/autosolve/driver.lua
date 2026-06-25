@@ -10,7 +10,15 @@ local math, table = math, table
 local SELECT_TICKS = 4   -- settled ticks allowed to reach the target piece
 local STUCK_LIMIT = 3    -- pressed moves with no state change before giving up
 local CYCLE_LIMIT = 3    -- a distinct post-move state revisited this often = looping
-local MAX_STEPS = 90     -- absolute per-lock settled-tick budget; final anti-churn backstop
+-- Absolute per-lock settled-tick backstop. The OPTIMAL solve runs up to ~92 moves from the
+-- authored start (138 from a worst-case scrambled start), measured across every lock at k=0 (the
+-- unskilled, full-graph variant, which is the longest); each move costs ~2-3 settled ticks (drive
+-- selection, then turn). The old 90 therefore died around ~35-45 moves -- the unskilled "limited
+-- moves" failures (a correct BFS-optimal policy never stalls or loops, so this cap was the ONLY
+-- thing killing a solvable lock). STUCK_LIMIT/CYCLE_LIMIT catch real non-progress within 3 ticks,
+-- so this stays a pure runaway backstop and can be generous: 1000 covers the 138-move worst case
+-- at ~7 ticks/move, leaving wide headroom for any selection overhead we can't measure offline.
+local MAX_STEPS = 1000
 local FAST_INTERP = 250.0 -- default solve-time animation speed; config overrides
 
 local Driver = {}
@@ -235,11 +243,12 @@ function Driver:restoreInterp()
     self.origInterp = nil
 end
 
--- on a "disagrees" give-up, retry the lock with the OTHER precision variants before quitting: the
--- live lock's real pruning can differ from the precision read (some chests appear not to prune at
--- all, whatever the skill). Tries k=0 first (least pruned, the full graph), then the rest; resets
--- the per-attempt counters and keeps the run going from the current live state. Returns true if it
--- switched (caller returns), false when every variant is exhausted (caller gives up for real).
+-- on a "disagrees" give-up, retry the lock with the OTHER precision variants before quitting.
+-- The game removes the first round(LockpickPrecision) connections (confirmed by reversing the
+-- minigame), so the SELECTION is exactly our first-k model; what can be off is the precision
+-- VALUE we read at open versus the one the game used at setup. Tries k=0 first (least pruned, the
+-- full graph), then 1, 2; resets the per-attempt counters and keeps the run going from the current
+-- live state. Returns true if it switched (caller returns), false when every variant is exhausted.
 function Driver:trySweep(s, reason)
     if not s.usePrecision then return false end
     self.varsTried = self.varsTried or { [s.precisionK or 0] = true }

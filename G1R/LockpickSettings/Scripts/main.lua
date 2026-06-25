@@ -8,9 +8,10 @@
 local ipairs, pairs, tostring, tonumber = ipairs, pairs, tostring, tonumber
 local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, rawset, debug = rawget, rawset, debug
+local setmetatable = setmetatable
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.7"
+local ModVersion = "3.2.8"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -72,12 +73,28 @@ if Settings and SavedPath then
     end
 end
 
+-- A few locks differ in case between the decoded descriptor name we key the data by and
+-- the instance name the live game reports (descriptor OC_Chest_CUTTER_Lock vs live
+-- OC_Chest_Cutter_Lock). Give a name->data table a case-insensitive fallback: exact-case
+-- keys still hit directly (the __index runs only on a miss), then the name is folded to
+-- lower case and retried once against a pre-built fold map.
+local function withCaseFallback(t)
+    if type(t) ~= "table" then return t end
+    local folded = {}
+    for k, v in pairs(t) do
+        if type(k) == "string" then folded[k:lower()] = v end
+    end
+    return setmetatable(t, { __index = function(_, k)
+        return type(k) == "string" and folded[k:lower()] or nil
+    end })
+end
+
 -- the mod SHIPS the lock graphs (data/lockgraphs.lua) as the state of truth;
 -- regenerate on a game update with tools/livegraphs.lua. No data = no hint/connections.
 local LockGraphs, okGraphs, graphSource = {}, false, "none"
 local okData, Data = pcall(require, "data.lockgraphs")
 if okData and type(Data) == "table" and next(Data) then
-    LockGraphs, okGraphs, graphSource = Data, true, "bundled"
+    LockGraphs, okGraphs, graphSource = withCaseFallback(Data), true, "bundled"
 else
     log("ERROR: bundled lock graphs (data/lockgraphs.lua) failed to load; next-move "
         .. "hint and connection display off (" .. tostring(Data) .. ")")
@@ -131,7 +148,7 @@ do
     end
     if PolicyMod and okIdx and type(Index) == "table" and blob and #blob > 0 then
         Policy = PolicyMod.new({
-            index = Index, log = log,
+            index = withCaseFallback(Index), log = log,
             readBlob = function(off, len) return blob:sub(off + 1, off + len) end,
         })
     else
@@ -393,6 +410,10 @@ local function tryStart(attempt)
     -- inflates that precomputed variant lazily on its first tick, NOT here in the open
     -- dispatch (the inflate's multi-MB GC spike must stay clear of UE4SS's open-time
     -- object marshaling; see session.ensurePolicy).
+    -- The game removes the first round(LockpickPrecision.CurrentValue) connections at minigame
+    -- setup (confirmed by reversing UAbilityTask_LockPick: skip = round(max(precision, 0)), NO cap
+    -- in code). In practice LockpickPrecision is the 0/1/2 skill value and is NOT raised mid-game
+    -- or on a broken pick, so k is 0, 1, or 2 -- the three shipped variants.
     local attrs = Engine.lockpickAttributes()
     local k = math.floor((attrs and attrs.precision or 0) + 0.5)
     if k < 0 then k = 0 elseif k > 2 then k = 2 end
@@ -495,17 +516,15 @@ local function doConnToggle()
     if not ok then log("Connection toggle error: " .. tostring(err)) end
 end
 
--- F6: solve the current lock now (or cancel an in-progress solve). Refuse a re-arm once the
--- driver has given up on this lock: re-driving a lock whose live wiring disagrees with our data
--- breaks lockpicks and can wedge the minigame (reopening the chest resets the count).
+-- F6: solve the current lock now (or cancel an in-progress solve). A manual press is a deliberate
+-- retry, so unlike the unattended full-auto re-arm it IGNORES the give-up cap: it clears autoFails
+-- and re-engages from the current live state (the lock has usually advanced since the solver
+-- stopped, so the next pass gets further). The cap still governs full-auto re-arm, so unattended
+-- solving never churns picks on an unsolvable lock; only this explicit press overrides it.
 local function doAutoToggle()
     if not driver then return end
     local s = liveSession
-    if not driver:running() and autoCapped(s) then
-        log("Auto-solve: '" .. tostring(s.lockName) .. "' could not be solved (the live lock "
-            .. "disagrees with our data). Pick it manually, or reopen the chest to retry.")
-        return
-    end
+    if s and not driver:running() then s.autoFails = 0 end
     pcall(function() driver:toggleFast(s) end)
 end
 

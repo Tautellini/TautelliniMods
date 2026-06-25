@@ -27,8 +27,11 @@ that.
 - Starting positions can equal the authored layout (locks do not
   necessarily re-scramble per attempt; a mid-session break DOES
   re-scramble)
-- The game removes roughly LockpickPrecision connections per lock at
-  runtime; the mined graphs are upper bounds
+- The game removes the FIRST round(LockpickPrecision) connections of the
+  lock's authored-order list at minigame setup (confirmed by reversing the
+  minigame). LockpickPrecision is the 0/1/2 skill value and is not raised
+  mid-minigame or on a broken pick, so this is 0, 1, or 2 connections; the
+  mined graphs are the full, unpruned set
 
 ## What it does
 

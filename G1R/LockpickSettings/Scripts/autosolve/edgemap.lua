@@ -1,11 +1,12 @@
 -- edgemap.lua -- DEV DIAGNOSTIC (debug-gated, never armed in normal play). Answers WHY a lock
--- "disagrees with the precision variant". The shipped policy assumes the game removes the FIRST
--- k connections (build_policies.py: edges = conns[k:]). This maps the lock's ACTUAL live active
--- out-edges by reversible probe moves, compares them to every shipped variant, and reports
--- whether the live lock matches a different variant (a wrong COUNT -- the precision->variant
--- mapping is off) or no first-k variant at all (a wrong SELECTION -- the game removed a
--- connection that is not the first k, or added one the export lacks). The latter means the
--- "drop first k" model cannot be right for this lock and live edge-learning is needed.
+-- "disagrees with the precision variant". Reversing the minigame CONFIRMED the prune: the game
+-- removes the FIRST round(LockpickPrecision) connections of the authored-order list, no upper cap
+-- (build_policies.py: edges = conns[k:]). This maps the lock's ACTUAL live active out-edges by
+-- reversible probe moves and compares them to every first-k prune k=0..#connections. A match at
+-- k != the precision read = a wrong COUNT (the precision value we read differs from the one the
+-- game used at setup); NO match at any k = either the probe was too constrained (pins stuck at a
+-- rail end) or this lock's MINED connection order is wrong (re-check its extraction) -- NOT a
+-- broken prune model, since the first-k rule is now confirmed.
 --
 -- Runs as a session autopilot (the driver's :step(s) contract), so it reuses the session's
 -- settle detection, rotation decode (s.steps/rotStart/sign) and selection glow. NON-DESTRUCTIVE:
@@ -192,38 +193,37 @@ function EdgeMap:report(s)
         self.log("EdgeMap: pieces not probeable from this state (every turn off-rail): "
             .. table.concat(unprobeable, ","))
     end
-    -- 2. compare to each shipped first-k variant, counting only probed movers
+    -- 2. compare to every first-k prune k=0..#conns (no 0..2 cap), counting only probed movers
     local conns = self.graph.connections
     local matches = {}
-    for k = 0, 2 do
-        if k <= #conns then
-            local exp = variantSet(conns, k)
-            local missing, extra = {}, {}
-            for key, dir in pairs(exp) do
-                local mover = tonumber(key:match("^(%d+)>"))
-                if self.observed[mover] ~= false then
-                    if obs[key] == nil then missing[#missing + 1] = key
-                    elseif obs[key] ~= dir then missing[#missing + 1] = key .. "(dir!)" end
-                end
+    for k = 0, #conns do
+        local exp = variantSet(conns, k)
+        local missing, extra = {}, {}
+        for key, dir in pairs(exp) do
+            local mover = tonumber(key:match("^(%d+)>"))
+            if self.observed[mover] ~= false then
+                if obs[key] == nil then missing[#missing + 1] = key
+                elseif obs[key] ~= dir then missing[#missing + 1] = key .. "(dir!)" end
             end
-            for key in pairs(obs) do if exp[key] == nil then extra[#extra + 1] = key end end
-            if #missing == 0 and #extra == 0 then
-                matches[#matches + 1] = k
-                self.log("EdgeMap: variant k=" .. k .. " is CONSISTENT with the probed edges"
-                    .. (k == s.precisionK and "   <- the precision read" or ""))
-            else
-                self.log(("EdgeMap: variant k=%d differs (expected-not-seen: %s | seen-not-expected: %s)"):format(
-                    k, #missing > 0 and table.concat(missing, ",") or "none",
-                    #extra > 0 and table.concat(extra, ",") or "none"))
-            end
+        end
+        for key in pairs(obs) do if exp[key] == nil then extra[#extra + 1] = key end end
+        if #missing == 0 and #extra == 0 then
+            matches[#matches + 1] = k
+            self.log("EdgeMap: variant k=" .. k .. " is CONSISTENT with the probed edges"
+                .. (k == s.precisionK and "   <- the precision read" or ""))
+        else
+            self.log(("EdgeMap: variant k=%d differs (expected-not-seen: %s | seen-not-expected: %s)"):format(
+                k, #missing > 0 and table.concat(missing, ",") or "none",
+                #extra > 0 and table.concat(extra, ",") or "none"))
         end
     end
     -- 3. headline verdict. More than one consistent variant = the probed pins do not discriminate
     -- them; a constrained start state (too many pins at the rail edge) blocked the deciding probes.
     if #matches == 0 then
-        self.log("EdgeMap: VERDICT -> WRONG SELECTION. No variant matches the live lock; the game removed a "
-            .. "connection that is not the first k (or the export lacks one it added). The 'drop first k' "
-            .. "model is wrong for this lock -- it needs live edge-learning, not a fixed variant.")
+        self.log("EdgeMap: VERDICT -> NO FIRST-K MATCH across k=0.." .. #conns .. ". The first-k prune is "
+            .. "confirmed (reversed from the minigame), so this is NOT a broken model: either the probe was "
+            .. "too constrained (pins stuck at a rail end, see below) or this lock's MINED connection order "
+            .. "differs from the game's. Re-check this lock's extraction in lock-graphs.lua, not the rule.")
     elseif #matches > 1 then
         self.log(("EdgeMap: VERDICT -> INCONCLUSIVE. Variants %s all fit the %d probed mover(s); they differ "
             .. "only on pins this start state would not let me turn (every move off-rail). Re-run from a less "
