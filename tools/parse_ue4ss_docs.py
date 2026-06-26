@@ -22,6 +22,37 @@ IN_PDF = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "UE4SS Documen
 OUT_MD = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "G1R", "reference", "UE4SS-Documentation.md")
 
 HDR = "UE4SS Documentation"
+
+# The published docs (PDF + docs.ue4ss.com) predate the game-thread Delayed Action System
+# (RE-UE4SS PR #1128) that the build exposes, so we append it to every regen.
+SUPPLEMENT = """## Delayed Action System (game-thread timers)
+
+Appended by `tools/parse_ue4ss_docs.py`, not from the source PDF: the published docs predate it.
+Sourced from RE-UE4SS PR #1128 and verified live in this build (see
+`G1R/UE4SS-Lua-Best-Practices.md`). These run the callback ON the game thread, so they need no
+nested `ExecuteInGameThread` and avoid the `LoopAsync` + `ExecuteInGameThread` reentrancy bug
+(issue #1180). Per the PR: "Mod creators should avoid using `ExecuteAsync` and `LoopAsync` in
+favor of the new system when possible." Route periodic and delayed work through `kit.async`,
+which prefers these and falls back to the async variants only where a build lacks them.
+
+ExecuteInGameThreadWithDelay(integer DelayMs, function Callback) -> handle
+- Runs Callback once on the game thread after DelayMs. Returns a cancellable handle.
+LoopInGameThreadWithDelay(integer DelayMs, function Callback) -> handle
+- Runs Callback on the game thread every DelayMs until cancelled. Returns a cancellable handle.
+ExecuteInGameThreadAfterFrames(integer Frames, function Callback) -> handle
+- Like ExecuteInGameThreadWithDelay but the delay is counted in rendered frames.
+LoopInGameThreadAfterFrames(integer Frames, function Callback) -> handle
+- Like LoopInGameThreadWithDelay but the interval is counted in frames.
+RetriggerableExecuteInGameThreadWithDelay(handle Handle, integer DelayMs, function Callback)
+- Re-arms an existing delayed action, mirroring UE's Delay node (a fresh call resets the timer).
+CancelDelayedAction(handle Handle)
+- Cancels a pending delayed action by its handle (only one created by the same mod).
+
+The system also exposes pause / unpause / query operations on a handle (per PR #1128); confirm
+their exact names against the RE-UE4SS source before relying on them, they are not used here.
+
+"""
+
 date_re = re.compile(r"^\d{2}\.\d{2}\.\d{2},\s*\d{2}:\d{2}$")
 url_re = re.compile(r"^https://docs\.ue4ss\.com/print\.html$")
 pg_re = re.compile(r"^\d+\s*/\s*\d+$")
@@ -86,11 +117,19 @@ def main():
     text = re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip() + "\n"
     header = (
         "# UE4SS Documentation (parsed reference)\n\n"
-        "Auto-extracted from `tools/UE4SS Documentation.pdf` (docs.ue4ss.com, print view).\n"
-        "Flat, searchable copy for quick reference; the PDF and docs.ue4ss.com are\n"
-        "authoritative. Regenerate with `python tools/parse_ue4ss_docs.py` after updating the\n"
-        "PDF. Lists and code blocks lose some formatting in PDF text extraction.\n\n---\n\n"
+        "Auto-extracted from `tools/UE4SS Documentation.pdf` (docs.ue4ss.com, print view), then\n"
+        "supplemented below. Flat, searchable copy; the PDF and docs.ue4ss.com are authoritative for\n"
+        "what they cover, but BOTH lag the running build. Regenerate with\n"
+        "`python tools/parse_ue4ss_docs.py` after updating the PDF.\n\n"
+        "The published docs predate the game-thread Delayed Action System (RE-UE4SS PR #1128) that\n"
+        "this build exposes and the repo uses (`kit.async`), so this script appends it as a supplement\n"
+        "(the \"Delayed Action System\" section below). Confirm any newest API against the RE-UE4SS\n"
+        "source and PRs, not only this copy. Lists and code blocks lose some formatting in extraction.\n\n---\n\n"
     )
+    if "## Global Functions" in text:
+        text = text.replace("## Global Functions", SUPPLEMENT + "## Global Functions", 1)
+    else:
+        text = text + "\n" + SUPPLEMENT
     os.makedirs(os.path.dirname(OUT_MD), exist_ok=True)
     open(OUT_MD, "w", encoding="utf-8", newline="\n").write(header + text)
     print("wrote", OUT_MD, os.path.getsize(OUT_MD), "bytes,", text.count("\n## "), "headings")

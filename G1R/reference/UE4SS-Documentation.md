@@ -1,15 +1,14 @@
 # UE4SS Documentation (parsed reference)
 
-Auto-extracted from `tools/UE4SS Documentation.pdf` (docs.ue4ss.com, print view).
-Flat, searchable copy for quick reference; the PDF and docs.ue4ss.com are authoritative
-for what they cover, but BOTH lag the running build. Regenerate the parsed body with
-`python tools/parse_ue4ss_docs.py` after updating the PDF. Lists and code blocks lose some
-formatting in PDF text extraction.
+Auto-extracted from `tools/UE4SS Documentation.pdf` (docs.ue4ss.com, print view), then
+supplemented below. Flat, searchable copy; the PDF and docs.ue4ss.com are authoritative for
+what they cover, but BOTH lag the running build. Regenerate with
+`python tools/parse_ue4ss_docs.py` after updating the PDF.
 
 The published docs predate the game-thread Delayed Action System (RE-UE4SS PR #1128) that
-this build exposes and the repo uses (`kit.async`). It is added below as a MANUAL SUPPLEMENT
-(the "Delayed Action System" section) that a plain regen will NOT reproduce; re-apply it after
-regenerating. Confirm any newest API against the RE-UE4SS source/PRs, not only this copy.
+this build exposes and the repo uses (`kit.async`), so this script appends it as a supplement
+(the "Delayed Action System" section below). Confirm any newest API against the RE-UE4SS
+source and PRs, not only this copy. Lists and code blocks lose some formatting in extraction.
 
 ---
 
@@ -625,13 +624,13 @@ AllFlags
 
 ## Delayed Action System (game-thread timers)
 
-MANUAL SUPPLEMENT, not from the source PDF. The published docs predate it; sourced from
-RE-UE4SS PR #1128 and verified live in this build (see `G1R/UE4SS-Lua-Best-Practices.md`).
-These run the callback ON the game thread, so they need no nested `ExecuteInGameThread` and
-avoid the `LoopAsync` + `ExecuteInGameThread` reentrancy bug (issue #1180). Per the PR:
-"Mod creators should avoid using `ExecuteAsync` and `LoopAsync` in favor of the new system
-when possible." Route periodic and delayed work through `kit.async`, which prefers these and
-falls back to the async variants only where a build lacks them.
+Appended by `tools/parse_ue4ss_docs.py`, not from the source PDF: the published docs predate it.
+Sourced from RE-UE4SS PR #1128 and verified live in this build (see
+`G1R/UE4SS-Lua-Best-Practices.md`). These run the callback ON the game thread, so they need no
+nested `ExecuteInGameThread` and avoid the `LoopAsync` + `ExecuteInGameThread` reentrancy bug
+(issue #1180). Per the PR: "Mod creators should avoid using `ExecuteAsync` and `LoopAsync` in
+favor of the new system when possible." Route periodic and delayed work through `kit.async`,
+which prefers these and falls back to the async variants only where a build lacks them.
 
 ExecuteInGameThreadWithDelay(integer DelayMs, function Callback) -> handle
 - Runs Callback once on the game thread after DelayMs. Returns a cancellable handle.
