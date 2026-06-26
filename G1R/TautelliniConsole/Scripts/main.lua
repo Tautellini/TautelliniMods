@@ -22,7 +22,7 @@ local ipairs, pairs, tostring = ipairs, pairs, tostring
 local type, pcall, print, require = type, pcall, print, require
 local rawget, debug, string = rawget, debug, string
 
-local ModVersion = "0.3.1-alpha"
+local ModVersion = "0.3.2-alpha"
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
@@ -102,7 +102,8 @@ if generic   then reg:addAll(generic.specs(reg)) end -- generic.help reads reg
 local RegisterConsoleCommandHandler = rawget(_G, "RegisterConsoleCommandHandler")
 local ExecuteInGameThread           = rawget(_G, "ExecuteInGameThread")
 local RegisterHook                  = rawget(_G, "RegisterHook")
-local LoopAsync                     = rawget(_G, "LoopAsync")
+-- game-thread timers (gameLoop): #1180-safe, with an internal LoopAsync fallback
+local Async                         = kit.async
 
 -- Dispatch indirection: the registered console handlers are thin and STABLE
 -- (registered once per process), and look up the CURRENT command closure here.
@@ -192,27 +193,23 @@ if RegisterHook and not _G.__TautelliniConsole_consoleHook then
         function() pcall(engine.clearCaches); trySurfaceConsole("ClientRestart") end)
 end
 
--- flight driver: this ONE LoopAsync runs movement.holdTick each frame while fly is
--- on (the authoritative-position step). We never start a second loop, so nothing
--- dangles across a hot reload. Refreshed each (re)load via _G so the STABLE loop
--- (started once) calls the current code; a `pending` guard keeps game-thread work
--- from backing up.
+-- flight driver: this ONE loop runs movement.holdTick each frame while fly is on (the
+-- authoritative-position step). We never start a second loop, so nothing dangles across a
+-- hot reload. Refreshed each (re)load via _G so the STABLE loop (started once) calls the
+-- current code. Driven through kit.async: on builds with the Delayed Action System the tick
+-- runs ON the game thread with no nested deferral; otherwise kit.async falls back to
+-- LoopAsync + ExecuteInGameThread, and serialises ticks so game-thread work never backs up.
 _G.__TautelliniConsole_flyHold = {
     active = function() return movement ~= nil and movement.isFlying() end,
     tick = function()
         if movement and engine then pcall(movement.holdTick, engine) end
     end,
 }
-if LoopAsync and ExecuteInGameThread and not _G.__TautelliniConsole_flyLoop then
+if Async and Async.gameLoop and not _G.__TautelliniConsole_flyLoop then
     _G.__TautelliniConsole_flyLoop = true
-    local pending = false
-    LoopAsync(16, function()
+    Async.gameLoop(16, function()
         local h = _G.__TautelliniConsole_flyHold
-        if h and h.active() and not pending then
-            pending = true
-            ExecuteInGameThread(function() h.tick(); pending = false end)
-        end
-        return false -- never stop
+        if h and h.active() then return h.tick end
     end)
 end
 

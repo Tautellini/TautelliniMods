@@ -118,18 +118,28 @@ do the minimum and hand off to the game thread (see Periodic and deferred work).
   marshal the work to the game thread with `ExecuteInGameThread`. Only touch game objects
   on the game thread.
 - For periodic game-thread work use `LoopInGameThreadWithDelay`; for a one-shot delay use
-  `ExecuteWithDelay` (async) or `ExecuteInGameThreadWithDelay` (game thread). `LoopAsync`
-  and `ExecuteAsync` are the older async variants and must marshal with
-  `ExecuteInGameThread` before touching game objects.
-- Known engine bug: the internal action queue behind all of these had a reentrancy defect
-  (RE-UE4SS issue #1180, fixed in PR #1201, 2026-06-14) that can crash under heavy or
-  overlapping deferred work on builds before the fix. The abort happens in UE4SS C++ and
-  `pcall` cannot catch it. Updating UE4SS is the real remedy, but on a pinned older build
-  you DO architect around it: one long-lived game-thread driver, keybinds flag-only, no
-  nested deferral, and -- the part we kept missing (2026-06-24) -- never `RegisterHook` a
-  UFunction your own code triggers. Your driver pressing `RightPressed()` from inside a
-  queued callback re-dispatches the hooked open functions and re-enters the shared Lua stack
-  mid-callback. Read that state by measurement instead. See `G1R/README.md`.
+  `ExecuteInGameThreadWithDelay` (game thread) or `ExecuteWithDelay` (async). The game-thread
+  timers run the callback ON the game thread, so they need NO nested `ExecuteInGameThread`.
+  `LoopAsync` and `ExecuteAsync` are the deprecated async variants and must marshal with
+  `ExecuteInGameThread` before touching game objects. The game-thread timers have shipped in
+  this UE4SS for a long time (confirmed 2026-06-26); the repo just built around `LoopAsync`
+  historically and only adopted them once the failure mode below forced the issue.
+- Use the kit: `kit.async.gameLoop(ms, decide)` and `kit.async.gameDelay(ms, fn)` (kit 1.7.0+)
+  prefer the game-thread timers and fall back to `LoopAsync` + `ExecuteInGameThread` where a
+  build lacks them. `decide()` returns the work function when a tick is due, `true` to stop the
+  loop, or nil. Route new periodic and delayed work through these, not raw `LoopAsync`.
+- Known engine bug: the deferred action queue behind `LoopAsync` + `ExecuteInGameThread` has a
+  reentrancy defect (RE-UE4SS issue #1180). The trigger is nested deferral: feeding that
+  cross-thread queue from inside its own drain. On older builds it ABORTS the game (UE4SS C++,
+  `pcall` cannot catch it). On the current build the abort is gone, but the failure is not: UE4SS
+  catches the bad callback ref (`[Lua::Registry::get_function_ref] Ref was not function ...
+  removing hook!`) and drops the SHARED Lua engine-tick hook (`UE4SS.EngineTick.LuaModImpl`),
+  which silences EVERY mod's loops and timers until a restart. You cannot catch that from Lua
+  either, it is above the Lua frame. The real fix is to not nest: run periodic and delayed work
+  on the game thread (the timers above, via `kit.async`). Also never `RegisterHook` a UFunction
+  your own code triggers, the part we kept missing (2026-06-24). Your driver pressing
+  `RightPressed()` from inside a queued callback re-dispatches the hooked functions and re-enters
+  the shared Lua stack mid-callback. Read that state by measurement instead. See `G1R/README.md`.
 
 ## Hot reload (CTRL+R)
 
@@ -144,4 +154,6 @@ do the minimum and hand off to the game thread (see Periodic and deferred work).
 
 - RE-UE4SS source and docs: `github.com/UE4SS-RE/RE-UE4SS`, `docs.ue4ss.com`
 - Deferred-queue stability bug and fix: issue #1180, PR #1201 (with #1268 / #1269 / #1271)
+- Delayed Action System (game-thread timers): PR #1128 (`LoopInGameThreadWithDelay`,
+  `ExecuteInGameThreadWithDelay`, and the `*AfterFrames` variants)
 - `UEHelpers.lua` (the shared cached-getter access layer; the reference for engine access)

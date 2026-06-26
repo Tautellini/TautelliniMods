@@ -21,7 +21,7 @@ local type, pcall, print, require, next = type, pcall, print, require, next
 local rawget, rawset, debug = rawget, rawset, debug
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "0.1.0-alpha"
+local ModVersion = "0.1.1-alpha"
 
 -- ---------------------------------------------------- vendored shared kit --
 -- This mod ships its OWN copy of the kit under <Mod>/shared/kit/ (deploy.ps1
@@ -52,7 +52,7 @@ do
     end
 end
 
--- Reload generation token. A permanent heartbeat LoopAsync and the ImGui tab
+-- Reload generation token. A permanent heartbeat loop and the ImGui tab
 -- callback both ACCUMULATE across CTRL+R reloads (UE4SS does not tear down the old
 -- ones). Each run bumps this token; the old closures see a newer token and
 -- stop/skip, so only the latest reload's poll and render stay live. (Prefer a full
@@ -106,11 +106,12 @@ local atmoEntries = Atmosphere and Atmosphere.select(Config.atmosphereSliders) o
 -- captured defensively (shared-state safety). Registration lives ONLY here in the
 -- tail, never in a required module.
 local ExecuteInGameThread = rawget(_G, "ExecuteInGameThread")
-local LoopAsync = rawget(_G, "LoopAsync")
 local RegisterKeyBind = rawget(_G, "RegisterKeyBind")
 local RegisterImGuiTab = rawget(_G, "RegisterImGuiTab")
 local RegisterInitGameStatePostHook = rawget(_G, "RegisterInitGameStatePostHook")
 local Key = rawget(_G, "Key")
+-- game-thread timers (gameLoop/gameDelay): #1180-safe, with an internal LoopAsync fallback
+local Async = kit.async
 
 -- run fn on the game thread (immediate). The Control's request* methods marshal
 -- through this, so they are safe to call from a hotkey or the ImGui render thread.
@@ -193,30 +194,26 @@ if type(RegisterInitGameStatePostHook) == "function" then
 end
 
 -- --------------------------------------------------------- the heartbeat poll --
--- Wakes every PollMs on an async worker; does the game-thread work (tick: refresh
--- the cached readout + run the Hold watchdog, then apply on-load defaults once)
--- via ExecuteInGameThread. A re-entrancy guard skips a wake if the previous tick
--- is still running, so ticks never backlog. The generation gate stops the old
--- loop after a reload.
-if type(LoopAsync) == "function" then
-    LoopAsync(PollMs, function()
+-- Every PollMs: refresh the cached readout + run the Hold watchdog, then apply on-load
+-- defaults once. Driven through kit.async: on builds with the Delayed Action System the
+-- tick runs ON the game thread with no nested deferral; otherwise kit.async falls back to
+-- LoopAsync + ExecuteInGameThread. kit.async serialises ticks so they never backlog, and
+-- the generation gate stops the old loop after a reload.
+local function pollTick()
+    local ok, err = pcall(function()
+        control:tick()
+        control:applyDefaultsOnce(PresetOnLoad, HoldOnLoad)
+    end)
+    if not ok then log("poll tick error: " .. tostring(err)) end
+end
+if Async and Async.gameLoop then
+    Async.gameLoop(PollMs, function()
         if rawget(_G, "__wetterwerk_gen") ~= gen then return true end
-        if control.ticking then return false end
-        control.ticking = true
-        local function work()
-            local ok, err = pcall(function()
-                control:tick()
-                control:applyDefaultsOnce(PresetOnLoad, HoldOnLoad)
-            end)
-            control.ticking = false
-            if not ok then log("poll tick error: " .. tostring(err)) end
-        end
-        if ExecuteInGameThread then ExecuteInGameThread(work) else work() end
-        return false
+        return pollTick
     end)
 else
-    log("LoopAsync not available; the live readout and Hold watchdog are off "
-        .. "(direct preset sets via the hotkeys still work)")
+    log("kit.async unavailable; the live readout and Hold watchdog are off (direct preset "
+        .. "sets via the hotkeys still work; re-deploy to vendor kit >= 1.7.0)")
 end
 
 -- ------------------------------------------------------------------- banner --
