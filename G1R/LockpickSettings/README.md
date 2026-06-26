@@ -184,9 +184,9 @@ setup, see the G1R modding guide (`../README.md`).
 Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[LockpickSettings]` lines:
 
 - On game start: `Loaded: untrained 2->12, trained 4->14, master 6->16,
-  next-move hint off (416 lock graphs from live, toggle: F7), connection
-  display off, toggle: F8` (`from live` = decoded from the game cache;
-  `from cache` = the self-written fallback)
+  next-move hint off (416 lock graphs from bundled, toggle: F7), connection
+  display off, toggle: F8` (`from bundled` = the shipped `data/lockgraphs.lua`,
+  the only source; a live decode was tried and dropped, see How it works)
 - On each pick attempt: `Minigame: trained tier, tries 4 -> 14`
 - `durability X not a known tier, leaving it alone`: a game patch likely
   changed the vanilla tier values; update `boost.BASE_TRIES` in

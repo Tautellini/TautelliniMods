@@ -23,7 +23,7 @@ the rule.
   refactoring. After any change to it, run the tests AND `tools/sim_planner.py`.
 - **Pure files name zero UE4SS globals.** `nextmove/solver.lua`,
   `nextmove/geometry.lua`, and the kit's `num.lua`/`color.lua` must load under
-  bare LuaJIT. ALL engine access goes through the kit's `engine.lua` primitives,
+  bare Lua 5.4. ALL engine access goes through the kit's `engine.lua` primitives,
   re-exported by the mod adapter `core/engine_lock.lua` (every call
   `pcall`-wrapped); registration globals (`RegisterHook`, `NotifyOnNewObject`,
   `RegisterKeyBind`, `LoopAsync`, `Key`, ...) live only in `main.lua`'s tail.
@@ -108,7 +108,7 @@ the rule.
   clear of in-use ones (F4/F5/F9 save/load, F6/F7/F8 LockpickSettings, F2 + numpad +
   LMB SharedModMenu, F11 window, F1 archery, F12 asread).
 - Run `G1R/LockpickSettings/tests/run.ps1` before committing solver/geometry
-  changes; it needs LuaJIT (see `CONTRIBUTING.md` section 6).
+  changes; it needs Lua 5.4 (see `CONTRIBUTING.md` section 6).
 - House naming: `PascalCase` for classes and load-time consts, `camelCase` for
   functions and locals, `UPPER_SNAKE` for primitive literals. Not `snake_case`.
 - Do not use the "—" character or AI-typical phrasing in code, comments, or docs

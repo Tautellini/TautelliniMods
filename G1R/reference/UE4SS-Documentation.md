@@ -1,9 +1,15 @@
 # UE4SS Documentation (parsed reference)
 
 Auto-extracted from `tools/UE4SS Documentation.pdf` (docs.ue4ss.com, print view).
-Flat, searchable copy for quick reference; the PDF and docs.ue4ss.com are
-authoritative. Regenerate with `python tools/parse_ue4ss_docs.py` after updating the
-PDF. Lists and code blocks lose some formatting in PDF text extraction.
+Flat, searchable copy for quick reference; the PDF and docs.ue4ss.com are authoritative
+for what they cover, but BOTH lag the running build. Regenerate the parsed body with
+`python tools/parse_ue4ss_docs.py` after updating the PDF. Lists and code blocks lose some
+formatting in PDF text extraction.
+
+The published docs predate the game-thread Delayed Action System (RE-UE4SS PR #1128) that
+this build exposes and the repo uses (`kit.async`). It is added below as a MANUAL SUPPLEMENT
+(the "Delayed Action System" section) that a plain regen will NOT reproduce; re-apply it after
+regenerating. Confirm any newest API against the RE-UE4SS source/PRs, not only this copy.
 
 ---
 
@@ -616,6 +622,32 @@ GarbageCollectionKeepFlags
 AllFlags
 
 | 0x7F800000
+
+## Delayed Action System (game-thread timers)
+
+MANUAL SUPPLEMENT, not from the source PDF. The published docs predate it; sourced from
+RE-UE4SS PR #1128 and verified live in this build (see `G1R/UE4SS-Lua-Best-Practices.md`).
+These run the callback ON the game thread, so they need no nested `ExecuteInGameThread` and
+avoid the `LoopAsync` + `ExecuteInGameThread` reentrancy bug (issue #1180). Per the PR:
+"Mod creators should avoid using `ExecuteAsync` and `LoopAsync` in favor of the new system
+when possible." Route periodic and delayed work through `kit.async`, which prefers these and
+falls back to the async variants only where a build lacks them.
+
+ExecuteInGameThreadWithDelay(integer DelayMs, function Callback) -> handle
+- Runs Callback once on the game thread after DelayMs. Returns a cancellable handle.
+LoopInGameThreadWithDelay(integer DelayMs, function Callback) -> handle
+- Runs Callback on the game thread every DelayMs until cancelled. Returns a cancellable handle.
+ExecuteInGameThreadAfterFrames(integer Frames, function Callback) -> handle
+- Like ExecuteInGameThreadWithDelay but the delay is counted in rendered frames.
+LoopInGameThreadAfterFrames(integer Frames, function Callback) -> handle
+- Like LoopInGameThreadWithDelay but the interval is counted in frames.
+RetriggerableExecuteInGameThreadWithDelay(handle Handle, integer DelayMs, function Callback)
+- Re-arms an existing delayed action, mirroring UE's Delay node (a fresh call resets the timer).
+CancelDelayedAction(handle Handle)
+- Cancels a pending delayed action by its handle (only one created by the same mod).
+
+The system also exposes pause / unpause / query operations on a handle (per PR #1128); confirm
+their exact names against the RE-UE4SS source before relying on them, they are not used here.
 
 ## Global Functions
 

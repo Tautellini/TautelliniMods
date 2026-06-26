@@ -72,7 +72,7 @@ This copies `Scripts/` and vendors the shared kit under `shared/kit/`. Press
 powershell -File G1R\TautelliniConsole\tests\run.ps1
 ```
 
-Runs `check_load.lua` (every module loads under bare LuaJIT) plus the pure-logic
+Runs `check_load.lua` (every module loads under bare Lua 5.4) plus the pure-logic
 suites (`args`, `registry`, `stats`, `menu`, `lockpicking`). The engine-touching code
 is verified in-game.
 

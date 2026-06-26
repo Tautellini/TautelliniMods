@@ -129,9 +129,10 @@ Verified in-game 2026-06-06 (LockProbe sessions, see
   (verified; Lua tables pass as structs). Only 1 of the 3 actors per
   piece carries a MID. The game's hover highlight writes the same
   parameter, so persistent tints must be re-applied per tick
-- `LockpickPrecision` (AttributeSet_Lockpicking) = connections removed
-  per broken pick (the master perk's mechanic; baseline 1.0 at Trained).
-  Writable, but boosting it trivializes the master skill
+- `LockpickPrecision` (AttributeSet_Lockpicking) is the 0/1/2 skill value
+  that sets how many connections the game prunes at minigame setup (see the
+  prune note later in this section). Writable, but boosting it trivializes
+  the master skill
 - Per-piece m_CanEverBeHighlighted/m_CanEverShake are permission flags
   only; the native hover logic decides what gets highlighted, so
   flipping them has no visible effect

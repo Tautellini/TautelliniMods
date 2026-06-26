@@ -76,50 +76,26 @@ Hard-won facts about this game's tech. Read before writing any mod code.
   over GothicLockSceneActor:m_RotationToBarOffset correlates with two
   early-session AV crashes); pcall cannot catch native AVs, so avoid
   TMap iteration in shipped mods unless unavoidable
-- DEFERRED-CALLBACK ABORT (upstream RE-UE4SS bug, issue #1180): a mod that fans
-  out overlapping deferred work via `LoopAsync` -> `ExecuteInGameThread`,
-  `ExecuteWithDelay` -> `ExecuteInGameThread`, or per-keypress
-  `ExecuteInGameThread` can crash inside
-  `UE4SS!engine_tick_hook -> process_simple_actions -> get_function_ref`
-  (LuaMod.cpp:3705 / LuaMadeSimple.cpp:257). It shows up as TWO signatures from
-  one root cause: an `abort()` (the symbolicated crash-reporter stack) and a
-  delayed `0xC0000374` heap corruption (the WER minidumps). The REAL mechanism
-  (re-measured 2026-06-15 against the RE-UE4SS source and issue #1180, the old
-  "frees the ref index too early under 5.4" note was WRONG): on our build line
-  `process_simple_actions` drains its action vector by iterating it in place with
-  `std::erase_if` while running each Lua callback inside the predicate. A callback
-  that queues more work reallocates that vector mid-iteration (use-after-free), and
-  all callbacks share one `lua_newthread` stack that gets stomped. The stale entry
-  then makes `get_function_ref` throw `luaL_error` OUTSIDE the `TRY` frame, so it
-  aborts. `pcall` cannot catch it (the throw is in UE4SS C++, outside any Lua
-  frame). It is NOT a Lua 5.4 GC bug, NOT a single-thread lifecycle bug, and NOT a
-  keybind-thread data race (the queue is `recursive_mutex`-serialized; the lethal
-  part is reentrancy). A Lua-side fix DOES exist and is proven on this exact crash
-  (the earlier "no Lua-side fix works" note was WRONG): collapse to ONE long-lived
-  game-thread driver holding a single load-time ref that drains a plain-Lua work
-  queue, with keybinds flag-only and no nested deferral. Our `3.0.1-968` build
-  predates the upstream fixes (PR #1201 2026-06-07; #1268/#1269/#1271 2026-06-14),
-  so updating UE4SS is the other half of the remedy. The abort can be SILENT (a
-  game crashpad can swallow it, exit `0x40000015`, no dump), so validate a fix by
-  sustained F6/F7 stress, not by absence of dumps. Full writeup, principles, and
-  the per-mod compliance audit: `UE4SS-Lua-Best-Practices.md`. Dumps:
+- DEFERRED-CALLBACK ABORT (upstream RE-UE4SS bug, issue #1180): fanning out
+  overlapping deferred work via `LoopAsync`/`ExecuteWithDelay` -> `ExecuteInGameThread`,
+  or per-keypress `ExecuteInGameThread`, can crash inside
+  `process_simple_actions -> get_function_ref` when a queued callback feeds the
+  cross-thread queue from inside its own drain. The throw is UE4SS C++ outside any Lua
+  frame, so `pcall` cannot catch it. Two signatures, one cause: an `abort()` stack and a
+  delayed `0xC0000374` heap corruption; the abort can be SILENT (exit `0x40000015`, no
+  dump), so validate a fix by sustained F6/F7 stress, not by absence of dumps. The fix:
+  ONE long-lived game-thread driver (route through `kit.async`) draining a plain-Lua
+  queue, keybinds flag-only, no nested deferral. Full mechanism, the proven fix, and the
+  per-mod audit live in `UE4SS-Lua-Best-Practices.md`. Dumps:
   `%LOCALAPPDATA%/G1R/Saved/Crashes/UECC-*/` and `%LOCALAPPDATA%/CrashDumps/`
   (parse with `tools/parse_minidump.py`)
 - SELF-TRIGGERED-HOOK REENTRANCY is the #1180 trigger we kept missing (measured
-  2026-06-24, the dense-lock Old Camp castle, `process_simple_actions ->
-  get_function_ref` abort on nearly every auto-solved lock). The one-game-thread
-  driver is NECESSARY BUT NOT SUFFICIENT. The OTHER reentrancy is a `RegisterHook`
-  on a UFunction your OWN code triggers. LockpickSettings drives a lock by calling
-  `obj:RightPressed()` from inside its queued tick; that press runs the game's open
-  logic synchronously, the game then dispatches `TryOpenLock` / `MemorizeLockpick`,
-  and UE4SS re-enters the SHARED `lua_newthread` stack to run our hook WHILE
-  `process_simple_actions` is still mid-callback. The stomp surfaces as the next
-  action's `get_function_ref` reading a non-function. It looks innocent because the
-  hook fires "from the engine" (true) and "rarely" (false: it fires on every lock
-  the driver opens). The fix is not to drop `LoopAsync`/`ExecuteInGameThread` and not
-  to drive everything off a `PlayerTick` hook: it is to NEVER hook a UFunction your
-  own driven input triggers, and read that state by MEASUREMENT instead (we detect
-  open from the settled all-pins-at-the-bar-column read). This is the same lesson
-  that earlier removed the Up/Down/Left/Right hooks, applied to the open hooks.
-  Manual play never hit it: the player's keypress dispatches those hooks from the
-  engine's own input frame, not nested inside our async callback.
+  2026-06-24, the dense-lock Old Camp castle): a `RegisterHook` on a UFunction YOUR OWN
+  code triggers. LockpickSettings drove a lock with `obj:RightPressed()` from its queued
+  tick; the game then dispatched `TryOpenLock` / `MemorizeLockpick`, re-entering the
+  shared Lua stack to run our hook mid-callback. So the one-game-thread driver is
+  NECESSARY BUT NOT SUFFICIENT: also never hook a UFunction your own driven input
+  triggers, read that state by MEASUREMENT instead (we detect open from the settled
+  all-pins-at-the-bar-column read). Manual play never hit it (the player's keypress
+  dispatches from the engine's own input frame, not nested in our async callback). Same
+  lesson that earlier removed the Up/Down/Left/Right hooks, applied to the open hooks.

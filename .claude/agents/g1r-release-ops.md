@@ -41,8 +41,8 @@ the main session.
   for the complete/FOMOD builds. A simple kit-free mod (e.g. SharedModMenu) uses
   `sharedmodmenu_build_release.ps1` instead, which builds the manual zip plus the
   standalone `modmenu.lua`.
-- Lua tests: `G1R/LockpickSettings/tests/run.ps1` (LuaJIT; check_load + all
-  `test_*`). The decode oracle: `tools/luajit/luajit.exe tools/verify_livegraphs.lua`
+- Lua tests: `G1R/LockpickSettings/tests/run.ps1` (Lua 5.4; check_load + all
+  `test_*`). The decode oracle: `tools/lua54/lua.exe tools/verify_livegraphs.lua`
   diffed against `G1R/reference/lock-graphs.lua`.
 
 ## Standard workflows

@@ -13,12 +13,15 @@ mod. Companion to `LuaModdingSurface.md` (what is moddable in this game) and `RE
   `ExecuteAsync` with a nested `ExecuteInGameThread`. In this repo, route periodic and delayed
   work through `kit.async` (see Periodic and deferred work). It picks the current API and falls
   back only where a build lacks it.
-- **Check the API reference before reaching for an old pattern.** A flat, searchable copy of the
-  full UE4SS docs lives at `G1R/reference/UE4SS-Documentation.md`, parsed from
-  `tools/UE4SS Documentation.pdf` (kept local, regenerate with `tools/parse_ue4ss_docs.py`). The
-  PDF and `docs.ue4ss.com` are authoritative. Confirm a function exists and how it is called there
-  before assuming the old approach is the only option. That assumption is what kept us on
-  `LoopAsync` long after the better API had already shipped.
+- **Check the API reference, but know it lags the build.** A flat, searchable copy of the UE4SS
+  docs lives at `G1R/reference/UE4SS-Documentation.md` (parsed from the local
+  `tools/UE4SS Documentation.pdf`, regenerate with `tools/parse_ue4ss_docs.py`). Use it to confirm
+  a function exists and how it is called before assuming an old pattern is the only option, that
+  assumption is what kept us on `LoopAsync` long after the better API shipped. But the PDF and
+  `docs.ue4ss.com` PREDATE part of the running build: neither documents the game-thread Delayed
+  Action System (RE-UE4SS PR #1128) that this UE4SS exposes and `kit.async` uses, so it is added to
+  the reference as a manual supplement. For the newest API, confirm against the RE-UE4SS source and
+  PRs, not only the published docs.
 
 ## Thread model
 

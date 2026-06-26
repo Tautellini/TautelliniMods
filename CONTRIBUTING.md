@@ -108,14 +108,14 @@ return engine
 ### Flat composition, no inheritance trees
 
 `Session` HAS-A `Solver`, a `Tinter`, a `Geometry`. It does not extend any of
-them. We do not build base classes. Deep `__index` chains cost a LuaJIT guard
-per hop in hot code, and they tangle reload identity. If shared behavior
+them. We do not build base classes. Deep `__index` chains add a lookup per hop
+in hot code, and they tangle reload identity. If shared behavior
 emerges across classes, factor a plain helper **module** and have both call it.
 
 ### The purity rule
 
 `Solver` and `Geometry` (and pure helpers like the kit's `num`) must name
-**zero** UE4SS globals, so the identical file loads under bare LuaJIT for tests.
+**zero** UE4SS globals, so the identical file loads under bare Lua 5.4 for tests.
 
 - **All** engine access goes through the kit's `engine.lua` primitives,
   re-exported by the mod's `core/engine_lock.lua` adapter (where the domain
@@ -141,14 +141,17 @@ This is our house style. It is intentional and not up for re-litigation per PR:
 it. Engine field names (`m_Lock`, `K2_GetComponentLocation`) keep their own
 casing because the engine owns them.
 
-### Shared-state safety (this is not optional)
+### State isolation and global hygiene (this is not optional)
 
-UE4SS runs **one** LuaJIT 2.1 state (Lua 5.1 semantics) across **all** mods.
-Another mod can clobber a stdlib global mid-session: `ipairs` was seen replaced
-by a table in the wild, crashing our loops.
+UE4SS runs each mod in its **own** PUC Lua 5.4 state (measured 2026-06-14: `_G`,
+`package.loaded`, and even the kit table differ across mods; the old "one shared
+LuaJIT 2.1 state, first-`require`-wins" model was wrong). Shared libraries are
+therefore **vendored** per mod (section 5), and the rules below keep your own
+state clean and reload-safe, not defend against other mods.
 
-- **Every file** captures the stdlib **and** the OOP primitives it uses as
-  locals at load:
+- **Every file** captures the stdlib **and** the OOP primitives it uses as locals
+  at load (a local read is faster than a global, and it survives a global being
+  rebound across a hot reload):
 
   ```lua
   local ipairs, pairs, type, pcall = ipairs, pairs, type, pcall
@@ -156,11 +159,10 @@ by a table in the wild, crashing our loops.
   local math, table, string = math, table, string
   ```
 
-- **Never write a global.** A forgotten `local` leaks into `_G`, where another
-  mod can clobber it and where our own reload logic will not find it. Declare
-  every name `local`.
-- **Do not install `strict.lua`.** It mutates `_G`'s metatable, which other
-  mods touch; it would break them and us.
+- **Never write a global.** A forgotten `local` leaks into `_G`, where our reload
+  reset (which nils only known names) will not find it. Declare every name `local`.
+- **Do not install `strict.lua`.** It mutates `_G`'s metatable, which fights
+  UE4SS's own global injection and our hot-reload model.
 - **Privacy is by convention.** There are no real private fields (section 4).
   Injected collaborators and config (`self.log`, `self.solver`, `self.flags`)
   are plain fields; reserve an underscore prefix (`self._scratch`) for internal
@@ -241,7 +243,7 @@ For a contributor coming from Kotlin or another OOP language. These bite.
   not call `#` on a sparse table.
 - **No method overloading.** One function name, one function. Branch inside or
   give it a different name.
-- **`table.freeze` does not exist in LuaJIT 5.1.** Immutability is by
+- **`table.freeze` does not exist in Lua 5.4.** Immutability is by
   convention: build the table once in `new` or at load, then do not mutate it.
 - **Do not wrap hot-loop state in read-only `__newindex` proxies.** It is a perf
   and correctness footgun inside the ~1500-expansions-per-tick search budget.
@@ -256,7 +258,7 @@ The per-mod `Scripts/` is **foldered**, and every module is `require`d by its
 **dotted** path. UE4SS puts the mod's own Scripts dir on `package.path` as
 `{Scripts}/?.lua`, and standard Lua maps the dots to slashes, so
 `require("nextmove.solver")` resolves `Scripts/nextmove/solver.lua`. (Proven
-locally under LuaJIT and consistent with UE4SS's own dotted-require `UEHelpers`;
+locally under Lua 5.4 and consistent with UE4SS's own dotted-require `UEHelpers`;
 an in-game smoke test on this exact build is still pending but the evidence is
 strong.)
 
@@ -281,16 +283,18 @@ strong.)
 
 There is **one** shared library, the **kit**, with a single repo source at
 `G1R/shared/kit/`. Its umbrella `kit.lua` `loadfile`s its siblings and returns
-`{ version, log, num, color, engine, boot }`:
+`{ version, log, num, color, engine, boot, async, menu }`:
 
 - `version.lua` (the kit's semver), `log.lua` (`log.make("[Tag]")`),
   `num.lua` (`lookup`, `colorDist2`), `color.lua` (`colorFrom` decoder),
   `engine.lua` (the generic UE4SS primitives `liveInstances` + `readRootPos`,
-  the `pcall`-safe idiom, the banned-ops header), `boot.lua` (`tryRequire`).
+  the `pcall`-safe idiom, the banned-ops header), `boot.lua` (`tryRequire`),
+  `async.lua` (game-thread timers, #1180-safe; see section 5 of the best-practices
+  doc), `menu.lua` (the cross-mod menu bridge over UE4SS shared variables).
 
 **The litmus for where code goes:** generic and reusable by any future G1R mod
 -> the kit. Mod-domain code stays in the mod. So the kit holds the engine
-primitives, num, color, log, boot; the mod keeps the engine **adapter**
+primitives, num, color, log, boot, async, menu; the mod keeps the engine **adapter**
 (`core/engine_lock.lua`, which holds the `MPC_Lockpicking`/`Slot_`/
 `HighlightColor`/`m_Lock` literals and re-exports the kit's
 `liveInstances`/`readRootPos` so call sites stay identical), the palette,
@@ -306,10 +310,11 @@ self-contained with no shared-folder dependency. `main.lua` self-adds its own
 `shared/` to `package.path` from its own file location (the BPModLoaderMod
 pattern), then `require("kit")` returns the umbrella.
 
-**Additive-API rule.** The single Lua state means **one** copy of a module name
-loads across all mods (first `require` wins). So the kit's API is
-**additive-only within a major version**: a breaking change renames it (`kit2`),
-and consumers may `assert kit.version` against their minimum.
+**Additive-API rule.** Each mod runs in its own isolated Lua state and vendors its
+own kit copy, so a build is self-contained and there is no cross-mod version
+conflict to manage. The kit's API is still **additive-only within a major
+version**: a breaking change renames it (`kit2`), and consumers `assert
+kit.version` against their minimum.
 
 ### Features are separately testable
 
@@ -408,22 +413,18 @@ probe is held to the same native-safety bar as shipping code, and then some:
 
 ### Runtime parity
 
-The game runs **LuaJIT 2.1 (Lua 5.1 semantics)**. **Test under LuaJIT, not
-Lua 5.4.** 5.1-vs-5.4 deltas (integer division, `#` on holes, `goto`, bitwise
-ops) can pass on a 5.4 install and behave differently in-game.
+The game runs **PUC-Rio Lua 5.4.7, NOT LuaJIT** (proof in `G1R/README.md`).
+**Test under Lua 5.4**, not LuaJIT: LuaJIT is Lua 5.1 semantics, and 5.1-vs-5.4
+deltas (separate integer/float subtypes, integer division, `#` on holes, `goto`,
+bitwise ops) pass under LuaJIT yet behave differently in-game. The solver stays
+byte-identical under both, so logic tests pass on either, but only 5.4 reproduces
+the runtime the game actually loads.
 
-Install LuaJIT once, either:
-
-- drop a prebuilt `luajit.exe` + `lua51.dll` into `tools\luajit\` (gitignored;
-  the test runner finds it there automatically), or
-- via scoop (non-admin, prebuilt): `irm get.scoop.sh | iex` then
-  `scoop install luajit` (the runner finds `luajit` on `PATH` first).
-
-A self-contained way to fetch the prebuilt: download the MSYS2 package
-`mingw-w64-x86_64-luajit-*.pkg.tar.zst` from `https://mirror.msys2.org/mingw/mingw64/`,
-extract with `tar --zstd -xf`, and copy `mingw64\bin\luajit.exe` and
-`lua51.dll` into `tools\luajit\`. This matches the UE4SS runtime exactly and
-changes nothing system-wide.
+Build the runtime once (gitignored `tools\lua54\`; the test runners prefer it,
+then fall back to a `lua` on `PATH`): download `lua-5.4.7.tar.gz` from
+`https://www.lua.org/ftp/` into `tools\`, extract, and compile `src\*.c` (except
+`luac.c`) to `tools\lua54\lua.exe` with `cl` or `gcc`. This matches the UE4SS
+runtime and changes nothing system-wide.
 
 ### Runner and placement
 
@@ -446,7 +447,7 @@ changes nothing system-wide.
   Exit code is the number of failing suites.
 - The pure modules (`nextmove/solver.lua`, `nextmove/geometry.lua`, the kit's
   `num.lua` and `color.lua`) **do** ship and stay UE4SS-global-free, so the
-  **identical file** loads under both UE4SS and bare LuaJIT. `check_load.lua`
+  **identical file** loads under both UE4SS and bare Lua 5.4. `check_load.lua`
   adds both `../Scripts` (dotted mod modules) and `../../shared` (the kit path,
   the same shape deploy vendors) to `package.path`.
 

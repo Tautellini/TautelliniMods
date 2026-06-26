@@ -46,7 +46,7 @@ Wetterwerk/
 The mod follows the LockpickSettings conventions (CONTRIBUTING.md): foldered
 `Scripts/` with dotted requires, the vendored shared kit, the engine adapter as
 the only home for the Gothic literals, all registration in `main.lua`'s tail, and
-pure files (`presets`, `atmosphere`) that load under bare LuaJIT for the tests.
+pure files (`presets`, `atmosphere`) that load under bare Lua 5.4 for the tests.
 
 ## Install
 
