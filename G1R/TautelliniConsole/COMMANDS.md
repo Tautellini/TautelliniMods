@@ -53,6 +53,19 @@ Skill names accept the short form (`Acrobatics`) or full (`GE_Skill_Acrobatics`)
 | `addskill <Skill>` | Learn a skill for free. |
 | `removeskill <Skill>` | Remove a learned skill. |
 
+## Lockpicking
+
+Sets the player's picklock skill to a real in-game tier by granting its
+`GE_Skill_Picklock_*` effect, so the game itself drives how locks behave. Granting
+the skill is the right lever: a raw `LockpickPrecision` write does not hold (the
+game recomputes it from the active skill effects). The middle tier is **Skilled**
+in-game; `trained` is accepted as an alias.
+
+| Command | Effect | Menu |
+|---|---|---|
+| `lockskill` | Print the current tier and precision. | — |
+| `lockskill <untrained\|skilled\|master>` | Set the lockpicking skill to that tier (also accepts `trained` for Skilled and `0`-`2`). Clears the other tiers first, so exactly one is active. | Lockpicking ▸ Untrained / Skilled / Master |
+
 ## Time
 
 | Command | Effect | Menu |

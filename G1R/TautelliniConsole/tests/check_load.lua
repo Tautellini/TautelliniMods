@@ -20,7 +20,8 @@ local MODULES = {
     "kit", "config",
     "core.engine", "core.registry", "core.output", "core.menu", "util.args",
     "cheats.resources", "cheats.stats", "cheats.items", "cheats.skills",
-    "cheats.movement", "cheats.time", "cheats.world", "cheats.generic",
+    "cheats.lockpicking", "cheats.movement", "cheats.time", "cheats.world",
+    "cheats.generic",
 }
 
 local fail, absent = 0, 0

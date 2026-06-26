@@ -23,9 +23,9 @@ The full, maintained command reference is **[`COMMANDS.md`](COMMANDS.md)** (ever
 command, its arguments, and whether it has a menu control). In short: player/combat
 (`god`, `heal`, `mana`, `oxygen`, `nofatigue`, `parrycheat`, `onehit`), stats (`str`,
 `dex`, `level`, `skillpoints`, `xp`, `speed`), items (`additem`, `removeitem`),
-skills (`addskill`, `removeskill`), time (`time`, `skiptime`, `freezetime`,
-`timescale`), world (`setweather`), movement (`fly`, `noclip`, `runspeed`), and the
-generic `set` / `dumpobj` / `help`.
+skills (`addskill`, `removeskill`), lockpicking (`lockskill`), time (`time`,
+`skiptime`, `freezetime`, `timescale`), world (`setweather`), movement (`fly`,
+`noclip`, `runspeed`), and the generic `set` / `dumpobj` / `help`.
 
 The cheats call the game's own functions rather than writing GAS internals, so the
 HUD updates; the approach is documented in
@@ -42,6 +42,7 @@ the menu with its key (default `F2`).
 |---|---|
 | **Player** | God Mode, Auto-Parry, One-Hit Kills (toggles); Heal, Restore Mana, Restore Oxygen, Clear Fatigue (buttons) |
 | **Stats** | Strength, Dexterity, Level, Skill Points (sliders) |
+| **Lockpicking** | Untrained / Skilled / Master (buttons) |
 | **Movement** | Fly Mode, No-Clip (toggles); Run Speed (slider) |
 | **Time** | Hour 0-23 (slider); Set 08:00 / 12:00 / 20:00 (buttons); Freeze Clock (toggle); Game Speed (slider) |
 | **Weather** | Sunny / Rain / Storm / Cloudy (buttons) |
@@ -72,13 +73,14 @@ powershell -File G1R\TautelliniConsole\tests\run.ps1
 ```
 
 Runs `check_load.lua` (every module loads under bare LuaJIT) plus the pure-logic
-suites (`args`, `registry`, `stats`, `menu`). The engine-touching code is verified
-in-game.
+suites (`args`, `registry`, `stats`, `menu`, `lockpicking`). The engine-touching code
+is verified in-game.
 
 ## Status
 
-v0.3.0, alpha. Adds combat toggles (parry, one-hit), items, skills, time
-(skip/freeze/speed) and weather on top of the v1 set, all driven through the game's
-own functions (see `docs/cheat-techniques.md`) so the HUD stays in sync. god and heal
-are play-confirmed; the newly added commands need an in-game smoke test. NPC/spawn/
-world commands are on the roadmap in `COMMANDS.md`.
+v0.3.2, alpha. Adds combat toggles (parry, one-hit), items, skills, lockpicking
+(`lockskill`, three tier buttons), time (skip/freeze/speed) and weather on top of the
+v1 set, all driven through the game's own functions (see `docs/cheat-techniques.md`)
+so the HUD stays in sync. god and heal are play-confirmed; the newer commands,
+`lockskill` included, need an in-game smoke test. NPC/spawn/world commands are on the
+roadmap in `COMMANDS.md`.

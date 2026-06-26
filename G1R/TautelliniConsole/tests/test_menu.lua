@@ -17,6 +17,7 @@ local stats     = require("cheats.stats")
 local timeCmd   = require("cheats.time")
 local worldCmd  = require("cheats.world")
 local movement  = require("cheats.movement")
+local lockpicking = require("cheats.lockpicking")
 local coreMenu  = require("core.menu")
 
 -- a fake engine covering the seams the menu get/set closures touch. It stores
@@ -44,6 +45,8 @@ local function fakeEngine()
         getRunSpeed = function() return store.runspeed or 1 end,
         readClock = function() return { hour = clock.hour, minute = clock.minute } end,
         setClock = function(h, m) clock.hour, clock.minute = h, m; return true end,
+        grantSkill = function(name) store.grantedSkill = name; return true, name end,
+        removeSkill = function(name) store.removedSkill = name; return true, name end,
     }
 end
 
@@ -77,10 +80,33 @@ T.add("every contributing module's menu() is a well-formed section", function()
     local eng = fakeEngine()
     for _, m in ipairs({
         { "resources", resources }, { "stats", stats }, { "movement", movement },
-        { "time", timeCmd }, { "world", worldCmd },
+        { "time", timeCmd }, { "world", worldCmd }, { "lockpicking", lockpicking },
     }) do
         assertSection(m[2].menu(eng), m[1])
     end
+end)
+
+T.add("lockpicking section offers Untrained / Skilled / Master buttons", function()
+    local sec = lockpicking.menu(fakeEngine())
+    T.eq(sec.title, "Lockpicking")
+    T.eq(#sec.items, 3, "exactly three tier buttons")
+    local names = {}
+    for _, it in ipairs(sec.items) do
+        T.eq(it.kind, "action", it.name .. " is a button")
+        names[it.name] = true
+    end
+    T.ok(names["Untrained"] and names["Skilled"] and names["Master"], "all three tiers present")
+end)
+
+T.add("a lockpicking button grants that tier's skill", function()
+    local eng = fakeEngine()
+    local master
+    for _, it in ipairs(lockpicking.menu(eng).items) do
+        if it.name == "Master" then master = it end
+    end
+    T.ok(master ~= nil, "a Master button exists")
+    master.set(true)
+    T.eq(eng.store.grantedSkill, "Picklock_Master", "pressing Master grants the Master skill")
 end)
 
 T.add("movement contributes a Movement section with a Run Speed slider", function()

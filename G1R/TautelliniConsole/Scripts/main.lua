@@ -10,7 +10,7 @@
 --
 -- Commands type into either the native ~ console (Tilde / F10, surfaced below) or
 -- the UE4SS console window. v1 is the proven core: god, heal, mana, oxygen,
--- nofatigue, str/dex/level/skillpoints/xp, speed, lockprecision, time, plus the
+-- nofatigue, str/dex/level/skillpoints/xp, speed, lockskill, time, plus the
 -- generic set/dumpobj/help. All over the reflected surface in
 -- ../../LuaModdingSurface.md; nothing depends on the game's stripped Marvin/cheat
 -- exec functions.
@@ -45,7 +45,8 @@ local MODULES = {
     "kit", "config",
     "core.engine", "core.registry", "core.output", "core.menu", "util.args",
     "cheats.resources", "cheats.stats", "cheats.items", "cheats.skills",
-    "cheats.movement", "cheats.time", "cheats.world", "cheats.generic",
+    "cheats.lockpicking", "cheats.movement", "cheats.time", "cheats.world",
+    "cheats.generic",
 }
 for _, m in ipairs(MODULES) do package.loaded[m] = nil end
 do
@@ -75,6 +76,7 @@ local resources = tryRequire("cheats.resources")
 local stats     = tryRequire("cheats.stats")
 local itemsCmd  = tryRequire("cheats.items")
 local skillsCmd = tryRequire("cheats.skills")
+local lockpickCmd = tryRequire("cheats.lockpicking")
 local movement  = tryRequire("cheats.movement")
 local timeCmd   = tryRequire("cheats.time")
 local worldCmd  = tryRequire("cheats.world")
@@ -93,6 +95,7 @@ if resources then reg:addAll(resources.specs()) end
 if stats     then reg:addAll(stats.specs())     end
 if itemsCmd  then reg:addAll(itemsCmd.specs())  end
 if skillsCmd then reg:addAll(skillsCmd.specs()) end
+if lockpickCmd then reg:addAll(lockpickCmd.specs()) end
 if movement  then reg:addAll(movement.specs())  end
 if timeCmd   then reg:addAll(timeCmd.specs())   end
 if worldCmd  then reg:addAll(worldCmd.specs())  end
@@ -224,8 +227,9 @@ end
 -- adapter, so the in-game poll stays lean (no per-tick FindAllOf once resolved).
 if menuSpec and kit.menu and kit.menu.register then
     -- items and skills are console-only (their args do not fit a toggle/slider/
-    -- button), so they contribute no menu section.
-    local sections = menuSpec.build(engine, resources, stats, movement, timeCmd, worldCmd)
+    -- button), so they contribute no menu section. lockpicking does: three tier
+    -- buttons.
+    local sections = menuSpec.build(engine, resources, stats, lockpickCmd, movement, timeCmd, worldCmd)
     if #sections > 0 then
         pcall(kit.menu.register, "TautelliniConsole", sections)
         log("SharedModMenu: registered " .. #sections .. " section(s) (a tab "
