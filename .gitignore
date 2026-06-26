@@ -69,3 +69,7 @@ G1R/TautelliniConsole/reference/
 
 # offline UFunction dump (large PDF/zip) used to find the map projection API; kept local
 G1R/reference/Gothic 1 Remake Hook Candidate Collection/
+
+# UE4SS docs source PDF; kept local. The parsed, committed copy is
+# G1R/reference/UE4SS-Documentation.md (regenerate via tools/parse_ue4ss_docs.py).
+tools/UE4SS Documentation.pdf

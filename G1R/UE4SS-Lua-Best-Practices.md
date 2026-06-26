@@ -4,6 +4,22 @@ Our source of truth for writing UE4SS Lua mods. General guidance, not tied to an
 mod. Companion to `LuaModdingSurface.md` (what is moddable in this game) and `README.md`
 (engine and game facts).
 
+## Prefer the current Lua API
+
+- **Always use UE4SS's current Lua API, not the deprecated calls.** When two functions do the
+  same job, pick the newer one. Use the game-thread Delayed Action System
+  (`LoopInGameThreadWithDelay`, `ExecuteInGameThreadWithDelay`,
+  `RetriggerableExecuteInGameThreadWithDelay`, `CancelDelayedAction`) over `LoopAsync` /
+  `ExecuteAsync` with a nested `ExecuteInGameThread`. In this repo, route periodic and delayed
+  work through `kit.async` (see Periodic and deferred work). It picks the current API and falls
+  back only where a build lacks it.
+- **Check the API reference before reaching for an old pattern.** A flat, searchable copy of the
+  full UE4SS docs lives at `G1R/reference/UE4SS-Documentation.md`, parsed from
+  `tools/UE4SS Documentation.pdf` (kept local, regenerate with `tools/parse_ue4ss_docs.py`). The
+  PDF and `docs.ue4ss.com` are authoritative. Confirm a function exists and how it is called there
+  before assuming the old approach is the only option. That assumption is what kept us on
+  `LoopAsync` long after the better API had already shipped.
+
 ## Thread model
 
 UE4SS does not run all Lua on one thread, and Lua is not thread-safe. Know where a
@@ -153,6 +169,8 @@ do the minimum and hand off to the game thread (see Periodic and deferred work).
 ## References
 
 - RE-UE4SS source and docs: `github.com/UE4SS-RE/RE-UE4SS`, `docs.ue4ss.com`
+- Parsed UE4SS docs (this repo, searchable): `G1R/reference/UE4SS-Documentation.md`
+  (from the local `tools/UE4SS Documentation.pdf`, regenerate with `tools/parse_ue4ss_docs.py`)
 - Deferred-queue stability bug and fix: issue #1180, PR #1201 (with #1268 / #1269 / #1271)
 - Delayed Action System (game-thread timers): PR #1128 (`LoopInGameThreadWithDelay`,
   `ExecuteInGameThreadWithDelay`, and the `*AfterFrames` variants)
