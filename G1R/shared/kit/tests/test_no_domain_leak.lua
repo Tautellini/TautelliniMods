@@ -10,7 +10,7 @@ local BANNED = {
     "Lockpick", "Slot_", "HighlightColor", "GameplayAbility",
     "m_Lock", "MPC_", "PlayerState",
 }
-local FILES = { "kit", "version", "log", "num", "color", "engine", "boot" }
+local FILES = { "kit", "version", "log", "num", "color", "engine", "boot", "async" }
 
 T.add("shared kit holds no mod-domain literal in code", function()
     for _, f in ipairs(FILES) do

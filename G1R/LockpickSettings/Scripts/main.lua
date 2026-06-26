@@ -11,7 +11,7 @@ local rawget, rawset, debug = rawget, rawset, debug
 local setmetatable = setmetatable
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.9"
+local ModVersion = "3.2.10"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -48,6 +48,36 @@ if not okKit or type(kit) ~= "table" then
 end
 local log = kit.log.make("[LockpickSettings]")
 local Num = kit.num
+
+-- Game-thread scheduling: prefer kit.async (Delayed Action System fast path, RE-UE4SS
+-- #1180-safe). An older vendored kit may lack it, so fall back to the legacy nested
+-- pattern inline (carries the #1180 risk on pre-988 builds, but never hard-breaks).
+local Async = kit.async
+if not (Async and Async.gameLoop and Async.gameDelay) then
+    Async = {
+        gameDelay = function(ms, fn)
+            ExecuteWithDelay(ms, function() ExecuteInGameThread(function() pcall(fn) end) end)
+        end,
+        gameLoop = function(ms, decide)
+            local stopped, ticking = false, false
+            LoopAsync(ms, function()
+                if stopped then return true end
+                local ok, work = pcall(decide)
+                if not ok or work == true then stopped = true; return true end
+                if type(work) == "function" then
+                    if ticking then return false end
+                    ticking = true
+                    ExecuteInGameThread(function() pcall(work); ticking = false end)
+                end
+                return false
+            end)
+            return function() stopped = true end
+        end,
+    }
+end
+log("Scheduling via " .. ((kit.async and kit.async.hasGameThreadTimers)
+    and "game-thread timers (Delayed Action System, #1180-safe)"
+    or "legacy LoopAsync fallback"))
 
 -- each require pcall-wrapped; a broken child disables only its feature.
 local function tryRequire(name) return kit.boot.tryRequire(name, log) end
@@ -274,12 +304,10 @@ local edgemap = (EdgeMap and not NextMoveBroken) and EdgeMap.new({
     log = log,
 }) or nil
 
--- run fn on the game thread after ms (documented one-shot delay; the inner
--- ExecuteInGameThread marshals onto the game thread).
+-- run fn on the game thread after ms (one-shot delay). Routes through kit.async so it
+-- takes the no-nesting Delayed Action System path when the build has it.
 local function schedule(ms, fn)
-    ExecuteWithDelay(ms, function()
-        ExecuteInGameThread(function() pcall(fn) end)
-    end)
+    Async.gameDelay(ms, fn)
 end
 
 -- a lock is "auto-capped" once the driver has given up on it AUTO_FAIL_CAP times this session;
@@ -753,9 +781,12 @@ if not okNotify then
 end
 
 -- ------------------------------------------------------- the session loop --
--- The mod's ONE async loop. It wakes every POLL_MS, cheaply decides if a tick is due,
--- and marshals a single game-thread pass that ticks the live session. Registered ONCE
--- per load via a generation token in _G (a hot reload bumps it; the old loop self-stops).
+-- The mod's ONE loop. It wakes every POLL_MS, cheaply decides if a tick is due, and runs a
+-- single game-thread pass that ticks the live session. Driven through kit.async.gameLoop: on
+-- 988+ the pass runs ON the game thread with no nested deferral (the #1180-safe path); on older
+-- builds it falls back to LoopAsync + ExecuteInGameThread. The decide callback returns tickStep
+-- when due, or true to retire the loop. Registered ONCE per load via a _G generation token (a
+-- hot reload bumps it; the old loop sees the newer value and stops).
 if not NextMoveBroken then
     local seenSession = nil -- for one-shot end-of-session bookkeeping
 
@@ -786,13 +817,20 @@ if not NextMoveBroken then
         end
     end
 
+    -- the game-thread pass kit.async runs when due: tickStep already guards its own internals,
+    -- this top-level pcall is the backstop that keeps a surprise error out of UE4SS and logs it.
+    local function runTick()
+        local ok, err = pcall(tickStep)
+        if not ok then log("session loop error: " .. tostring(err)) end
+    end
+
     local gen = (tonumber(rawget(_G, "LockpickSettings_loopGen")) or 0) + 1
     rawset(_G, "LockpickSettings_loopGen", gen)
     local wakes = 0
-    local ticking = false -- a game-thread pass is in flight; never dispatch two
-    LoopAsync(POLL_MS, function()
+    -- cheap per-wake decision: returns runTick when a pass is due, true to retire the loop,
+    -- or nil. kit.async runs the returned work on the game thread (no nesting on 988+).
+    local function decide()
         if rawget(_G, "LockpickSettings_loopGen") ~= gen then return true end -- newer reload won
-        if ticking then return false end
         wakes = wakes + 1
         local s = liveSession
         local due = false
@@ -808,15 +846,10 @@ if not NextMoveBroken then
         end
         if seenSession and (s ~= seenSession or seenSession.stop) then due = true end
         if Pending.hint or Pending.conn or Pending.auto or Pending.every or Pending.diag then due = true end
-        if not due then return false end
-        ticking = true
-        ExecuteInGameThread(function()
-            local ok, err = pcall(tickStep)
-            ticking = false
-            if not ok then log("session loop error: " .. tostring(err)) end
-        end)
-        return false
-    end)
+        if due then return runTick end
+    end
+
+    Async.gameLoop(POLL_MS, decide)
 end
 
 -- ------------------------------------------- shared mod menu (optional) --

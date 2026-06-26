@@ -143,8 +143,13 @@ end
 -- ------------------------------------------------- consumer side (publish) --
 local registry = {} -- name -> flat item list (local; holds the get/set closures)
 local started = false
-local LoopAsync           = rawget(_G, "LoopAsync")
-local ExecuteInGameThread = rawget(_G, "ExecuteInGameThread")
+-- Prefer the game-thread Delayed Action System (no nested deferral, RE-UE4SS #1180-safe),
+-- fall back to LoopAsync + ExecuteInGameThread on older builds. This file also ships
+-- standalone as modmenu.lua, so the fallback stays inline here instead of via kit.async.
+local LoopInGameThreadWithDelay = rawget(_G, "LoopInGameThreadWithDelay")
+local CancelDelayedAction       = rawget(_G, "CancelDelayedAction")
+local LoopAsync                 = rawget(_G, "LoopAsync")
+local ExecuteInGameThread       = rawget(_G, "ExecuteInGameThread")
 
 local function nameList(s)
     local out = {}
@@ -183,10 +188,27 @@ local function startPoll()
     started = true
     local gen = (tonumber(rawget(_G, "__modMenuGen")) or 0) + 1
     rawset(_G, "__modMenuGen", gen)
+    local function stale() return rawget(_G, "__modMenuGen") ~= gen end
+
+    if type(LoopInGameThreadWithDelay) == "function" then
+        -- fast path: the pump runs ON the game thread, no nested ExecuteInGameThread
+        local handle
+        handle = LoopInGameThreadWithDelay(250, function()
+            if stale() then
+                if type(CancelDelayedAction) == "function" and handle ~= nil then
+                    pcall(CancelDelayedAction, handle)
+                end
+                return
+            end
+            pcall(M.pump)
+        end)
+        return
+    end
+
     if type(LoopAsync) ~= "function" then return end
     local ticking = false
     LoopAsync(250, function()
-        if rawget(_G, "__modMenuGen") ~= gen then return true end -- a newer reload won
+        if stale() then return true end -- a newer reload won
         if ticking then return false end
         ticking = true
         local function work() pcall(M.pump); ticking = false end
