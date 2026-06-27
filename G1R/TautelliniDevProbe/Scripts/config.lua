@@ -17,7 +17,7 @@
 -- binds on CTRL+R; CHANGING an existing key needs a full restart (UE4SS keeps old keybinds until
 -- the process exits).
 return {
-    active = true,
+    active = false,
     probes = {
         -- camera: read / zoom / fov the camera surface (AngelScript DefaultCamera write-once test)
         camera = {
@@ -34,7 +34,22 @@ return {
         -- safe; tele MOVES the player, so use a throwaway save.
         map = {
             enabled = true,
-            keys = { read = "PAGE_UP", calib = "SHIFT+PAGE_UP", tele = "SHIFT+PAGE_DOWN", clear = "CONTROL+PAGE_UP", hunt = "CONTROL+PAGE_DOWN", testmove = "ALT+PAGE_DOWN", validate = "ALT+PAGE_UP", jump = "ALT+HOME", ptele = "CONTROL+HOME", gread = "SHIFT+END", gtele = "CONTROL+END", gcal = "ALT+END", genum = "SHIFT+HOME" },
+            keys = { read = "PAGE_UP", calib = "SHIFT+PAGE_UP", tele = "SHIFT+PAGE_DOWN", clear = "CONTROL+PAGE_UP", hunt = "CONTROL+PAGE_DOWN", testmove = "ALT+PAGE_DOWN", validate = "ALT+PAGE_UP", jump = "ALT+HOME", ptele = "CONTROL+HOME", gread = "SHIFT+END", gtele = "CONTROL+END", gcal = "ALT+END", genum = "SHIFT+HOME", state = "SHIFT+INS" },
+        },
+        -- npcs: can we read EVERY NPC's world position at map-open (the marker mod)? Both SAFE.
+        npcs = {
+            enabled = true,
+            keys = { scan = "INS", mixins = "DEL" },
+        },
+        -- economy + readout GRADUATED into FastTravelAnywhere 0.3.0 (ore read via CountItemsOfClass,
+        -- the cursor readout). Left here as reference but DISABLED; re-enable only to re-investigate.
+        economy = {
+            enabled = false,
+            keys = { read = "SHIFT+F3", give = "ALT+F3" },
+        },
+        readout = {
+            enabled = false,
+            keys = { show = "CONTROL+F10", hide = "ALT+F10" },
         },
     },
 }

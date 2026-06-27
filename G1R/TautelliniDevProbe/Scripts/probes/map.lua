@@ -831,6 +831,52 @@ return function(ctx)
             i, #GCAL_PTS, nx, ny, wx or -1, wy or -1, wz or -1, ok and "" or (" THREW " .. tostring(err))))
     end
 
+    -- mapState: dump the viewport / visibility signals for the map and the management (inventory)
+    -- screen, to find the one that reliably distinguishes "world map is the active screen". Run it
+    -- ONCE with the world map open and ONCE with the inventory open, then compare the two dumps.
+    local function dumpW(label, w)
+        if not isValid(w) then log("  " .. label .. ": <invalid>"); return end
+        log(string.format("  %s [%s]", label, fullName(w)))
+        log(string.format("     inViewport=%s isVisible=%s visibility=%s isEmpty=%s isWorld=%s",
+            tostring(try(function() return w:IsInViewport() end)),
+            tostring(try(function() return w:IsVisible() end)),
+            tostring(try(function() return w:GetVisibility() end)),
+            tostring(try(function() return w.m_IsEmpty end)),
+            tostring(try(function() return w.m_IsWorldMap end))))
+        -- the map widgets are CommonActivatableWidgets (BP_OnActivated/BP_OnDeactivated); the
+        -- activation state is the "is this the active screen" signal, readable WITHOUT a hook.
+        log(string.format("     bIsActive=%s IsActivated()=%s",
+            tostring(try(function() return w.bIsActive end)),
+            tostring(try(function() return w:IsActivated() end))))
+    end
+    local function mapState()
+        log("=== MAP STATE (run with the WORLD MAP open, then again with the INVENTORY open) ===")
+        log("bShowMouseCursor = " .. tostring(try(function() return playerController().bShowMouseCursor end)))
+        for _, mm in ipairs(try(function() return FindAllOf("MapMain") end) or {}) do
+            if isValid(mm) then
+                dumpW("MapMain", mm)
+                dumpW("Map_World", try(function() return mm.Map_World end))
+                dumpW("Map_Area", try(function() return mm.Map_Area end))
+            end
+        end
+        for _, m in ipairs(try(function() return FindAllOf("ManagementMain") end) or {}) do
+            if isValid(m) then
+                dumpW("ManagementMain", m)
+                log("     InventoryOpenedState=" .. tostring(try(function() return m.InventoryOpenedState end)))
+            end
+        end
+        -- crash-free candidates for the "map is the active screen" gate (READS / CALLS, never hooks)
+        for _, c in ipairs(try(function() return FindAllOf("HUDManagementController") end) or {}) do
+            if isValid(c) then log("  HUDManagementController.m_OpenedState=" .. tostring(try(function() return c.m_OpenedState end))) end
+        end
+        local pw = firstLive("PlayerWidget")
+        if isValid(pw) then
+            log("  PlayerWidget:AreAnyMenusOpen=" .. tostring(try(function() return pw:AreAnyMenusOpen() end))
+                .. " AreAnyPauseMenusOpen=" .. tostring(try(function() return pw:AreAnyPauseMenusOpen() end)))
+        end
+        log("=== end state ===")
+    end
+
     return {
         name = "map",
         actions = {
@@ -847,6 +893,7 @@ return function(ctx)
             { id = "gtele",    desc = "DANGER: teleport to cursor via game MapData func (throwaway save)", fn = gameTele },
             { id = "gcal",     desc = "CALIBRATE: cycle-teleport known norm points, log world (throwaway save)", fn = gameCal },
             { id = "genum",    desc = "ENUM live MapData instances + the open widgets' data (SAFE)", fn = gameEnum },
+            { id = "state",    desc = "DUMP map/menu visibility signals (map open, then inventory open)", fn = mapState },
         },
     }
 end
