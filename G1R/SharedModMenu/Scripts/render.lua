@@ -128,9 +128,14 @@ local function build()
         local tb = make(tbC); if not isValid(tb) then return nil end
         local ft = toText(t); if ft ~= nil then pcall(function() tb:SetText(ft) end) end
         local slot = try(function() return canvas:AddChildToCanvas(tb) end)
-        if slot then pcall(function() slot:SetAutoSize(false); slot:SetPosition({ X = x, Y = y }); slot:SetSize({ X = w, Y = L.rowH }) end) end
+        local tx, tw = x, w
+        if justify == 1 then -- CENTER by POSITION: SetJustification is unreliable here (text fell bottom-left).
+            local estW = #tostring(t) * (size or FONT) * 0.57 -- estimated text width; size the slot to the text
+            tx, tw = x + (w - estW) / 2, estW                 -- and park it at the button's centre instead
+        end
+        if slot then pcall(function() slot:SetAutoSize(false); slot:SetPosition({ X = tx, Y = y }); slot:SetSize({ X = tw, Y = L.rowH }) end) end
         pcall(function() local f = tb.Font; f.Size = size or FONT; tb:SetFont(f) end)
-        if justify then pcall(function() tb:SetJustification(justify) end) end
+        if justify then pcall(function() tb:SetJustification(justify) end) end -- harmless backup; the tight slot already centres
         applyColor(tb, color)
         return tb
     end
