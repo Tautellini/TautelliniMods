@@ -1,8 +1,8 @@
 # LockpickSettings
 
 More lockpick tries, a next-move hint, a connection display, an
-auto-solver and an optional immersive mode for Gothic 1 Remake, shipped
-as the UE4SS Lua mod `LockpickSettings`.
+auto-solver, an optional immersive mode and ore rewards for Gothic 1
+Remake, shipped as the UE4SS Lua mod `LockpickSettings`.
 
 ## The minigame rules (canon, player-verified 2026-06-07)
 
@@ -79,13 +79,15 @@ start, the keys only switch the highlights):
   removed at runtime keep showing until a move disproves them and the
   mod prunes them
 
-### Auto-solve and Immersive Mode
+### Auto-solve, Immersive Mode and Rewards
 
 - Auto-solve (`autoSolveHotkey`, F6): press F6 during a lock to have the
   mod solve it for you in a couple of seconds (press again to cancel).
   Shift+F6 toggles full-auto, which solves every lock the moment it
   opens. The solve still earns the lockpicking achievement. Off by
-  default
+  default. It can optionally spend a flat number of lockpicks per solve
+  (`autoSolveLockpickCost`, 0 = free). With fewer than that in your pack
+  the auto-solver does nothing and the tooltip says why
 - Immersive Mode (`immersiveMode`, off by default): makes the F6
   auto-solve COST lockpicks and REQUIRE skill, both scaled by the lock's
   difficulty (its connection count). A small panel on the minigame shows
@@ -94,19 +96,31 @@ start, the keys only switch the highlights):
   or lack the skill for is refused. While it is on, the Shift+F6
   full-auto mode is disabled, so there is no free clearing of every
   lock. The skill demanded comes from two connection thresholds
-  (`skilledAtConnections`, `masterAtConnections`); the lockpick cost from
-  `lockpicksPerConnection`, clamped to `lockpickCostMin` and
+  (`skilledAtConnections`, `masterAtConnections`). The lockpick cost
+  comes from `lockpicksPerConnection`, clamped to `lockpickCostMin` and
   `lockpickCostMax`. Every one of these, plus the durability and the two
   assists, is also editable ingame in the SharedModMenu
+- Rewards (`oreReward`, off by default): give ore on a successful pick
+  (by hand or auto), scaled by the lock's difficulty. The amount is
+  `orePerConnection` per connection, clamped to `oreRewardMin` and
+  `oreRewardMax`. The item added is `oreRewardItem`, an ore nugget by
+  default
+
+On-screen feedback is two layers: the panel on the minigame (the
+immersive cost and skill, or the auto-solver's "not enough lockpicks"
+status), and the pop-up notifications for lockpicks spent and ore found.
+Each can be turned off in the menu's Configuration section
+(`showTooltip`, `showNotifications`).
 
 ## Configuration
 
 Edit `Scripts/config.lua`, then restart the game or press CTRL+R ingame:
 
-- `extraTries`: the bonus added on top of the vanilla base (default 10).
-  The vanilla per-tier values (untrained 2, trained 4, master 6) are game
-  constants and live in the code (`Scripts/tries/boost.lua`, as
-  `boost.BASE_TRIES`), not in config, so 2/4/6 become 12/14/16 by default
+- `extraTries`: the per-tier bonus added on top of the vanilla base
+  (defaults: untrained 5, trained 10, master 20). The vanilla per-tier
+  values (untrained 2, trained 4, master 6) are game constants and live
+  in the code (`Scripts/tries/boost.lua`, as `boost.BASE_TRIES`), not in
+  config, so 2/4/6 become 7/14/26 by default
 - `showNextMove`: next-move hint state at game start (default false)
 - `nextMoveHotkey`: key that toggles the hint ingame, takes effect
   immediately even mid-minigame (default `"F7"`, `""` disables)
@@ -205,7 +219,7 @@ setup, see the G1R modding guide (`../README.md`).
 
 Check `G1R\Binaries\Win64\ue4ss\UE4SS.log` for `[LockpickSettings]` lines:
 
-- On game start: `Loaded: untrained 2->12, trained 4->14, master 6->16,
+- On game start: `Loaded: untrained 2->7, trained 4->14, master 6->26,
   next-move hint off (416 lock graphs from bundled, toggle: F7), connection
   display off, toggle: F8` (`from bundled` = the shipped `data/lockgraphs.lua`,
   the only source; a live decode was tried and dropped, see How it works)

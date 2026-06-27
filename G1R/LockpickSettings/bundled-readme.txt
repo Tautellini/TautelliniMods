@@ -8,11 +8,18 @@ Features (all but the durability boost are off by default; keys configurable):
    direction, red = opposite), matching your lockpicking precision.
 4. Auto-solve (F6): solves the current lock in a couple of seconds (F6 again
    cancels). Shift+F6 toggles full-auto on every lock. Still earns the achievement.
+   Can optionally cost a flat number of lockpicks per solve (set in the menu); with
+   too few in your pack it does nothing and the tooltip says why.
 5. Immersive Mode (off by default): makes the F6 auto-solve cost lockpicks and
    need skill, both scaled by the lock's difficulty (its connection count). A panel
    on the minigame shows the cost and the skill needed, red when you cannot meet it,
    and a solve you cannot afford or lack the skill for is refused. Turning it on
    disables Shift+F6 full-auto, so there is no free clearing of every lock.
+6. Rewards (off by default): give ore on a successful pick, scaled by the lock's
+   difficulty. Set the rate and the min/max in the menu.
+
+On-screen feedback (the minigame tooltip, and the pop-up notifications for lockpicks
+spent and ore found) can each be turned off in the menu's Configuration section.
 
 Requires UE4SS (experimental build; the game runs UE 5.4.3):
 https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest

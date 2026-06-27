@@ -50,9 +50,9 @@ return {
 
     -- Lockpicks an F6 solve costs, per connection of the lock, then clamped:
     -- cost = clamp(round(lockpicksPerConnection * connections), lockpickCostMin, lockpickCostMax).
-    lockpicksPerConnection = 0.5,
+    lockpicksPerConnection = 0.3,
     lockpickCostMin        = 1,
-    lockpickCostMax        = 15,
+    lockpickCostMax        = 5,
 
     -- Picklock skill TIER the lock demands, set by its connection count (its difficulty) via two
     -- thresholds. A lock with fewer than skilledAtConnections needs only Untrained. From there up to
@@ -62,6 +62,29 @@ return {
     -- Master >=10 (the 108 hardest locks).
     skilledAtConnections = 5,
     masterAtConnections  = 10,
+
+    -- ------------------------------------------------------- Auto-Solver cost --
+    -- Flat lockpicks an auto-solve (F6, or each lock in full-auto) costs while Immersive Mode is OFF.
+    -- Spent on each solve. 0 = free. With fewer than this in your pack the auto-solver does nothing and
+    -- the tooltip says so. Immersive Mode ignores this and uses its own difficulty-scaled cost instead.
+    autoSolveLockpickCost = 0,
+
+    -- ------------------------------------------------------------- Rewards --
+    -- Reward ore on a successful pick (any pick, by hand or auto), scaled by the lock's difficulty (its
+    -- connection count): ore = clamp(round(orePerConnection * connections), oreRewardMin, oreRewardMax).
+    -- Off by default.
+    oreReward        = false,
+    oreRewardItem    = "ItMi_Orenugget", -- the ore item added to your inventory
+    orePerConnection = 7.0,
+    oreRewardMin     = 10,
+    oreRewardMax     = 50,
+
+    -- ------------------------------------------------------------- Display --
+    -- On-screen feedback, both on by default. The TOOLTIP is the panel shown on the minigame (the
+    -- immersive cost/skill, or the auto-solver "not enough lockpicks" status). NOTIFICATIONS are the
+    -- transient snackbar messages (lockpicks spent, ore found).
+    showTooltip       = true,
+    showNotifications = true,
 
     -- Log solver internals to UE4SS.log (a few lines per lock).
     debugSolver = true,

@@ -17,8 +17,11 @@
 local ipairs = ipairs
 local string = string
 local tonumber = tonumber
+local type = type
 local pcall = pcall
 local FindAllOf = FindAllOf
+local StaticFindObject = StaticFindObject
+local StaticConstructObject = StaticConstructObject
 
 local engine = {}
 
@@ -101,6 +104,48 @@ function engine.try(fn)
     local ok, r = pcall(fn)
     if ok then return r end
     return nil
+end
+
+-- ------------------------------------------------------------------ UMG / widgets --
+-- These name the construction globals (StaticFindObject / StaticConstructObject) so the
+-- pure kit files do not have to. They are generic UE access, no game-domain knowledge.
+
+-- find an object by full path (a CDO, a class), valid only. e.g.
+-- engine.find("/Script/UMG.Default__WidgetBlueprintLibrary").
+function engine.find(path)
+    local obj = engine.try(function() return StaticFindObject(path) end)
+    if engine.isValid(obj) then return obj end
+    return nil
+end
+
+-- construct a new UObject of class `cls` under `outer`. Returns it (valid) or nil.
+function engine.construct(cls, outer)
+    local obj = engine.try(function() return StaticConstructObject(cls, outer) end)
+    if engine.isValid(obj) then return obj end
+    return nil
+end
+
+-- the first live instance of a class (convenience over liveInstances).
+function engine.firstLive(className)
+    return engine.liveInstances(className)[1]
+end
+
+-- the viewport size in PIXELS plus the UMG DPI scale, read off a world-context UObject
+-- `ctx` (a live widget or controller). UMG canvas slots live in DESIGN space (pixels /
+-- scale), so a caller converts. Returns w, h, scale, or nil.
+function engine.viewport(ctx)
+    local lib = engine.find("/Script/UMG.Default__WidgetLayoutLibrary")
+    if not (engine.isValid(lib) and engine.isValid(ctx)) then return nil end
+    local w, h, sc
+    local ok = engine.try(function()
+        local sz = lib:GetViewportSize(ctx)
+        w, h = sz.X, sz.Y
+        sc = lib:GetViewportScale(ctx)
+        return true
+    end)
+    if not (ok and type(w) == "number" and type(h) == "number") then return nil end
+    if type(sc) ~= "number" or sc <= 0 then sc = 1 end
+    return w, h, sc
 end
 
 return engine

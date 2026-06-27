@@ -32,6 +32,16 @@ function cost.lockpickCost(connections, cfg)
     return c
 end
 
+-- ore a successful pick rewards for a lock of `connections` difficulty, clamped to [min, max].
+function cost.oreReward(connections, cfg)
+    local r = math.floor((connections or 0) * (cfg.orePerConnection or 0) + 0.5)
+    local lo = cfg.oreRewardMin or 0
+    if r < lo then r = lo end
+    local hi = cfg.oreRewardMax
+    if hi and r > hi then r = hi end
+    return r
+end
+
 -- may the solver clear this lock? Fail-OPEN on an unreadable skill or pick count (never block on a
 -- read failure). Returns ok, hasSkill, canAfford, requiredTier, lockpickCost.
 function cost.evaluate(connections, precision, lockpicks, cfg)

@@ -35,4 +35,5 @@ kit.engine  = load("engine")  -- liveInstances, readRootPos (generic UE4SS acces
 kit.boot    = load("boot")    -- tryRequire (require-and-degrade)
 kit.async   = load("async")   -- gameLoop / gameDelay (game-thread timers, #1180-safe)
 kit.menu    = load("menu")    -- register(name, spec): cross-mod menu bridge (shared vars)
+kit.snackbar = load("snackbar") -- bind(deps) + show(text, opts): stackable transient UMG messages
 return kit

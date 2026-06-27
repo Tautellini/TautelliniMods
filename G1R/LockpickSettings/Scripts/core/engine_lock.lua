@@ -256,6 +256,24 @@ function engine.spendItem(itemName, amount)
     return (try(function() mix:RemoveItemFromInventory(state, cls, amount, pawn); return true end) == true)
 end
 
+-- add `amount` of the item to the player's inventory (the inventory-component AddItemOfClass path, the
+-- same call the console mod's `additem` uses). True on success.
+function engine.giveItem(itemName, amount)
+    if not (amount and amount > 0) then return true end
+    local cls = resolveItemClass(itemName)
+    if not isValid(cls) then return false end
+    local pawn, state = playerState()
+    local inv = inventoryOf(pawn, state)
+    if not isValid(inv) then return false end
+    return (try(function() inv:AddItemOfClass(cls, amount); return true end) == true)
+end
+
+-- the player controller, used by the kit's snackbar to create its UMG widget. The PC's exact class
+-- is game-specific, so the generic kit cannot resolve it and the mod supplies it.
+function engine.playerController()
+    return firstLive("GothicPlayerController") or firstLive("PlayerController")
+end
+
 -- ------------------------------------------------------------- readout --
 -- Immersive Mode's on-minigame tooltip: a small SharedModMenu-styled panel (header + divider + three
 -- lines) at a fixed top-left spot while a lock is being picked. Same UMG model as FastTravelAnywhere's
