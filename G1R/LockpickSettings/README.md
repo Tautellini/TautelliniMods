@@ -1,7 +1,8 @@
 # LockpickSettings
 
-More lockpick tries, a next-move hint and a connection display for
-Gothic 1 Remake, shipped as the UE4SS Lua mod `LockpickSettings`.
+More lockpick tries, a next-move hint, a connection display, an
+auto-solver and an optional immersive mode for Gothic 1 Remake, shipped
+as the UE4SS Lua mod `LockpickSettings`.
 
 ## The minigame rules (canon, player-verified 2026-06-07)
 
@@ -41,11 +42,12 @@ to vanilla + bonus:
 
 | Skill tier | Vanilla tries | With mod (default) |
 |------------|---------------|--------------------|
-| Untrained  | 2             | 12                 |
+| Untrained  | 2             | 7                  |
 | Trained    | 4             | 14                 |
-| Master     | 6             | 16                 |
+| Master     | 6             | 26                 |
 
-Every tier gets the same bonus, so skill progression keeps mattering.
+Higher tiers get a bigger bonus (default 5/10/20 on top of vanilla), so
+skill progression keeps mattering.
 
 It also offers two optional assists, both off by default and toggleable
 ingame at any time (even mid-pick; the mod follows every lock from its
@@ -76,6 +78,26 @@ start, the keys only switch the highlights):
   the display shows the authored layout; connections the game silently
   removed at runtime keep showing until a move disproves them and the
   mod prunes them
+
+### Auto-solve and Immersive Mode
+
+- Auto-solve (`autoSolveHotkey`, F6): press F6 during a lock to have the
+  mod solve it for you in a couple of seconds (press again to cancel).
+  Shift+F6 toggles full-auto, which solves every lock the moment it
+  opens. The solve still earns the lockpicking achievement. Off by
+  default
+- Immersive Mode (`immersiveMode`, off by default): makes the F6
+  auto-solve COST lockpicks and REQUIRE skill, both scaled by the lock's
+  difficulty (its connection count). A small panel on the minigame shows
+  the lock's difficulty, your lockpicks, the pick cost and the skill it
+  needs, turning red when you cannot meet it. A solve you cannot afford
+  or lack the skill for is refused. While it is on, the Shift+F6
+  full-auto mode is disabled, so there is no free clearing of every
+  lock. The skill demanded comes from two connection thresholds
+  (`skilledAtConnections`, `masterAtConnections`); the lockpick cost from
+  `lockpicksPerConnection`, clamped to `lockpickCostMin` and
+  `lockpickCostMax`. Every one of these, plus the durability and the two
+  assists, is also editable ingame in the SharedModMenu
 
 ## Configuration
 

@@ -37,6 +37,32 @@ return {
     -- Live in the menu as "Tick (DANGER)".
     autoSolveTickMs        = 50,
 
+    -- ------------------------------------------------------------ Immersive Mode --
+    -- Make F6 auto-solve COST lockpicks and require skill, both scaled by the lock's difficulty (its
+    -- connection count). Off by default. While it is on, the Shift+F6 full-auto-every-lock mode is
+    -- disabled (no free auto-clearing of every lock). A tooltip on the minigame shows the lock's
+    -- difficulty, your lockpicks, the pick cost and the skill it needs (red when you cannot meet it);
+    -- a solve you cannot afford or lack the skill for is refused.
+    immersiveMode = false,
+
+    -- The lockpick item counted and consumed (ItKe_Lockpick = the Gothic lockpick / Dietrich).
+    lockpickItem = "ItKe_Lockpick",
+
+    -- Lockpicks an F6 solve costs, per connection of the lock, then clamped:
+    -- cost = clamp(round(lockpicksPerConnection * connections), lockpickCostMin, lockpickCostMax).
+    lockpicksPerConnection = 0.5,
+    lockpickCostMin        = 1,
+    lockpickCostMax        = 15,
+
+    -- Picklock skill TIER the lock demands, set by its connection count (its difficulty) via two
+    -- thresholds. A lock with fewer than skilledAtConnections needs only Untrained. From there up to
+    -- masterAtConnections it needs Skilled. At or above masterAtConnections it needs Master. You need
+    -- your LockpickPrecision at or above the demanded tier for F6 to solve. Defaults fit the game's
+    -- range (3..10 connections, ceiling 11): Untrained handles <=4 (24 locks), Skilled 5..9 (285),
+    -- Master >=10 (the 108 hardest locks).
+    skilledAtConnections = 5,
+    masterAtConnections  = 10,
+
     -- Log solver internals to UE4SS.log (a few lines per lock).
     debugSolver = true,
 

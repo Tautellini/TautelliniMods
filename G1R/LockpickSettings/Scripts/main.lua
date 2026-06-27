@@ -11,7 +11,7 @@ local rawget, rawset, debug = rawget, rawset, debug
 local setmetatable = setmetatable
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "3.2.10"
+local ModVersion = "4.0.0"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -95,6 +95,8 @@ local SavedPath = ModDir and (ModDir .. "/saved_settings.lua") or nil
 local SAVED_KEYS = {
     "showNextMove", "showConnections", "autoSolveEvery",
     "autoSolveAnimationSpeed", "autoSolveTickMs", "extraTries",
+    "immersiveMode", "lockpicksPerConnection", "lockpickCostMin", "lockpickCostMax",
+    "skilledAtConnections", "masterAtConnections",
 }
 if Settings and SavedPath then
     local saved = Settings.load(SavedPath)
@@ -141,6 +143,7 @@ local Tinter = tryRequire("core.tinter")
 local Session = tryRequire("core.session")
 local Driver = tryRequire("autosolve.driver")
 local EdgeMap = tryRequire("autosolve.edgemap")
+local Cost = tryRequire("immersive.cost")
 
 -- shipped solution policies: data/lockpolicies.lua (DEFLATE next-move tables per lock
 -- x precision variant, built by tools/build_policies.py) + lockpolicies_index. Shipped
@@ -242,6 +245,12 @@ local function saveSettings()
             trained = ExtraTries.trained or 0,
             master = ExtraTries.master or 0,
         },
+        immersiveMode = Config.immersiveMode,
+        lockpicksPerConnection = Config.lockpicksPerConnection,
+        lockpickCostMin = Config.lockpickCostMin,
+        lockpickCostMax = Config.lockpickCostMax,
+        skilledAtConnections = Config.skilledAtConnections,
+        masterAtConnections = Config.masterAtConnections,
     })
 end
 
@@ -494,12 +503,14 @@ local function tryStart(attempt)
     s.task = FreshTask
     s.onStop = function() if liveSession == s then liveSession = nil end end
     liveSession = s
+    s.connectionCount = #graph.connections -- lock difficulty: Immersive Mode's cost + skill scale off it
     s.tinter:retint(s)
     log(string.format("Next-move hint: %s, %d pieces, %d connections, first hint: %s",
         lockName, s.pieceCount, #graph.connections,
         s.nextMove and ("piece " .. s.nextMove.piece) or "none"))
-    -- full-auto: drive this lock the instant it's tracked, when usable (and not already given up on)
-    if autoEvery and driver and not s.stateUnknown and s.hintGeometry and not autoCapped(s) then
+    -- full-auto: drive this lock the instant it's tracked, when usable (and not already given up on).
+    -- Suppressed in Immersive Mode -- there a solve must be a deliberate F6 (which charges lockpicks).
+    if autoEvery and Config.immersiveMode ~= true and driver and not s.stateUnknown and s.hintGeometry and not autoCapped(s) then
         pcall(function() driver:toggleFast(s) end)
     end
 end
@@ -552,7 +563,29 @@ end
 local function doAutoToggle()
     if not driver then return end
     local s = liveSession
-    if s and not driver:running() then s.autoFails = 0 end
+    if s and not driver:running() then
+        -- Immersive Mode: STARTING a solve costs lockpicks + needs skill, both scaled by the lock's
+        -- connection count. Gate the start only (a cancel is free); the picks are spent on commit.
+        if Config.immersiveMode == true and Cost and s.connectionCount then
+            local attrs = Engine.lockpickAttributes()
+            local precision = attrs and attrs.precision
+            local picks = Engine.itemCount(Config.lockpickItem)
+            local ok, hasSkill, _, req, cost = Cost.evaluate(s.connectionCount, precision, picks, Config)
+            if not ok then
+                if not hasSkill then
+                    log("Immersive: this lock needs " .. Cost.skillName(req) .. " picklock skill to auto-solve")
+                else
+                    log(string.format("Immersive: not enough lockpicks (need %d, have %s)", cost, tostring(picks)))
+                end
+                return -- refused; nothing solved, no picks spent
+            end
+            if cost > 0 and picks ~= nil then
+                Engine.spendItem(Config.lockpickItem, cost)
+                s.readoutPicks = nil -- re-read the reduced count so the readout updates during the solve
+            end
+        end
+        s.autoFails = 0
+    end
     pcall(function() driver:toggleFast(s) end)
 end
 
@@ -568,6 +601,10 @@ end
 -- Shift+F6: flip full-auto-every-lock, arming/cancelling the current lock to match
 local function doEveryToggle()
     if not driver then return end
+    if Config.immersiveMode == true then
+        log("Full-auto-every-lock is disabled while Immersive Mode is on (each F6 solve costs lockpicks).")
+        return
+    end
     pcall(function()
         autoEvery = not autoEvery
         log("Full-auto (every lock) " .. (autoEvery and "ON" or "OFF"))
@@ -925,23 +962,117 @@ if kit.menu and kit.menu.register then
         sections[#sections + 1] = { title = "Auto-Solve", items = {
             { name = "Full Auto", kind = "bool", desc = "Auto-solve every lock you open",
                 get = function() return autoEvery end, set = setEvery },
-            { name = "Animation Speed", kind = "num", min = 10, max = 500, step = 10, desc = "Pause between auto-solve moves (ms)",
+            { name = "Animation Speed", kind = "num", min = 10, max = 500, step = 10, desc = "Pause between auto-solve moves",
                 get = function() return AutoAnimSpeed end, set = setSpeed },
-            { name = "Tick (DANGER)", kind = "num", min = 25, max = 500, step = 25, desc = "Solver tick (ms); lower is faster but riskier",
+            { name = "Tick (DANGER)", kind = "num", min = 25, max = 500, step = 25, desc = "Adjust when the solver is unstable. Lower is faster.",
                 get = function() return TickRateMs end, set = setTickRate },
         } }
     end
     sections[#sections + 1] = { title = "Durability", items = {
-        { name = "Untrained", kind = "num", min = 0, max = 30, step = 1, desc = "Extra lockpicks over vanilla, untrained skill",
+        { name = "Untrained", kind = "num", min = 0, max = 30, step = 1,
             get = tierGet("untrained"), set = tierSet("untrained") },
-        { name = "Trained", kind = "num", min = 0, max = 30, step = 1, desc = "Extra lockpicks over vanilla, trained skill",
+        { name = "Trained", kind = "num", min = 0, max = 30, step = 1,
             get = tierGet("trained"), set = tierSet("trained") },
-        { name = "Master", kind = "num", min = 0, max = 30, step = 1, desc = "Extra lockpicks over vanilla, master skill",
+        { name = "Master", kind = "num", min = 0, max = 30, step = 1,
             get = tierGet("master"), set = tierSet("master") },
     } }
+    if not AutoSolveBroken then
+        sections[#sections + 1] = { title = "Immersive Mode", items = {
+            { name = "Immersive Mode", kind = "bool", desc = "F6 auto-solve costs lockpicks and needs skill",
+                get = function() return Config.immersiveMode == true end,
+                set = function(v)
+                    Config.immersiveMode = v and true or false
+                    log("Immersive Mode " .. (Config.immersiveMode and "ON (F6 costs lockpicks + skill)" or "OFF"))
+                    if Config.immersiveMode and autoEvery then -- mutually exclusive with full-auto-every-lock
+                        autoEvery = false
+                        if driver and driver:running() then pcall(function() driver:toggleFast(liveSession) end) end
+                        log("Full-auto turned off (Immersive Mode is on)")
+                    end
+                    saveSettings()
+                end },
+            { name = "Lockpicks / Connection", kind = "num", min = 0, max = 5, step = 0.1,
+                desc = "Picks an F6 solve costs per lock connection",
+                get = function() return Config.lockpicksPerConnection or 0 end,
+                set = function(v) Config.lockpicksPerConnection = math.floor((tonumber(v) or 0) * 10 + 0.5) / 10; saveSettings() end },
+            { name = "Min Lockpick Cost", kind = "num", min = 0, max = 50, step = 1,
+                get = function() return Config.lockpickCostMin or 0 end,
+                set = function(v) Config.lockpickCostMin = math.floor((tonumber(v) or 0) + 0.5); saveSettings() end },
+            { name = "Max Lockpick Cost", kind = "num", min = 0, max = 99, step = 1,
+                get = function() return Config.lockpickCostMax or 0 end,
+                set = function(v) Config.lockpickCostMax = math.floor((tonumber(v) or 0) + 0.5); saveSettings() end },
+            { name = "Skilled at (connections)", kind = "num", min = 1, max = 12, step = 1,
+                get = function() return Config.skilledAtConnections or 0 end,
+                set = function(v) Config.skilledAtConnections = math.floor((tonumber(v) or 0) + 0.5); saveSettings() end },
+            { name = "Master at (connections)", kind = "num", min = 1, max = 12, step = 1,
+                get = function() return Config.masterAtConnections or 0 end,
+                set = function(v) Config.masterAtConnections = math.floor((tonumber(v) or 0) + 0.5); saveSettings() end },
+        } }
+    end
     pcall(kit.menu.register, "LockpickSettings", sections)
     log("SharedModMenu: registered " .. #sections .. " section(s) (a tab appears if "
         .. "the SharedModMenu mod is installed)")
+end
+
+-- ------------------------------------------------- immersive readout (tail) --
+-- While Immersive Mode is on and a lock is being picked, a fixed-position panel shows the lock's
+-- difficulty, your lockpicks, the F6 cost and the skill it needs (red when you cannot meet it). Driven
+-- by a game-thread timer. It acts ONLY once the solver session is live (the scramble gate has passed):
+-- reading the inventory (a FindAllOf object-array walk) or drawing during the chest-open, while the
+-- lock objects and UI are still constructing, is the native-AV crash surface (the same one FTA hit and
+-- the solver's own piece-pool wait avoids). The panel is pre-built off-minigame so opening a lock never
+-- constructs it mid-transition, and the picks/skill are read ONCE per lock (cached on the session,
+-- re-read after a solve) so there is no per-tick inventory scan.
+-- Anchor (screen pixels): the minigame hugs the right of the screen, so the panel's top-left sits this
+-- far in from the right edge and up from the bottom, putting it to the minigame's left.
+local READOUT_FROM_RIGHT = 1000
+local READOUT_FROM_BOTTOM = 450
+local function readoutTick()
+    if not (Cost and Engine.readoutUpdate) then return end
+    if Config.immersiveMode ~= true then Engine.readoutHide() return end
+    local s = liveSession
+    if not (s and not s.stop and s.connectionCount) then
+        Engine.readoutHide()
+        Engine.readoutBuild() -- pre-build during stable gameplay; no-op once built
+        return
+    end
+    if s.readoutPicks == nil then
+        s.readoutPicks = Engine.itemCount(Config.lockpickItem)
+        local attrs = Engine.lockpickAttributes()
+        s.readoutPrecision = attrs and attrs.precision
+    end
+    local picks, precision = s.readoutPicks, s.readoutPrecision
+    local ok, hasSkill, _, req, costPicks = Cost.evaluate(s.connectionCount, precision, picks, Config)
+    local myTier = math.floor((precision or 0) + 0.5)
+    if myTier < 0 then myTier = 0 elseif myTier > 2 then myTier = 2 end
+    local pickKey = (type(AutoKey) == "string" and AutoKey ~= "") and AutoKey or "F6"
+    local header = "[" .. pickKey .. "] auto-pick"
+    local line1 = "Lock difficulty: " .. s.connectionCount .. " connections"
+    local haveStr = (picks == nil) and "?" or tostring(picks)
+    local line2, line3
+    if not hasSkill then
+        line2 = "Needs " .. Cost.skillName(req) .. " picklock skill"
+        line3 = "You have " .. Cost.skillName(myTier) .. " (cost " .. costPicks .. " lockpicks)"
+    else
+        line2 = "Costs " .. costPicks .. " lockpicks (have " .. haveStr .. ")"
+        line3 = "Picklock skill " .. Cost.skillName(myTier) .. " (ready)"
+    end
+    if s.readoutX == nil then -- viewport is constant per lock: read once, anchor to the bottom-right
+        local vw, vh, sc = Engine.viewportSize()
+        if vw and vh then
+            s.readoutX = (vw - READOUT_FROM_RIGHT) / sc
+            s.readoutY = (vh - READOUT_FROM_BOTTOM) / sc
+        end
+    end
+    Engine.readoutUpdate(header, line1, line2, line3, not ok, s.readoutX or 40, s.readoutY or 110)
+end
+
+do
+    local rawget, rawset = rawget, rawset
+    rawset(_G, "__lps_readoutWork", function() pcall(readoutTick) end) -- refreshed on every (re)load
+    if kit.async and kit.async.gameLoop and not rawget(_G, "__lps_readoutLoop") then
+        rawset(_G, "__lps_readoutLoop", true) -- register the persistent loop ONCE (survives CTRL+R)
+        pcall(kit.async.gameLoop, 200, function() return rawget(_G, "__lps_readoutWork") end)
+    end
 end
 
 -- ----------------------------------------------------------------- banner --

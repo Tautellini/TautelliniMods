@@ -8,6 +8,11 @@ Features (all but the durability boost are off by default; keys configurable):
    direction, red = opposite), matching your lockpicking precision.
 4. Auto-solve (F6): solves the current lock in a couple of seconds (F6 again
    cancels). Shift+F6 toggles full-auto on every lock. Still earns the achievement.
+5. Immersive Mode (off by default): makes the F6 auto-solve cost lockpicks and
+   need skill, both scaled by the lock's difficulty (its connection count). A panel
+   on the minigame shows the cost and the skill needed, red when you cannot meet it,
+   and a solve you cannot afford or lack the skill for is refused. Turning it on
+   disables Shift+F6 full-auto, so there is no free clearing of every lock.
 
 Requires UE4SS (experimental build; the game runs UE 5.4.3):
 https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest
