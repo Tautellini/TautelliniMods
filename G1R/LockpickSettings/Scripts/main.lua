@@ -11,7 +11,7 @@ local rawget, rawset, debug = rawget, rawset, debug
 local setmetatable = setmetatable
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "4.0.0"
+local ModVersion = "4.0.1"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).
@@ -1022,10 +1022,14 @@ end
 -- the solver's own piece-pool wait avoids). The panel is pre-built off-minigame so opening a lock never
 -- constructs it mid-transition, and the picks/skill are read ONCE per lock (cached on the session,
 -- re-read after a solve) so there is no per-tick inventory scan.
--- Anchor (screen pixels): the minigame hugs the right of the screen, so the panel's top-left sits this
--- far in from the right edge and up from the bottom, putting it to the minigame's left.
-local READOUT_FROM_RIGHT = 1000
-local READOUT_FROM_BOTTOM = 450
+-- Anchor in DESIGN space (the resolution-independent UMG space the panel's slots live in, = physical
+-- pixels / DPI scale). The minigame is anchored RIGHT-CENTER: it hugs the right edge and stays
+-- vertically centered, so the panel matches that. X is measured in from the right edge, Y from the
+-- vertical CENTER (not the bottom). The design canvas is 1920x1080 only at 16:9 and wider, where the
+-- height is the constraint. At a TALLER aspect like 4:3 it grows (e.g. 1920x1440), so a bottom-anchored
+-- Y would sink below the centered minigame. Center-anchoring the Y keeps it aligned at every aspect.
+local READOUT_FROM_RIGHT = 750    -- design units LEFT of the right edge
+local READOUT_BELOW_CENTER = 202  -- design units BELOW the vertical center
 local function readoutTick()
     if not (Cost and Engine.readoutUpdate) then return end
     if Config.immersiveMode ~= true then Engine.readoutHide() return end
@@ -1059,8 +1063,14 @@ local function readoutTick()
     if s.readoutX == nil then -- viewport is constant per lock: read once, anchor to the bottom-right
         local vw, vh, sc = Engine.viewportSize()
         if vw and vh then
-            s.readoutX = (vw - READOUT_FROM_RIGHT) / sc
-            s.readoutY = (vh - READOUT_FROM_BOTTOM) / sc
+            sc = (sc and sc > 0) and sc or 1
+            local designW, designH = vw / sc, vh / sc -- the slots live in design space (pixels / DPI scale)
+            s.readoutX = designW - READOUT_FROM_RIGHT       -- right-anchored: track the right edge
+            s.readoutY = designH / 2 + READOUT_BELOW_CENTER -- center-anchored: track the centered minigame
+            if DebugSolver then
+                log(string.format("readout anchor: viewport %.0fx%.0f scale %.3f -> design %.0fx%.0f, panel at %.0f,%.0f",
+                    vw, vh, sc, designW, designH, s.readoutX, s.readoutY))
+            end
         end
     end
     Engine.readoutUpdate(header, line1, line2, line3, not ok, s.readoutX or 40, s.readoutY or 110)
