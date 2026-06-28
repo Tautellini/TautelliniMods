@@ -334,21 +334,7 @@ local function buildReadout()
     }
 end
 
-local function ensureReadout()
-    local h = rawget(_G, ReadoutKey)
-    if h and isValid(h.widget) and h.l1 and h.shape == READOUT_SHAPE then return h end
-    if h and isValid(h.widget) then pcall(function() h.widget:RemoveFromParent() end) end
-    h = buildReadout()
-    if not h then return nil end
-    pcall(function() h.widget:SetVisibility(3) end) -- HitTestInvisible: never eats clicks
-    h.shown = false
-    rawset(_G, ReadoutKey, h)
-    return h
-end
-
--- pre-build the panel during gameplay (the driver calls this off-minigame) so opening a lock never
--- constructs a widget mid-transition. No-op once built.
-function engine.readoutBuild() return ensureReadout() ~= nil end
+local OFFSCREEN = -10000  -- park slots here to hide the panel without detaching it from the viewport
 
 local function placeSlot(slot, x, y, w, hh)
     if slot then pcall(function() slot:SetPosition({ X = x, Y = y }); slot:SetSize({ X = w, Y = hh }) end) end
@@ -365,6 +351,28 @@ local function layoutReadout(h, x, y, pw, ph)
     if h.l2 then placeSlot(h.l2.slot, x + 14, y + 60, pw - 22, 20) end
     if h.l3 and ph > 90 then placeSlot(h.l3.slot, x + 14, y + 82, pw - 22, 18) end
 end
+
+-- Build the panel ONCE and keep it ROOTED in the viewport, hidden by parking its slots off-screen.
+-- A detached (RemoveFromParent) widget is un-rooted, so the GC reclaims it and the loop must rebuild it.
+-- That rebuild does a world-wide FindAllOf at unpredictable times. Staying in the viewport keeps the
+-- handle valid, so readoutBuild is a true no-op after the first build.
+local function ensureReadout()
+    local h = rawget(_G, ReadoutKey)
+    if h and isValid(h.widget) and h.l1 and h.shape == READOUT_SHAPE then return h end
+    if h and isValid(h.widget) then pcall(function() h.widget:RemoveFromParent() end) end
+    h = buildReadout()
+    if not h then return nil end
+    layoutReadout(h, OFFSCREEN, OFFSCREEN, 200, 88) -- park before showing so fresh slots never flash at the origin
+    pcall(function() h.widget:SetVisibility(3) end) -- HitTestInvisible: renders, never eats clicks
+    pcall(function() h.widget:AddToViewport(120) end)
+    h.shown = false
+    rawset(_G, ReadoutKey, h)
+    return h
+end
+
+-- pre-build the panel during gameplay (the driver calls this off-minigame) so opening a lock never
+-- constructs a widget mid-transition. No-op once built.
+function engine.readoutBuild() return ensureReadout() ~= nil end
 
 local function setText(t, s)
     if t and isValid(t.tb) then local ft = toText(s or ""); if ft then pcall(function() t.tb:SetText(ft) end) end end
@@ -394,18 +402,21 @@ function engine.readoutUpdate(header, line1, line2, line3, isRed, x, y)
     local pw = widthFor(header, line1, line2, line3)
     local ph = (line3 ~= nil and line3 ~= "") and 110 or 88
     local ox, oy = x or 40, y or 110
-    if h.lastX ~= ox or h.lastY ~= oy or h.lastW ~= pw or h.lastH ~= ph then
+    -- re-layout when first shown after a hide (slots parked off-screen) or when the anchor/size changed
+    if not h.shown or h.lastX ~= ox or h.lastY ~= oy or h.lastW ~= pw or h.lastH ~= ph then
         layoutReadout(h, ox, oy, pw, ph)
         h.lastX, h.lastY, h.lastW, h.lastH = ox, oy, pw, ph
     end
-    if not h.shown then pcall(function() h.widget:AddToViewport(120) end); h.shown = true end
+    h.shown = true
     return true
 end
 
+-- hide by parking the panel off-screen, never detaching it: the widget stays in the viewport (rooted),
+-- so the GC cannot reclaim it and the loop never rebuilds it (a rebuild is a world-wide FindAllOf).
 function engine.readoutHide()
     local h = rawget(_G, ReadoutKey)
     if h and h.shown and isValid(h.widget) then
-        if not pcall(function() h.widget:RemoveFromParent() end) then pcall(function() h.widget:RemoveFromViewport() end) end
+        layoutReadout(h, OFFSCREEN, OFFSCREEN, h.lastW or 200, h.lastH or 88)
         h.shown = false
     end
 end

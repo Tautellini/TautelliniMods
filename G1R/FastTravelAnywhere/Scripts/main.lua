@@ -11,7 +11,7 @@ local ipairs, pairs, tostring, type = ipairs, pairs, tostring, type
 local pcall, require, os, string = pcall, require, os, string
 local rawget, rawset, debug, math = rawget, rawset, debug, math
 
-local ModVersion = "0.3.0"
+local ModVersion = "0.3.1"
 
 -- vendored kit lives at <Mod>/shared/; add it from this file's own location.
 local here = debug.getinfo(1, "S").source:match("^@(.*)[/\\][^/\\]*$")

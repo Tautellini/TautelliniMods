@@ -538,26 +538,7 @@ local function buildReadout()
     }
 end
 
--- build the panel ONCE (left DETACHED = hidden), then keep the handle. This is the SharedModMenu
--- model exactly: build once, SHOW/HIDE by AddToViewport / RemoveFromParent, update in place, and never
--- reconstruct or touch it from a fast loop. Returns the live handle, or nil if UMG is not ready yet.
-local function ensureReadout()
-    local h = rawget(_G, ReadoutKey)
-    if h and isValid(h.widget) and h.l1 and h.shape == READOUT_SHAPE then return h end
-    if h and isValid(h.widget) then pcall(function() h.widget:RemoveFromParent() end) end
-    h = buildReadout()
-    if not h then return nil end
-    pcall(function() h.widget:SetVisibility(3) end) -- HitTestInvisible (once): never eats the map cursor
-    h.shown = false
-    rawset(_G, ReadoutKey, h)
-    return h
-end
-
--- pre-build the panel during normal gameplay (the off-map poll calls this), so opening the map never
--- constructs a widget mid-transition. No-op once built.
-function engine.readoutBuild()
-    return ensureReadout() ~= nil
-end
+local OFFSCREEN = -10000  -- park slots here to hide the panel without detaching it from the viewport
 
 local function placeSlot(slot, x, y, w, h)
     if slot then pcall(function() slot:SetPosition({ X = x, Y = y }); slot:SetSize({ X = w, Y = h }) end) end
@@ -573,6 +554,30 @@ local function layoutReadout(h, x, y, pw, ph)
     if h.l1 then placeSlot(h.l1.slot, x + 14, y + 39, pw - 22, 20) end
     if h.l2 then placeSlot(h.l2.slot, x + 14, y + 60, pw - 22, 20) end
     if h.l3 and ph > 90 then placeSlot(h.l3.slot, x + 14, y + 82, pw - 22, 18) end
+end
+
+-- Build the panel ONCE and keep it ROOTED in the viewport, hidden by parking its slots off-screen.
+-- A detached (RemoveFromParent) widget is un-rooted, so the GC reclaims it and the loop must rebuild it.
+-- That rebuild does a world-wide FindAllOf, which can land mid-stream and crash. Staying in the viewport
+-- keeps the handle valid, so readoutBuild is a true no-op after the first build.
+local function ensureReadout()
+    local h = rawget(_G, ReadoutKey)
+    if h and isValid(h.widget) and h.l1 and h.shape == READOUT_SHAPE then return h end
+    if h and isValid(h.widget) then pcall(function() h.widget:RemoveFromParent() end) end
+    h = buildReadout()
+    if not h then return nil end
+    layoutReadout(h, OFFSCREEN, OFFSCREEN, 200, 88) -- park before showing so fresh slots never flash at the origin
+    pcall(function() h.widget:SetVisibility(3) end) -- HitTestInvisible (once): never eats the map cursor
+    pcall(function() h.widget:AddToViewport(120) end)
+    h.shown = false
+    rawset(_G, ReadoutKey, h)
+    return h
+end
+
+-- pre-build the panel during normal gameplay (the off-map poll calls this), so opening the map never
+-- constructs a widget mid-transition. No-op once built.
+function engine.readoutBuild()
+    return ensureReadout() ~= nil
 end
 
 local function setText(t, s) if t and isValid(t.tb) then local ft = toText(s or ""); if ft then pcall(function() t.tb:SetText(ft) end) end end end
@@ -607,20 +612,21 @@ function engine.readoutUpdate(header, line1, line2, line3, isRed, x, y)
     local ph = (line3 ~= nil and line3 ~= "") and 110 or 88
     local ox, oy = (x or 0) - pw, (y or 0)  -- the panel's top-right corner sits at the anchor
     if ox < 8 then ox = 8 end               -- never run off the left edge on a narrow map
-    if h.lastX ~= ox or h.lastY ~= oy or h.lastW ~= pw or h.lastH ~= ph then
+    -- re-layout when first shown after a hide (slots parked off-screen) or when the anchor/size changed
+    if not h.shown or h.lastX ~= ox or h.lastY ~= oy or h.lastW ~= pw or h.lastH ~= ph then
         layoutReadout(h, ox, oy, pw, ph)
         h.lastX, h.lastY, h.lastW, h.lastH = ox, oy, pw, ph
     end
-    if not h.shown then pcall(function() h.widget:AddToViewport(120) end); h.shown = true end -- show last
+    h.shown = true
     return true
 end
 
--- hide the panel by DETACHING it (RemoveFromParent), the menu's hide path -- it actually removes the
--- window, and re-showing is a plain AddToViewport with no rebuild. Idempotent and cheap.
+-- hide by parking the panel off-screen, never detaching it: the widget stays in the viewport (rooted),
+-- so the GC cannot reclaim it and the loop never rebuilds it (a rebuild is a world-wide FindAllOf).
 function engine.readoutHide()
     local h = rawget(_G, ReadoutKey)
     if h and h.shown and isValid(h.widget) then
-        if not pcall(function() h.widget:RemoveFromParent() end) then pcall(function() h.widget:RemoveFromViewport() end) end
+        layoutReadout(h, OFFSCREEN, OFFSCREEN, h.lastW or 200, h.lastH or 88)
         h.shown = false
     end
 end
