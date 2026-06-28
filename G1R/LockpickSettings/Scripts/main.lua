@@ -11,7 +11,7 @@ local rawget, rawset, debug = rawget, rawset, debug
 local setmetatable = setmetatable
 local math, table, string, os = math, table, string, os
 
-local ModVersion = "4.1.0"
+local ModVersion = "4.1.1"
 
 -- vendored kit lives at <Mod>/shared/, not on UE4SS's search path; add it from this
 -- file's own location. ModDir = the mod folder (parent of Scripts/).

@@ -56,6 +56,23 @@ local function slotInto(canvas, child)
     return slot
 end
 
+local function place(slot, x, y, w, hh)
+    if slot then E.try(function() slot:SetPosition({ X = x, Y = y }); slot:SetSize({ X = w, Y = hh }) end) end
+end
+
+-- Hide a row the proven way. A freshly built Border defaults to a sized canvas slot at the origin, and
+-- SetVisibility(Collapsed) does NOT reliably keep it hidden on this build, so an unused row would leak
+-- as a black rectangle in the top-left. Parking the slots off-screen is the hide that always takes (the
+-- reflow drives placement by position). show() repositions and reveals the row again.
+local function hideRow(r)
+    E.try(function() r.outer:SetVisibility(1) end)
+    E.try(function() r.inner:SetVisibility(1) end)
+    E.try(function() r.tb:SetVisibility(1) end)
+    place(r.outerSlot, -9999, -9999, 1, 1)
+    place(r.innerSlot, -9999, -9999, 1, 1)
+    place(r.tbSlot, -9999, -9999, 1, 1)
+end
+
 -- build the container widget + the fixed row pool ONCE
 local function build()
     local pc = getController and getController()
@@ -86,11 +103,9 @@ local function build()
         local innerSlot = slotInto(canvas, inner)
         local tbSlot    = slotInto(canvas, tb)
         E.try(function() tbSlot:SetAutoSize(true) end) -- the text slot hugs the text; we center by position
-        E.try(function() outer:SetVisibility(1) end) -- Collapsed until used
-        E.try(function() inner:SetVisibility(1) end)
-        E.try(function() tb:SetVisibility(1) end)
         rows[i] = { outer = outer, inner = inner, tb = tb,
                     outerSlot = outerSlot, innerSlot = innerSlot, tbSlot = tbSlot, busy = false }
+        hideRow(rows[i]) -- park off-screen so an unused row never leaks at the canvas origin
     end
     E.try(function() widget:SetVisibility(3) end) -- HitTestInvisible: render, never eat clicks
     E.try(function() widget:AddToViewport(110) end)
@@ -108,10 +123,6 @@ end
 
 -- pre-build the widget during stable gameplay so the first message never constructs mid-transition.
 function snackbar.prebuild() return ui() ~= nil end
-
-local function place(slot, x, y, w, hh)
-    if slot then E.try(function() slot:SetPosition({ X = x, Y = y }); slot:SetSize({ X = w, Y = hh }) end) end
-end
 
 -- estimated text width, plus a box width that hugs it with even padding (so the box is centered on
 -- screen and the text, parked at the same center, looks centered without relying on justification).
@@ -148,17 +159,9 @@ end
 
 local function release(h, e)
     e.row.busy = false
-    -- SetVisibility(Collapsed) hides the Border here but NOT the TextBlock, and the reflow never
-    -- repositions a dismissed row, so the surest hide is to park both slots off-screen (slot
-    -- positioning is what the reflow uses and it works) and clear the text. show() restores them.
-    E.try(function() e.row.outer:SetVisibility(1) end)
-    E.try(function() e.row.inner:SetVisibility(1) end)
-    E.try(function() e.row.tb:SetVisibility(1) end)
     local empty = toText("")
     if empty then E.try(function() e.row.tb:SetText(empty) end) end
-    place(e.row.outerSlot, -9999, -9999, 1, 1)
-    place(e.row.innerSlot, -9999, -9999, 1, 1)
-    place(e.row.tbSlot, -9999, -9999, 1, 1)
+    hideRow(e.row)
 end
 
 -- show a transient message. opts.kind = "info" | "reward" | "cost" | "warn", opts.ms = lifetime in ms.
